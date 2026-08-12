@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS CORE | SECURITY OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'JetBrains Mono', monospace; background-color: #0a0a0a; }
+        .terminal-glow { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+        .scanline { animation: scan 8s linear infinite; }
+        @keyframes scan { from { transform: translateY(-100%); } to { transform: translateY(100%); } }
+    </style>
+</head>
+<body class="text-emerald-500 p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="border-b border-emerald-900 pb-4 mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold tracking-widest text-emerald-400">AEGIS_CORE v1.0 [AUTHORIZED]</h1>
+            <p class="text-xs text-emerald-700">ETHICAL FRAMEWORK ENABLED // NO UNAUTHORIZED ACCESS</p>
+        </div>
+        <div id="status" class="px-3 py-1 border border-emerald-800 rounded text-xs bg-emerald-950">
+            SYSTEM: ONLINE | SECURITY: ACTIVE
+        </div>
+    </header>
+
+    <!-- Dashboard Grid -->
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Sidebar Metrics -->
+        <section class="space-y-4">
+            <div class="p-4 border border-emerald-900 bg-black/50">
+                <h2 class="text-sm uppercase mb-2 text-gray-400">System Integrity</h2>
+                <div class="h-2 bg-emerald-950 w-full"><div class="h-2 bg-emerald-500 w-[98%]"></div></div>
+                <p class="text-xs mt-2">All sectors nominal.</p>
+            </div>
+            <div class="p-4 border border-emerald-900 bg-black/50">
+                <h2 class="text-sm uppercase mb-2 text-gray-400">AI Logic Core</h2>
+                <p id="ai-status" class="text-xs text-emerald-400">Gemini-Flash-1.5: Ready.</p>
+            </div>
+        </section>
+
+        <!-- Main Terminal -->
+        <section class="lg:col-span-2">
+            <div id="terminal" class="h-[400px] bg-black border border-emerald-900 p-4 overflow-y-auto mb-4 terminal-glow">
+                <div class="text-emerald-400 font-bold mb-4">>> Awaiting command...</div>
+            </div>
+            <div class="flex gap-2">
+                <input id="input" type="text" placeholder="root@aegis:~# " class="flex-1 bg-black border border-emerald-900 p-2 text-emerald-400 focus:outline-none focus:border-emerald-500">
+                <button onclick="sendCommand()" class="bg-emerald-900 hover:bg-emerald-800 px-6 border border-emerald-500">EXECUTE</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // CONFIGURACIÓN (REEMPLAZA ESTO)
+        const API_KEY = "TU_API_KEY_AQUI"; 
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const terminal = document.getElementById('terminal');
+
+        function log(msg, type = 'system') {
+            const entry = document.createElement('div');
+            entry.className = type === 'user' ? 'text-white mb-2' : 'text-emerald-500 mb-2';
+            entry.innerHTML = type === 'user' ? `> User: ${msg}` : `>> Aegis: ${msg}`;
+            terminal.appendChild(entry);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function sendCommand() {
+            const input = document.getElementById('input');
+            const cmd = input.value;
+            if(!cmd) return;
+
+            log(cmd, 'user');
+            input.value = '';
+
+            try {
+                const result = await model.generateContent(cmd);
+                log(await result.response.text());
+            } catch (e) {
+                log("ERROR: AI Core unreachable. Check API Key.", 'system');
+            }
+        }
+
+        // Enter key support
+        document.getElementById('input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendCommand();
+        });
+    </script>
+</body>
+</html>
