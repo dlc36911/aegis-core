@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS CORE | AI Affiliate & Third-Party Reference Nexus</title>
+    
+    <!-- SEO & Open Graph Meta Tags -->
+    <meta name="description" content="Centro de Comando Autónomo para gestión y optimización de afiliados y referencias de terceros impulsado por IA.">
+    <meta property="og:title" content="AEGIS CORE | AI Affiliate Nexus">
+    <meta property="og:description" content="Panel de control analítico y automatización programática de comisiones y tráfico.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#030712">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        deepBg: '#030712',
+                        panel: '#0f172a',
+                        meli: '#fde047',
+                        gemini: '#a855f7',
+                        affiliate: '#06b6d4'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #030712; color: #e2e8f0; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .gemini-glow {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.15), inset 0 0 20px rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .cursor-blink { animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden selection:bg-gemini selection:text-white">
+
+    <!-- SIDEBAR -->
+    <aside class="w-20 lg:w-64 glass-panel flex flex-col justify-between transition-all duration-300 z-20 relative">
+        <div>
+            <!-- Branding -->
+            <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-800">
+                <div class="w-10 h-10 rounded bg-gradient-to-br from-gemini to-cyan-500 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                </div>
+                <div class="hidden lg:block ml-3">
+                    <h1 class="text-sm font-bold tracking-widest text-white">AEGIS<span class="text-affiliate">AFFILIATE</span></h1>
+                    <p class="text-[9px] uppercase tracking-widest text-slate-400">Programador Root / Inacap</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="mt-6 space-y-2 px-2 lg:px-4">
+                <a href="#" class="flex items-center p-3 bg-slate-800/50 text-white rounded-lg border border-slate-700" aria-label="Dashboard Central">
+                    <svg class="w-5 h-5 lg:mr-3 text-gemini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span class="hidden lg:block text-sm font-medium">Dashboard Central</span>
+                </a>
+                <a href="#" class="flex items-center p-3 text-slate-400 hover:text-white hover:bg-slate-800/30 rounded-lg transition" aria-label="Mercado Libre Afiliados">
+                    <svg class="w-5 h-5 lg:mr-3 text-meli" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <span class="hidden lg:block text-sm font-medium">Mercado Libre (Afiliados)</span>
+                </a>
+                <a href="#" class="flex items-center p-3 text-slate-400 hover:text-white hover:bg-slate-800/30 rounded-lg transition" aria-label="Red de Referidos Externos">
+                    <svg class="w-5 h-5 lg:mr-3 text-affiliate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    <span class="hidden lg:block text-sm font-medium">Red de Referidos Externos</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Compliance & Legal Status -->
+        <div class="p-4 border-t border-slate-800 bg-slate-900/50">
+            <div class="flex items-center">
+                <div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse mr-2"></div>
+                <span class="hidden lg:block text-xs font-mono text-slate-400">Autonomía: <span class="text-cyan-300">100% Programática</span></span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative">
+        
+        <!-- Header Top -->
+        <header class="h-20 glass-panel px-8 flex items-center justify-between sticky top-0 z-10 border-b-0">
+            <div>
+                <h2 class="text-xl font-bold text-white">Centro de Comando de Enlaces y Referidos Autónomos</h2>
+                <div class="flex items-center mt-1 space-x-3">
+                    <span class="text-xs bg-affiliate/10 text-affiliate px-2 py-0.5 rounded font-mono border border-affiliate/20">AFFILIATE API: TRACKING ACTIVE</span>
+                    <span class="text-xs bg-gemini/10 text-gemini px-2 py-0.5 rounded font-mono border border-gemini/20">GEMINI LLM: OPTIMIZING CTAs</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Control de Simulador & Exportación -->
+                <div class="hidden md:flex items-center space-x-2 bg-slate-900/80 p-1.5 rounded-lg border border-slate-800 font-mono text-xs">
+                    <button id="btn-toggle-sim" onclick="toggleSimulator()" class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/30 transition border border-emerald-500/40">Simulador: ON</button>
+                    <button onclick="exportDataReport()" class="px-3 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700 transition">Exportar JSON</button>
+                    <button onclick="resetLocalStorage()" class="px-2 py-1 bg-rose-500/10 text-rose-400 rounded hover:bg-rose-500/20 transition" title="Reiniciar Datos">Reset</button>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-400 uppercase tracking-widest">Motor de Capitalización</p>
+                    <p class="text-lg font-mono font-bold text-white">70/30 <span class="text-gemini">REINVEST_SPLIT</span></p>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-6">
+            
+            <!-- KPIs GLOBALES DE AFILIACIÓN -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Total Global Comisiones -->
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-l-white">
+                    <p class="text-xs text-slate-400 font-mono uppercase mb-1">Comisiones Totales (GMV Ref)</p>
+                    <h3 class="text-3xl font-mono font-bold text-white" id="kpi-total">$0</h3>
+                </div>
+                <!-- Mercado Libre Afiliados -->
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-l-meli">
+                    <p class="text-xs text-slate-400 font-mono uppercase mb-1">Meli Afiliados</p>
+                    <h3 class="text-2xl font-mono font-bold text-meli" id="kpi-meli">$0</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">Clicks & Conversiones de Link</p>
+                </div>
+                <!-- Terceros / Red Externa de Referencia -->
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-l-affiliate">
+                    <p class="text-xs text-slate-400 font-mono uppercase mb-1">Red Afiliados Terceros</p>
+                    <h3 class="text-2xl font-mono font-bold text-affiliate" id="kpi-third">$0</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">CPAs, SaaS & Redes Externas</p>
+                </div>
+                <!-- Fondo Personal (30%) -->
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-l-emerald-500 bg-emerald-900/10">
+                    <p class="text-xs text-emerald-400 font-mono uppercase mb-1">Liquidez Disponible (30%)</p>
+                    <h3 class="text-2xl font-mono font-bold text-emerald-400" id="kpi-30">$0</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">Retiro personal / Libre</p>
+                </div>
+            </div>
+
+            <!-- NUCLEO GEMINI & TRAFFIC FEED -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Columna Izquierda: GEMINI AI AGENT -->
+                <div class="lg:col-span-2 gemini-glow glass-panel rounded-xl flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                        <svg class="w-32 h-32 text-gemini" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2ZM4.5 4.5L5.4 6.6L7.5 7.5L5.4 8.4L4.5 10.5L3.6 8.4L1.5 7.5L3.6 6.6L4.5 4.5Z"></path></svg>
+                    </div>
+                    
+                    <div class="px-6 py-4 border-b border-gemini/20 flex justify-between items-center bg-gemini/5">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-gemini animate-pulse mr-3"></div>
+                            <h3 class="text-sm font-bold text-white tracking-widest uppercase">Inferencia Gemini 1.5 Pro - Optimización de Tráfico y Enlaces</h3>
+                        </div>
+                        <span class="text-xs font-mono text-gemini bg-gemini/10 px-2 py-1 rounded">ANÁLISIS DE CTR & CONVERSIÓN</span>
+                    </div>
+                    
+                    <div class="flex-1 p-6 font-mono text-sm overflow-y-auto" id="gemini-console" style="max-height: 350px;">
+                        <div class="text-slate-400 mb-2">> Inicializando núcleo de enlaces de referencia...</div>
+                        <div class="text-gemini mb-4">> [GEMINI]: Monitoreando impresiones de afiliados, optimizando anchors y redirigiendo tráfico de alta conversión.</div>
+                    </div>
+
+                    <div class="p-4 border-t border-gemini/20 bg-deepBg/50 flex">
+                        <span class="text-gemini mr-2">></span>
+                        <input type="text" readonly value="Esperando pings de clics y conversiones de referidos..." class="bg-transparent border-none outline-none text-slate-500 w-full font-mono text-xs cursor-not-allowed">
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: CLICK & CONVERSION FEED -->
+                <div class="glass-panel rounded-xl flex flex-col">
+                    <div class="px-5 py-4 border-b border-slate-800 flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-white uppercase">Live Referral Feed</h3>
+                        <span class="flex h-2 w-2 relative">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-affiliate opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-affiliate"></span>
+                        </span>
+                    </div>
+                    <div class="flex-1 p-4 font-mono text-[11px] overflow-y-auto space-y-3" id="webhook-feed" style="max-height: 350px;">
+                        <!-- Live events go here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRAFICAS Y REINVERSIÓN -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Gráfico Comparativo con Filtros Temporales -->
+                <div class="glass-panel p-6 rounded-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-white uppercase">Comisiones Meli vs Terceros</h3>
+                        <div class="flex space-x-1 font-mono text-xs bg-slate-900 p-1 rounded border border-slate-800">
+                            <button onclick="changeTimeframe('24h')" id="tf-24h" class="px-2.5 py-1 text-slate-400 hover:text-white transition rounded">24H</button>
+                            <button onclick="changeTimeframe('7d')" id="tf-7d" class="px-2.5 py-1 bg-slate-800 text-white rounded transition">7D</button>
+                            <button onclick="changeTimeframe('30d')" id="tf-30d" class="px-2.5 py-1 text-slate-400 hover:text-white transition rounded">30D</button>
+                        </div>
+                    </div>
+                    <div class="h-64 flex-1">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Resumen de Asignación del 70% -->
+                <div class="glass-panel p-6 rounded-xl flex flex-col">
+                    <h3 class="text-sm font-bold text-white uppercase mb-4">Capital de Reinversión de Afiliados (70%)</h3>
+                    <div class="flex-1 flex flex-col justify-center">
+                        <h2 class="text-4xl font-mono font-bold text-white text-center mb-6" id="kpi-70">$0</h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-1">
+                                    <span class="text-slate-400">Tráfico Pago / Tráfico Orgánico (Ads)</span>
+                                    <span class="text-meli">40%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                    <div class="bg-meli h-1.5 rounded-full" style="width: 40%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-1">
+                                    <span class="text-slate-400">Automatización de Landing Pages & Contenido</span>
+                                    <span class="text-affiliate">45%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                    <div class="bg-affiliate h-1.5 rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-1">
+                                    <span class="text-slate-400">Reserva Contingencia de Tráfico</span>
+                                    <span class="text-gemini">15%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                    <div class="bg-gemini h-1.5 rounded-full" style="width: 15%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- LOGICA JS DE AFILIACIÓN Y IA ROBUSTA       -->
+    <!-- ========================================== -->
+    <script>
+        const STORAGE_KEY = 'aegis_affiliate_state_v2';
+        const formatMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+        const getTime = () => new Date().toLocaleTimeString('es-ES', { hour12: false });
+
+        // Estado inicial por defecto o cargado desde localStorage
+        const state = {
+            meliTotal: 12400,
+            thirdTotal: 14800,
+            get total() { return this.meliTotal + this.thirdTotal; },
+            simActive: true
+        };
+
+        function saveStateToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    meliTotal: state.meliTotal,
+                    thirdTotal: state.thirdTotal
+                }));
+            } catch (e) {
+                console.error("Error guardando en localStorage:", e);
+            }
+        }
+
+        function loadStateFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (typeof parsed.meliTotal === 'number') state.meliTotal = parsed.meliTotal;
+                    if (typeof parsed.thirdTotal === 'number') state.thirdTotal = parsed.thirdTotal;
+                }
+            } catch (e) {
+                console.error("Error cargando localStorage:", e);
+            }
+        }
+
+        function resetLocalStorage() {
+            if (confirm('¿Deseas reiniciar los contadores de comisiones a los valores por defecto?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                state.meliTotal = 12400;
+                state.thirdTotal = 14800;
+                updateUI();
+                GeminiAgent.log('[SISTEMA]: Contadores restablecidos por comando root.', 'alert');
+            }
+        }
+
+        const ui = {
+            total: document.getElementById('kpi-total'),
+            meli: document.getElementById('kpi-meli'),
+            third: document.getElementById('kpi-third'),
+            p70: document.getElementById('kpi-70'),
+            p30: document.getElementById('kpi-30'),
+            feed: document.getElementById('webhook-feed'),
+            gemini: document.getElementById('gemini-console'),
+            simToggle: document.getElementById('btn-toggle-sim')
+        };
+
+        function updateUI() {
+            const total = state.total;
+            ui.total.innerText = formatMoney(total);
+            ui.meli.innerText = formatMoney(state.meliTotal);
+            ui.third.innerText = formatMoney(state.thirdTotal);
+            
+            ui.p70.innerText = formatMoney(total * 0.70);
+            ui.p30.innerText = formatMoney(total * 0.30);
+            
+            if (chart && chart.data.datasets.length >= 2) {
+                const lastIdx = chart.data.datasets[0].data.length - 1;
+                chart.data.datasets[0].data[lastIdx] = state.meliTotal;
+                chart.data.datasets[1].data[lastIdx] = state.thirdTotal;
+                chart.update('none');
+            }
+            saveStateToLocalStorage();
+        }
+
+        class GeminiAgent {
+            static log(message, type = 'info') {
+                const colors = {
+                    info: 'text-slate-300',
+                    alert: 'text-meli',
+                    action: 'text-gemini font-bold',
+                    success: 'text-cyan-400'
+                };
+                
+                const html = `
+                    <div class="mb-3 opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
+                        <span class="text-slate-500">[${getTime()}]</span> 
+                        <span class="${colors[type]}">${message}</span>
+                    </div>
+                `;
+                ui.gemini.insertAdjacentHTML('beforeend', html);
+                ui.gemini.scrollTop = ui.gemini.scrollHeight;
+            }
+
+            static analyzeReferral(data) {
+                this.log(`Analizando conversión de referido ID: ${data.id} (${data.source})...`, 'info');
+                
+                setTimeout(() => {
+                    if (data.source === 'Meli_Afiliados') {
+                        if (data.amount > 80) {
+                            this.log(`[ALTA CONVERSIÓN]: Comisión Meli destacada ($${data.amount}). Tráfico optimizado con éxito.`, 'alert');
+                            this.log(`[ACCIÓN AUTÓNOMA]: Duplicar pauta programática en el segmento de este producto de afiliados.`, 'action');
+                        } else {
+                            this.log(`[TRACKING]: Conversión estándar de link Meli capturada ($${data.amount}).`, 'success');
+                        }
+                    } else {
+                        this.log(`[RED TERCEROS]: Comisión de red externa acreditada ($${data.amount}). Enlace CPA funcionando al 100%.`, 'info');
+                        this.log(`[ACCIÓN AUTÓNOMA]: Asignar 5% adicional de tráfico hacia este funnel de socios externos.`, 'action');
+                    }
+                }, 1200);
+            }
+        }
+
+        let simInterval = null;
+
+        class ReferralSimulator {
+            static pushEvent() {
+                if (!state.simActive) return;
+                const isMeli = Math.random() > 0.5;
+                const source = isMeli ? 'Meli_Afiliados' : 'Terceros_CPA';
+                const amount = parseFloat((Math.random() * (isMeli ? 120 : 200) + 15).toFixed(2));
+                const id = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+                if (isMeli) state.meliTotal += amount;
+                else state.thirdTotal += amount;
+                
+                updateUI();
+
+                const colorClass = isMeli ? 'text-meli' : 'text-affiliate';
+                const feedHtml = `
+                    <div class="p-2 bg-slate-800/40 rounded border border-slate-700/50">
+                        <div class="flex justify-between text-slate-500 mb-1">
+                            <span>[TRACK] /click/ref/${source.toLowerCase()}</span>
+                            <span>${getTime()}</span>
+                        </div>
+                        <div class="${colorClass}">
+                            { "ref_id": "${id}", "event": "commission_earned", "payout": ${amount}, "status": "verified" }
+                        </div>
+                    </div>
+                `;
+                ui.feed.insertAdjacentHTML('afterbegin', feedHtml);
+                if (ui.feed.children.length > 8) ui.feed.removeChild(ui.feed.lastChild);
+
+                GeminiAgent.analyzeReferral({ source, amount, id });
+            }
+
+            static start() {
+                if (simInterval) clearInterval(simInterval);
+                simInterval = setInterval(() => this.pushEvent(), Math.random() * 4000 + 5000);
+            }
+        }
+
+        function toggleSimulator() {
+            state.simActive = !state.simActive;
+            if (state.simActive) {
+                ui.simToggle.innerText = "Simulador: ON";
+                ui.simToggle.className = "px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/30 transition border border-emerald-500/40";
+                GeminiAgent.log("[SISTEMA]: Simulación de tráfico reactivada.", "success");
+            } else {
+                ui.simToggle.innerText = "Simulador: OFF";
+                ui.simToggle.className = "px-3 py-1 bg-rose-500/20 text-rose-400 rounded hover:bg-rose-500/30 transition border border-rose-500/40";
+                GeminiAgent.log("[SISTEMA]: Simulación de tráfico en pausa.", "alert");
+            }
+        }
+
+        function exportDataReport() {
+            const reportData = {
+                timestamp: new Date().toISOString(),
+                metrics: {
+                    meliTotal: state.meliTotal,
+                    thirdTotal: state.thirdTotal,
+                    totalGMV: state.total,
+                    liquidity70: state.total * 0.70,
+                    reserve30: state.total * 0.30
+                }
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `aegis_affiliate_report_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            GeminiAgent.log("[SISTEMA]: Reporte JSON exportado con éxito.", "success");
+        }
+
+        // Filtro Temporal de Gráficos
+        function changeTimeframe(tf) {
+            ['24h', '7d', '30d'].forEach(t => {
+                const btn = document.getElementById(`tf-${t}`);
+                if(t === tf) {
+                    btn.className = "px-2.5 py-1 bg-slate-800 text-white rounded transition";
+                } else {
+                    btn.className = "px-2.5 py-1 text-slate-400 hover:text-white transition rounded";
+                }
+            });
+
+            if (tf === '24h') {
+                chart.data.labels = ['04:00', '08:00', '12:00', '16:00', '20:00', 'Ahora'];
+                chart.data.datasets[0].data = [1200, 2400, 4100, 6800, 9500, state.meliTotal];
+                chart.data.datasets[1].data = [1500, 3100, 5400, 8200, 11000, state.thirdTotal];
+            } else if (tf === '7d') {
+                chart.data.labels = ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'Ayer', 'Hoy'];
+                chart.data.datasets[0].data = [9000, 10500, 9800, 11200, 11900, 12100, state.meliTotal];
+                chart.data.datasets[1].data = [11000, 12200, 11800, 13100, 14000, 14500, state.thirdTotal];
+            } else if (tf === '30d') {
+                chart.data.labels = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4 (Actual)'];
+                chart.data.datasets[0].data = [42000, 48500, 52100, state.meliTotal];
+                chart.data.datasets[1].data = [51000, 56000, 61200, state.thirdTotal];
+            }
+            chart.update();
+            GeminiAgent.log(`[ANÁLISIS]: Vista de gráfico cambiada al rango temporal: ${tf.toUpperCase()}`, "info");
+        }
+
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = "'JetBrains Mono', monospace";
+        
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'Ayer', 'Hoy'],
+                datasets: [
+                    {
+                        label: 'Meli Afiliados',
+                        data: [9000, 10500, 9800, 11200, 11900, 12100, state.meliTotal],
+                        backgroundColor: '#fde047',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Red Terceros (CPA/Afiliados)',
+                        data: [11000, 12200, 11800, 13100, 14000, 14500, state.thirdTotal],
+                        backgroundColor: '#06b6d4',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, grid: { color: '#1e293b' }, ticks: { callback: (val) => '$' + val/1000 + 'k' } }
+                },
+                plugins: {
+                    legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+                }
+            }
+        });
+
+        tailwind.config.theme.extend.keyframes = {
+            fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStateFromLocalStorage();
+            updateUI();
+            setTimeout(() => ReferralSimulator.start(), 2500);
+        });
+    </script>
+</body>
+</html>
