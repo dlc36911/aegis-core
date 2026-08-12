@@ -10,8 +10,6 @@
     <style>
         body { font-family: 'JetBrains Mono', monospace; background-color: #0a0a0a; }
         .terminal-glow { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
-        .scanline { animation: scan 8s linear infinite; }
-        @keyframes scan { from { transform: translateY(-100%); } to { transform: translateY(100%); } }
     </style>
 </head>
 <body class="text-emerald-500 p-4 md:p-8">
@@ -19,8 +17,8 @@
     <!-- Header -->
     <header class="border-b border-emerald-900 pb-4 mb-6 flex justify-between items-center">
         <div>
-            <h1 class="text-xl font-bold tracking-widest text-emerald-400">AEGIS_CORE v1.0 [AUTHORIZED]</h1>
-            <p class="text-xs text-emerald-700">ETHICAL FRAMEWORK ENABLED // NO UNAUTHORIZED ACCESS</p>
+            <h1 class="text-xl font-bold tracking-widest text-emerald-400">AEGIS_CORE v1.0 [SECURE CLIENT]</h1>
+            <p class="text-xs text-emerald-700">ETHICAL FRAMEWORK ENABLED // NO SECRETS EXPOSED</p>
         </div>
         <div id="status" class="px-3 py-1 border border-emerald-800 rounded text-xs bg-emerald-950">
             SYSTEM: ONLINE | SECURITY: ACTIVE
@@ -39,29 +37,53 @@
             </div>
             <div class="p-4 border border-emerald-900 bg-black/50">
                 <h2 class="text-sm uppercase mb-2 text-gray-400">AI Logic Core</h2>
-                <p id="ai-status" class="text-xs text-emerald-400">Gemini-Flash-1.5: Ready.</p>
+                <p id="ai-status" class="text-xs text-yellow-500">Status: Awaiting Key Configuration.</p>
+            </div>
+            <div class="p-4 border border-emerald-900 bg-black/50 text-xs text-gray-400">
+                <h2 class="text-sm uppercase mb-2 text-emerald-400">Security Manual</h2>
+                <p class="mb-1">Para conectar la IA de forma segura, escribe en la terminal:</p>
+                <code class="text-emerald-300 block bg-black p-1 mt-1">set-key TU_API_KEY</code>
             </div>
         </section>
 
         <!-- Main Terminal -->
         <section class="lg:col-span-2">
             <div id="terminal" class="h-[400px] bg-black border border-emerald-900 p-4 overflow-y-auto mb-4 terminal-glow">
-                <div class="text-emerald-400 font-bold mb-4">>> Awaiting command...</div>
+                <div class="text-emerald-400 font-bold mb-4">>> AEGIS_CORE inicializado. Escribe comandos o introduce tu API key.</div>
             </div>
             <div class="flex gap-2">
                 <input id="input" type="text" placeholder="root@aegis:~# " class="flex-1 bg-black border border-emerald-900 p-2 text-emerald-400 focus:outline-none focus:border-emerald-500">
-                <button onclick="sendCommand()" class="bg-emerald-900 hover:bg-emerald-800 px-6 border border-emerald-500">EXECUTE</button>
+                <button onclick="sendCommand()" class="bg-emerald-900 hover:bg-emerald-800 px-6 border border-emerald-500 text-xs">EXECUTE</button>
             </div>
         </section>
     </main>
 
     <script>
-        // CONFIGURACIÓN (REEMPLAZA ESTO)
-        const API_KEY = "TU_API_KEY_AQUI"; 
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        let API_KEY = localStorage.getItem('AEGIS_API_KEY') || '';
+        let genAI = null;
+        let model = null;
 
         const terminal = document.getElementById('terminal');
+        const aiStatus = document.getElementById('ai-status');
+
+        function initAI() {
+            if (API_KEY) {
+                try {
+                    genAI = new GoogleGenerativeAI(API_KEY);
+                    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                    aiStatus.className = "text-xs text-emerald-400";
+                    aiStatus.innerText = "Gemini-Flash-1.5: Active & Connected.";
+                } catch (e) {
+                    aiStatus.className = "text-xs text-red-500";
+                    aiStatus.innerText = "Gemini-Flash-1.5: Invalid Key Structure.";
+                }
+            } else {
+                aiStatus.className = "text-xs text-yellow-500";
+                aiStatus.innerText = "Gemini-Flash-1.5: Key Missing (Use set-key)";
+            }
+        }
+
+        initAI();
 
         function log(msg, type = 'system') {
             const entry = document.createElement('div');
@@ -73,21 +95,43 @@
 
         async function sendCommand() {
             const input = document.getElementById('input');
-            const cmd = input.value;
+            const cmd = input.value.trim();
             if(!cmd) return;
 
             log(cmd, 'user');
             input.value = '';
 
+            // Comando local de configuración de API Key
+            if (cmd.startsWith('set-key ')) {
+                const newKey = cmd.replace('set-key ', '').trim();
+                localStorage.setItem('AEGIS_API_KEY', newKey);
+                API_KEY = newKey;
+                initAI();
+                log("SYSTEM: API Key guardada de forma segura en tu navegador (localStorage).", 'system');
+                return;
+            }
+
+            if (cmd === 'clear-key') {
+                localStorage.removeItem('AEGIS_API_KEY');
+                API_KEY = '';
+                initAI();
+                log("SYSTEM: API Key eliminada de este navegador.", 'system');
+                return;
+            }
+
+            if (!model) {
+                log("ERROR: Core inactivo. Configura tu llave primero escribiendo: set-key TU_API_KEY", 'system');
+                return;
+            }
+
             try {
                 const result = await model.generateContent(cmd);
                 log(await result.response.text());
             } catch (e) {
-                log("ERROR: AI Core unreachable. Check API Key.", 'system');
+                log("ERROR: Fallo en la comunicación con el modelo. Verifica tu API Key.", 'system');
             }
         }
 
-        // Enter key support
         document.getElementById('input').addEventListener('keypress', (e) => {
             if(e.key === 'Enter') sendCommand();
         });
