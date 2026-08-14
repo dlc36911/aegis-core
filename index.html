@@ -70,7 +70,10 @@
             if (API_KEY) {
                 try {
                     genAI = new GoogleGenerativeAI(API_KEY);
-                    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                   model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    systemInstruction: "Eres AEGIS_CORE, un sistema operativo de ciberseguridad avanzado y ético. Responde siempre de forma técnica, analítica, directa y con tono de consola de comandos."
+});
                     aiStatus.className = "text-xs text-emerald-400";
                     aiStatus.innerText = "Gemini-Flash-1.5: Active & Connected.";
                 } catch (e) {
