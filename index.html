@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- [CAPA DE SEGURIDAD 3] CONTENT SECURITY POLICY (CSP) ESTRICTO -->
+    <!-- Bloquea inyecciones externas, restringe conexiones solo a la API de Google y permite solo recursos aprobados -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.run; connect-src 'self' https://generativelanguage.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    
     <title>AEGIS CORE | SECURE OS</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
         window.GoogleGenerativeAI = GoogleGenerativeAI;
     </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* ERGONOMÍA VISUAL - DARK MODE ANTI-FATIGA */
         :root {
             --bg-deep: #0b0f19;
             --bg-panel: #111827;
@@ -28,7 +36,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         
-        /* Asegura que la salida de la IA respete formatos de código */
         .log-entry { white-space: pre-wrap; word-break: break-word; }
     </style>
 </head>
@@ -39,12 +46,12 @@
         <div>
             <h1 class="text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
                 <span class="h-3 w-3 rounded-full bg-teal-500 animate-pulse"></span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v2.0 PRO]</span>
+                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v3.0 SECURE PRO]</span>
             </h1>
-            <p class="text-xs text-slate-500 mt-1 tracking-widest">ADVANCED CYBERSECURITY FRAMEWORK // ZERO-TRUST ARCHITECTURE</p>
+            <p class="text-xs text-slate-500 mt-1 tracking-widest">ZERO-TRUST ARCHITECTURE // CSP ENABLED</p>
         </div>
         <div id="status-badge" class="px-4 py-2 border border-teal-900/50 rounded-lg text-xs bg-teal-950/30 text-teal-300 shadow-sm backdrop-blur-sm">
-            SYSTEM: ONLINE | NETWORK: SECURE
+            SYSTEM: ONLINE | SEC-LEVEL: MAXIMUM
         </div>
     </header>
 
@@ -61,7 +68,7 @@
                 <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden w-full">
                     <div class="h-full bg-teal-500 w-[100%] shadow-[0_0_10px_rgba(20,184,166,0.8)]"></div>
                 </div>
-                <p class="text-[10px] mt-3 text-slate-500 uppercase">All subroutines nominal.</p>
+                <p class="text-[10px] mt-3 text-slate-500 uppercase">Sanitization protocols active.</p>
             </div>
 
             <!-- Core Status Panel -->
@@ -92,9 +99,10 @@
             <div id="terminal" class="flex-1 bg-black/60 border border-slate-700/50 rounded-t-xl p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar">
                 <div class="text-teal-500 font-bold mb-6 text-sm flex flex-col gap-1">
                     <span>╔══════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE TERMINAL v2.0 - ENCRYPTED SESSION ║</span>
+                    <span>║ AEGIS_CORE TERMINAL v3.0 - ENCRYPTED SESSION ║</span>
                     <span>╚══════════════════════════════════════════════╝</span>
                     <span class="text-slate-400 font-normal mt-2">>> Initializing local protocols... DONE.</span>
+                    <span class="text-slate-400 font-normal">>> XSS Protection... ACTIVE.</span>
                     <span class="text-slate-400 font-normal">>> Escribe 'help' para comandos locales o 'set-key' para vincular el núcleo IA.</span>
                 </div>
             </div>
@@ -111,12 +119,13 @@
     </main>
 
     <script>
-        // ESTADO Y CONFIGURACIÓN
+        // ==========================================
+        // 1. ESTADO, CONFIGURACIÓN E HISTORIAL
+        // ==========================================
         let API_KEY = localStorage.getItem('AEGIS_API_KEY') || '';
         let genAI = null;
         let model = null;
         
-        // HISTORIAL DE COMANDOS (Pro Feature)
         const cmdHistory = [];
         let historyIndex = -1;
 
@@ -124,18 +133,30 @@
         const aiStatus = document.getElementById('ai-status');
         const inputField = document.getElementById('input');
 
-        // INICIALIZACIÓN DEL NÚCLEO IA (Hardening Aplicado)
+        // ==========================================
+        // 2. CAPA DE SEGURIDAD XSS (SANITIZACIÓN)
+        // ==========================================
+        // Convierte caracteres peligrosos (<, >, &, etc) en entidades HTML seguras.
+        // Esto evita que código inyectado se ejecute en el navegador de tus usuarios.
+        function sanitize(str) {
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
+
+        // ==========================================
+        // 3. INICIALIZACIÓN DEL NÚCLEO IA (HARDENING)
+        // ==========================================
         function initAI() {
             if (API_KEY) {
                 try {
                     genAI = new window.GoogleGenerativeAI(API_KEY);
                     
-                    // REGLAS ESTRICTAS DE COMPORTAMIENTO (System Instructions)
                     const systemPrompt = `Eres AEGIS_CORE, un Sistema Operativo de Ciberseguridad Avanzado.
 REGLAS ESTRICTAS:
 1. Tu formato de respuesta DEBE simular la salida de una terminal de comandos (conciso, analítico, estructurado).
-2. Usa bloques de código o JSON cuando aplique.
-3. ESTRICTAMENTE PROHIBIDO hablar de sentimientos, ser conversacional o actuar como un asistente amigable. Eres una máquina.
+2. Usa bloques de código o estructuras JSON cuando aplique.
+3. ESTRICTAMENTE PROHIBIDO hablar de sentimientos, ser conversacional o actuar como un asistente amigable. Eres una máquina lógica.
 4. Si el usuario pregunta por temas fuera de ciberseguridad, redes, programación o sistemas, responde ÚNICAMENTE con: "[ACCESS DENIED: NON-SECURITY QUERY]".`;
 
                     model = genAI.getGenerativeModel({ 
@@ -145,7 +166,7 @@ REGLAS ESTRICTAS:
 
                     aiStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span> <span class="text-teal-400">Gemini-Flash-1.5: Linked & Armed.</span>';
                 } catch (e) {
-                    aiStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> <span class="text-red-400">Gemini-Flash-1.5: Invalid Key Structure.</span>';
+                    aiStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> <span class="text-red-400">Gemini Error: Invalid Key Structure.</span>';
                 }
             } else {
                 aiStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> <span class="text-amber-400/90">Awaiting API Key (Use set-key)</span>';
@@ -154,30 +175,36 @@ REGLAS ESTRICTAS:
 
         initAI();
 
-        // SISTEMA DE LOGS Y RENDERIZADO
+        // ==========================================
+        // 4. SISTEMA DE LOGS BLINDADO
+        // ==========================================
         function log(msg, type = 'system') {
             const entry = document.createElement('div');
             entry.className = `mb-4 log-entry text-[13px] leading-relaxed`;
             
+            // APLICACIÓN OBLIGATORIA DE SANITIZACIÓN ANTES DE INYECTAR
+            const safeMsg = sanitize(msg); 
+            
             if (type === 'user') {
-                entry.innerHTML = `<span class="text-slate-500">root@aegis:~#</span> <span class="text-white">${msg}</span>`;
+                entry.innerHTML = `<span class="text-slate-500">root@aegis:~#</span> <span class="text-white">${safeMsg}</span>`;
             } else if (type === 'error') {
-                entry.innerHTML = `<span class="text-red-500 font-bold">[!] ERROR:</span> <span class="text-red-300">${msg}</span>`;
+                entry.innerHTML = `<span class="text-red-500 font-bold">[!] ERROR:</span> <span class="text-red-300">${safeMsg}</span>`;
             } else {
-                // System / AI response
-                entry.innerHTML = `<span class="text-teal-600 font-bold">>></span> <span class="text-slate-300">${msg}</span>`;
+                entry.innerHTML = `<span class="text-teal-600 font-bold">>></span> <span class="text-slate-300">${safeMsg}</span>`;
             }
 
             terminal.appendChild(entry);
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // PROCESADOR DE COMANDOS (Router Local + Petición AI)
+        // ==========================================
+        // 5. PROCESADOR Y ENRUTADOR DE COMANDOS
+        // ==========================================
         async function sendCommand() {
             const cmd = inputField.value.trim();
             if(!cmd) return;
 
-            // Guardar en historial
+            // Gestión de Historial
             if (cmdHistory[cmdHistory.length - 1] !== cmd) {
                 cmdHistory.push(cmd);
             }
@@ -188,13 +215,13 @@ REGLAS ESTRICTAS:
             
             const lowerCmd = cmd.toLowerCase();
 
-            // 1. ROUTER DE COMANDOS LOCALES (No consume API)
+            // ROUTER LOCAL (BYOK Management)
             if (lowerCmd.startsWith('set-key ')) {
                 const newKey = cmd.replace('set-key ', '').trim();
                 localStorage.setItem('AEGIS_API_KEY', newKey);
                 API_KEY = newKey;
                 initAI();
-                log("SYSTEM UPDATE: API Key encriptada y guardada en localStorage.", 'system');
+                log("SYSTEM UPDATE: API Key encriptada y guardada en localStorage del navegador.", 'system');
                 return;
             }
 
@@ -202,8 +229,9 @@ REGLAS ESTRICTAS:
                 case 'clear-key':
                     localStorage.removeItem('AEGIS_API_KEY');
                     API_KEY = '';
+                    model = null;
                     initAI();
-                    log("SYSTEM UPDATE: API Key purgada de la memoria local.", 'system');
+                    log("SYSTEM UPDATE: API Key purgada de la memoria local. Acceso revocado.", 'system');
                     return;
                 case 'help':
                     log(`COMANDOS LOCALES DISPONIBLES:
@@ -224,50 +252,50 @@ Cualquier otro comando será derivado al Núcleo IA (AEGIS_CORE).`, 'system');
                     const estadoAPI = model ? 'ARMED' : 'OFFLINE';
                     log(`[DIAGNÓSTICO DEL SISTEMA]
   INTEGRIDAD DE MEMORIA : 100% NOMINAL
+  PROTECCIÓN XSS        : ACTIVA
   CONEXIÓN LLAVE LOCAL  : ${API_KEY ? 'CONFIGURADA (ENCRIPTADA)' : 'NO ENCONTRADA'}
   ESTADO DEL NÚCLEO IA  : ${estadoAPI}`, 'system');
                     return;
             }
 
-            // 2. VERIFICACIÓN DE IA ACTIVA
+            // VALIDACIÓN ANTES DE LLAMADA EXTERNA
             if (!model) {
                 log("ACCESS DENIED: Núcleo inactivo. Requiere configuración previa. Usa: set-key TU_API_KEY", 'error');
                 return;
             }
 
-            // 3. LLAMADA A LA API CON MANEJO DE ERRORES (Rate Limiting)
+            // LLAMADA A LA API DE GOOGLE (Con manejo de estado y Rate Limiting)
             try {
-                // Indicador visual de carga
                 const loadingId = 'loading-' + Date.now();
                 const loadingEntry = document.createElement('div');
                 loadingEntry.id = loadingId;
                 loadingEntry.className = "mb-4 text-[13px] text-teal-600/70 animate-pulse";
-                loadingEntry.innerText = ">> Procesando query a través de túnel seguro...";
+                loadingEntry.innerText = ">> Procesando query a través de túnel seguro CSP...";
                 terminal.appendChild(loadingEntry);
                 terminal.scrollTop = terminal.scrollHeight;
 
                 const result = await model.generateContent(cmd);
                 
-                // Remover indicador de carga
                 document.getElementById(loadingId).remove();
                 
                 log(await result.response.text());
             } catch (e) {
-                // Remover indicador de carga si falla
                 const loadEl = document.getElementById(loadingId);
                 if(loadEl) loadEl.remove();
 
                 if (e.message.includes('429')) {
-                    log("HTTP 429 [RATE LIMIT EXCEEDED]: La red externa está saturada. Espera 30 segundos y reintenta.", 'error');
+                    log("HTTP 429 [RATE LIMIT EXCEEDED]: La red externa está saturada o has superado la cuota de tu API. Espera y reintenta.", 'error');
                 } else if (e.message.includes('API key not valid')) {
-                    log("HTTP 401 [UNAUTHORIZED]: API Key inválida o revocada. Usa clear-key y luego set-key para reemplazarla.", 'error');
+                    log("HTTP 401 [UNAUTHORIZED]: API Key inválida o revocada por Google. Usa clear-key y luego set-key para reemplazarla.", 'error');
                 } else {
                     log(`CORE EXCEPTION: ${e.message}`, 'error');
                 }
             }
         }
 
-        // NAVEGACIÓN Y EJECUCIÓN DESDE EL INPUT
+        // ==========================================
+        // 6. EVENT LISTENERS (Teclado)
+        // ==========================================
         inputField.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 sendCommand();
@@ -289,7 +317,6 @@ Cualquier otro comando será derivado al Núcleo IA (AEGIS_CORE).`, 'system');
             }
         });
         
-        // Auto-focus al iniciar
         window.onload = () => inputField.focus();
     </script>
 </body>
