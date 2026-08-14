@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- [CAPA DE SEGURIDAD 3] CONTENT SECURITY POLICY (CSP) ESTRICTO -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.run; connect-src 'self' https://generativelanguage.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    <!-- [CORRECCIÓN CSP] Se añadió cdn.jsdelivr.net para permitir la carga correcta del módulo ESM -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.run https://cdn.jsdelivr.net; connect-src 'self' https://generativelanguage.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
@@ -36,7 +36,6 @@
         
         .log-entry { white-space: pre-wrap; word-break: break-word; }
         
-        /* Estilos Pro para bloques de código devueltos por la IA */
         .log-entry pre {
             background-color: #030712;
             border: 1px solid #1f2937;
@@ -59,7 +58,7 @@
         <div>
             <h1 class="text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
                 <span class="h-3 w-3 rounded-full bg-teal-500 animate-pulse"></span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v3.1 SECURE PRO]</span>
+                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v3.2 SECURE PRO]</span>
             </h1>
             <p class="text-xs text-slate-500 mt-1 tracking-widest">ZERO-TRUST ARCHITECTURE // CSP ENABLED</p>
         </div>
@@ -108,7 +107,7 @@
             <div id="terminal" class="flex-1 bg-black/60 border border-slate-700/50 rounded-t-xl p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar">
                 <div class="text-teal-500 font-bold mb-6 text-sm flex flex-col gap-1">
                     <span>╔══════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE TERMINAL v3.1 - ENCRYPTED SESSION ║</span>
+                    <span>║ AEGIS_CORE TERMINAL v3.2 - ENCRYPTED SESSION ║</span>
                     <span>╚══════════════════════════════════════════════╝</span>
                     <span class="text-slate-400 font-normal mt-2">>> Initializing local protocols... DONE.</span>
                     <span class="text-slate-400 font-normal">>> XSS Protection... ACTIVE.</span>
@@ -144,12 +143,9 @@
             return temp.innerHTML;
         }
 
-        // Renderizado inteligente de texto plano con soporte básico para bloques de código markdown
         function formatOutput(rawText) {
             let safe = sanitize(rawText);
-            // Reemplazo básico de bloques de código markdown ``` code ```
             safe = safe.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-            // Reemplazo de negritas markdown **text**
             safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-300">$1</strong>');
             return safe;
         }
