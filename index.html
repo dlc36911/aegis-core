@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- [CORRECCIÓN CSP] Se añadió cdn.jsdelivr.net para permitir la carga correcta del módulo ESM -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.run https://cdn.jsdelivr.net; connect-src 'self' https://generativelanguage.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    <!-- [CORRECCIÓN CSP] Se añadieron los dominios necesarios a connect-src para evitar bloqueos en Source Maps de jsDelivr y ESM -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.run https://cdn.jsdelivr.net; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
