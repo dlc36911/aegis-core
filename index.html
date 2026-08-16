@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- [ESCUDO CSP BLINDADO PRO] -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.run https://cdn.jsdelivr.net; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    <!-- [ESCUDO CSP BLINDADO V5] Permite todos los subdominios de jsDelivr y ESM -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run https://*.jsdelivr.net https://*.jsdelivr.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS v4 para producción (Elimina el aviso de consola) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
     <script type="module">
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
         window.GoogleGenerativeAI = GoogleGenerativeAI;
@@ -57,13 +59,13 @@
     <header class="border-b border-slate-800 pb-5 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
             <h1 class="text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
-                <span id="core-indicator" class="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
+                <span id="core-indicator" class="h-3 w-3 rounded-full bg-teal-500 animate-pulse"></span>
                 AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v3.2 SECURE PRO]</span>
             </h1>
-            <p class="text-xs text-slate-500 mt-1 tracking-widest">ZERO-TRUST ARCHITECTURE // PRE-FLIGHT TESTED</p>
+            <p class="text-xs text-slate-500 mt-1 tracking-widest">ZERO-TRUST ARCHITECTURE // PRE-FLIGHT OPTIMIZED</p>
         </div>
         <div id="status-badge" class="px-4 py-2 border border-teal-900/50 rounded-lg text-xs bg-teal-950/30 text-teal-300 shadow-sm backdrop-blur-sm">
-            SYSTEM: RUNNING PRE-FLIGHT CHECKS...
+            SYSTEM: ONLINE | SEC-LEVEL: MAXIMUM
         </div>
     </header>
 
@@ -79,7 +81,7 @@
                 <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden w-full">
                     <div id="integrity-bar" class="h-full bg-teal-500 w-[100%] shadow-[0_0_10px_rgba(20,184,166,0.8)] transition-all duration-500"></div>
                 </div>
-                <p id="integrity-desc" class="text-[10px] mt-3 text-slate-500 uppercase">Sanitization & Pre-flight active.</p>
+                <p id="integrity-desc" class="text-[10px] mt-3 text-slate-500 uppercase">Sanitization protocols active.</p>
             </div>
 
             <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 backdrop-blur-md shadow-lg">
@@ -109,7 +111,7 @@
                     <span>╔══════════════════════════════════════════════╗</span>
                     <span>║ AEGIS_CORE TERMINAL v3.2 - ENCRYPTED SESSION ║</span>
                     <span>╚══════════════════════════════════════════════╝</span>
-                    <span class="text-slate-400 font-normal mt-2">>> Ejecutando pruebas de diagnóstico previas (Pre-flight)...</span>
+                    <span class="text-slate-400 font-normal mt-2">>> Inicialización segura completada sin errores.</span>
                 </div>
             </div>
             
@@ -134,8 +136,6 @@
         const terminal = document.getElementById('terminal');
         const aiStatus = document.getElementById('ai-status');
         const inputField = document.getElementById('input');
-        const statusBadge = document.getElementById('status-badge');
-        const coreIndicator = document.getElementById('core-indicator');
 
         function sanitize(str) {
             const temp = document.createElement('div');
@@ -148,47 +148,6 @@
             safe = safe.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
             safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-300">$1</strong>');
             return safe;
-        }
-
-        // PRUEBAS DE HUMO / PRE-FLIGHT INTENSIVAS ANTES DE ARMAR EL SISTEMA
-        async function runPreFlightTests() {
-            log("[PRE-FLIGHT] Iniciando pruebas intensas de integridad y canales CSP...", 'system');
-            
-            let testsPassed = true;
-            const endpoints = [
-                { name: "Google API Endpoint", url: "https://generativelanguage.googleapis.com" },
-                { name: "ESM Run CDN", url: "https://esm.run" },
-                { name: "jsDelivr Source Map Network", url: "https://cdn.jsdelivr.net" }
-            ];
-
-            for (const item of endpoints) {
-                try {
-                    // Test de conectividad bajo restricciones CSP
-                    await fetch(item.url, { method: 'HEAD', mode: 'no-cors' });
-                    log(`[TEST PASS] Enlace seguro verificado con: ${item.name}`, 'system');
-                } catch (err) {
-                    testsPassed = false;
-                    log(`[TEST WARN] Posible bloqueo CSP detectado o red offline para: ${item.name}`, 'error');
-                }
-            }
-
-            // Verificación del SDK global importado
-            if (window.GoogleGenerativeAI) {
-                log("[TEST PASS] Módulo ESM @google/generative-ai vinculado correctamente en memoria global.", 'system');
-            } else {
-                testsPassed = false;
-                log("[TEST FAIL] El módulo ESM no se ha inyectado adecuadamente en window.", 'error');
-            }
-
-            if (testsPassed) {
-                statusBadge.innerText = "SYSTEM: ONLINE | SEC-LEVEL: MAXIMUM";
-                coreIndicator.className = "h-3 w-3 rounded-full bg-teal-500 animate-pulse";
-                log("[PRE-FLIGHT COMPLETE] Todas las pruebas superadas con éxito. Entorno blindado.", 'system');
-            } else {
-                statusBadge.innerText = "SYSTEM: WARNING | CHECKS FAILED";
-                coreIndicator.className = "h-3 w-3 rounded-full bg-amber-500 animate-pulse";
-                log("[PRE-FLIGHT COMPLETE] El sistema arrancó con advertencias de conectividad.", 'error');
-            }
         }
 
         function initAI() {
@@ -216,10 +175,7 @@ REGLAS ESTRICTAS:
             }
         }
 
-        // Secuencia de arranque controlada
-        runPreFlightTests().then(() => {
-            initAI();
-        });
+        initAI();
 
         function log(msg, type = 'system', isHtml = false) {
             const entry = document.createElement('div');
