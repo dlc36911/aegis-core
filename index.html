@@ -38,8 +38,6 @@
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            selection-background-color: rgba(20, 184, 166, 0.3);
-            selection-color: var(--teal-200);
         }
 
         header {
@@ -125,7 +123,7 @@
             border: 1px solid rgba(30, 41, 59, 0.8);
             border-radius: 0.5rem;
             background-color: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 20px 25px -5px rgb(0 0_0 / 0.5);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
         }
 
         .status-box {
@@ -266,9 +264,9 @@
                   <span class="ping-dot-ping"></span>
                   <span class="ping-dot-base"></span>
                 </span>
-                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v5.6 DEBUGGER PRO]</span>
+                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v5.7 STABLE]</span>
             </h1>
-            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Zero Warning // Raw Diagnostic // Sanitized</p>
+            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Updated Endpoints // Zero Warnings</p>
         </div>
         <div class="badge">
             SYS: <span id="conn-status" style="color: var(--amber-400);">PENDING_HANDSHAKE</span>
@@ -300,9 +298,9 @@
             <div id="terminal">
                 <div style="color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v5.6 // RAW DIAGNOSTIC CONSOLE             ║</span>
+                    <span>║ AEGIS_CORE SHELL v5.7 // ACTIVE ENDPOINT ENGINE             ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
-                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Use: set-key [TU_API_KEY] para inicializar diagnóstico en bruto</span>
+                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Use: set-key [TU_API_KEY] para inicializar conexión</span>
                 </div>
             </div>
             
@@ -332,7 +330,7 @@
         class AegisCore {
             constructor() {
                 this.apiKey = localStorage.getItem('AEGIS_API_KEY') || '';
-                this.activeModelName = localStorage.getItem('AEGIS_MODEL') || 'gemini-1.5-flash';
+                this.activeModelName = localStorage.getItem('AEGIS_MODEL') || 'gemini-3.7-flash';
                 this.genAI = null;
                 this.chatSession = null;
                 
@@ -444,12 +442,14 @@
                 }
                 
                 this.setProcessing(true);
-                this.printLog("Ejecutando escaneo y diagnóstico de modelos con Google AI Studio...", 'system');
+                this.printLog("Ejecutando escaneo con modelos actuales (Gemini 3.7 / 3.6 / 2.5 Flash)...", 'system');
                 
                 const candidateModels = [
+                    "gemini-3.7-flash",
+                    "gemini-3.6-flash",
+                    "gemini-2.5-flash",
                     "gemini-1.5-flash",
-                    "gemini-1.5-pro",
-                    "gemini-1.0-pro"
+                    "gemini-3.1-pro-preview"
                 ];
 
                 let successfulModel = null;
@@ -458,7 +458,7 @@
 
                 for (const modelName of candidateModels) {
                     try {
-                        this.printLog(`Enviando handshake de prueba a: ${modelName}`, 'system');
+                        this.printLog(`Probando endpoint: ${modelName}`, 'system');
                         const testModel = tempClient.getGenerativeModel({ model: modelName });
                         const response = await testModel.generateContent("Test");
                         if (response && response.response) {
@@ -466,7 +466,7 @@
                             break;
                         }
                     } catch (err) {
-                        lastErrorDetails = `[Modelo: ${modelName}] -> ${err.message}`;
+                        lastErrorDetails = `[${modelName}] -> ${err.message}`;
                         this.printLog(lastErrorDetails, 'error');
                     }
                 }
@@ -476,7 +476,7 @@
                     this.printLog(`CONEXIÓN ESTABLECIDA con éxito mediante [${successfulModel}]. Núcleo armado.`, 'system');
                 } else {
                     this.updateStatus('FAULT', 'Diagnostic Failed', 'red');
-                    this.printLog(`DIAGNOSTICO CRITICO: Todos los modelos fallaron. Asegúrate de que tu clave API de Google AI Studio sea válida, esté activa y tenga créditos o cuota disponible.\nÚltimo error del servidor:\n${lastErrorDetails}`, 'error');
+                    this.printLog(`DIAGNOSTICO CRITICO: Todos los modelos devolvieron 404. Es probable que tu API Key sea antigua, esté restringida a un proyecto específico o no tenga acceso a los endpoints estándar de Google AI Studio.\nÚltimo error:\n${lastErrorDetails}`, 'error');
                 }
                 
                 this.setProcessing(false);
