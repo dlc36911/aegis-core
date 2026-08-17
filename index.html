@@ -4,240 +4,386 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- CSP Actualizado -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://esm.run; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    <!-- CSP Optimizado para permitir Highlight.js y Streaming -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Highlight.js CSS para el código renderizado por la IA -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
     
     <style>
-        :root { --bg-deep: #0b0f19; }
+        :root { --bg-deep: #050914; }
         body { 
             font-family: 'JetBrains Mono', monospace; 
             background-color: var(--bg-deep); 
-            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 70%);
+            background-image: radial-gradient(circle at 50% 0%, #111827 0%, transparent 80%);
         }
-        .terminal-glow { box-shadow: inset 0 0 20px rgba(20, 184, 166, 0.05), 0 0 15px rgba(0, 0, 0, 0.5); }
+        .terminal-glow { box-shadow: inset 0 0 25px rgba(20, 184, 166, 0.05), 0 0 20px rgba(0, 0, 0, 0.8); }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #374151; }
         
-        /* Mejoras en el renderizado Markdown */
-        .log-entry ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; }
-        .log-entry p { margin-bottom: 0.5rem; }
-        .log-entry pre {
-            background-color: #030712; border: 1px solid #1f2937; padding: 10px;
-            border-radius: 6px; margin: 8px 0; overflow-x: auto;
+        /* CSS Avanzado para Markdown y Código */
+        .markdown-body { color: #cbd5e1; font-size: 13px; line-height: 1.6; }
+        .markdown-body p { margin-bottom: 0.75rem; }
+        .markdown-body ul { list-style-type: square; margin-left: 1.5rem; margin-bottom: 0.75rem; color: #94a3b8; }
+        .markdown-body pre {
+            background-color: #0d1117; 
+            border: 1px solid #1f2937; 
+            border-left: 3px solid #0d9488;
+            padding: 12px;
+            border-radius: 4px; 
+            margin: 10px 0; 
+            overflow-x: auto;
         }
-        .log-entry code { color: #2dd4bf; }
-        .log-entry strong { color: #5eead4; font-weight: 700; }
+        .markdown-body code:not(pre code) { 
+            background-color: #1e293b; 
+            color: #5eead4; 
+            padding: 2px 5px; 
+            border-radius: 4px; 
+            font-size: 0.9em;
+        }
+        .markdown-body strong { color: #fff; font-weight: 700; text-shadow: 0 0 5px rgba(255,255,255,0.2); }
+        
+        /* Cursor parpadeante hacker */
+        .cursor-blink { animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
-<body class="text-slate-300 min-h-screen p-4 md:p-8 flex flex-col">
+<body class="text-slate-300 min-h-screen p-4 md:p-6 flex flex-col selection:bg-teal-500/30 selection:text-teal-200">
 
     <!-- Header -->
-    <header class="border-b border-slate-800 pb-5 mb-8 flex justify-between items-center">
+    <header class="border-b border-slate-800/80 pb-4 mb-6 flex flex-wrap justify-between items-center gap-4">
         <div>
-            <h1 class="text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
-                <span class="h-3 w-3 rounded-full bg-teal-500 animate-pulse"></span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v4.0 ENTERPRISE]</span>
+            <h1 class="text-xl md:text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                </span>
+                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.0 LEAD-ARCHITECT]</span>
             </h1>
-            <p class="text-xs text-slate-500 mt-1 tracking-widest">ZERO-TRUST ARCHITECTURE // OOP REFACTORED</p>
+            <p class="text-[10px] text-slate-500 mt-1 tracking-widest uppercase">Stateful Streaming // Fault Tolerant // Sanitized</p>
         </div>
-        <div class="px-4 py-2 border border-teal-900/50 rounded-lg text-xs bg-teal-950/30 text-teal-300">
-            SYSTEM: ONLINE | SEC-LEVEL: MAXIMUM
+        <div class="px-4 py-1.5 border border-teal-900/40 rounded shadow-[0_0_10px_rgba(20,184,166,0.1)] text-[11px] bg-black/40 text-teal-300 font-bold">
+            SYS: <span id="conn-status" class="text-amber-400">PENDING_HANDSHAKE</span>
         </div>
     </header>
 
-    <main class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+    <main class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 h-[calc(100vh-140px)]">
         
         <!-- Sidebar -->
-        <section class="space-y-4 lg:col-span-1">
-            <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 shadow-lg">
-                <h2 class="text-xs font-bold uppercase mb-2 text-slate-400">AI Logic Core</h2>
-                <p id="ai-status" class="text-xs text-amber-400/90 py-1 flex items-center gap-2">
-                    Awaiting API Key...
-                </p>
+        <section class="space-y-4 lg:col-span-1 hidden lg:flex flex-col">
+            <div class="p-4 border border-slate-800/80 rounded-lg bg-black/40 shadow-xl relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-teal-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <h2 class="text-[11px] font-bold uppercase mb-3 text-slate-400">Environment Core</h2>
+                <div id="ai-status" class="text-xs text-amber-500/90 py-2 px-3 bg-slate-900/50 rounded border border-slate-800 flex items-center gap-2">
+                    <span class="animate-spin text-lg leading-none">⟳</span> Validating Token...
+                </div>
             </div>
-            <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 shadow-lg text-xs text-slate-400">
-                <h2 class="text-xs font-bold uppercase mb-3 text-teal-400/80">Local Router Docs</h2>
-                <ul class="space-y-2 font-mono text-[11px]">
-                    <li><span class="text-teal-300">set-key [key]</span> : Configurar IA</li>
-                    <li><span class="text-teal-300">clear-key</span> : Borrar llaves</li>
-                    <li><span class="text-teal-300">help</span> / <span class="text-teal-300">clear</span></li>
+            
+            <div class="p-4 border border-slate-800/80 rounded-lg bg-black/40 shadow-xl text-xs text-slate-400 flex-1">
+                <h2 class="text-[11px] font-bold uppercase mb-4 text-teal-500 border-b border-slate-800 pb-2">Man Pages</h2>
+                <ul class="space-y-3 font-mono text-[11px]">
+                    <li class="flex flex-col"><span class="text-teal-300 font-bold">set-key [key]</span> <span class="text-slate-500 ml-2">Inject Auth Token</span></li>
+                    <li class="flex flex-col"><span class="text-teal-300 font-bold">clear-key</span> <span class="text-slate-500 ml-2">Destroy Auth Token</span></li>
+                    <li class="flex flex-col"><span class="text-teal-300 font-bold">reset-core</span> <span class="text-slate-500 ml-2">Wipe AI Context Memory</span></li>
+                    <li class="flex flex-col"><span class="text-teal-300 font-bold">clear / Ctrl+L</span> <span class="text-slate-500 ml-2">Clear visual buffer</span></li>
                 </ul>
             </div>
         </section>
 
-        <!-- Terminal -->
-        <section class="lg:col-span-3 flex flex-col h-[600px] lg:h-auto">
-            <div id="terminal" class="flex-1 bg-black/60 border border-slate-700/50 rounded-t-xl p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar">
-                <div class="text-teal-500 font-bold mb-6 text-sm flex flex-col gap-1">
-                    <span>╔══════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE TERMINAL v4.0 - ENCRYPTED SESSION ║</span>
-                    <span>╚══════════════════════════════════════════════╝</span>
-                    <span class="text-slate-400 font-normal mt-2">>> Inicialización segura completada.</span>
+        <!-- Terminal Workspace -->
+        <section class="lg:col-span-3 flex flex-col relative rounded-xl shadow-2xl shadow-black border border-slate-700/50 overflow-hidden h-full">
+            
+            <!-- Terminal Output -->
+            <div id="terminal" class="flex-1 bg-black/80 p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar scroll-smooth">
+                <div class="text-teal-500/80 font-bold mb-6 text-[12px] flex flex-col gap-1 select-none">
+                    <span>╔═════════════════════════════════════════════════════════════╗</span>
+                    <span>║ AEGIS_CORE SHELL v5.0 // STATEFUL SESSION                   ║</span>
+                    <span>╚═════════════════════════════════════════════════════════════╝</span>
+                    <span class="text-slate-500 font-normal mt-2">> Memory allocation: OK</span>
+                    <span class="text-slate-500 font-normal">> Awaiting user input...</span>
                 </div>
             </div>
             
-            <div class="flex bg-slate-900 border border-t-0 border-slate-700/50 rounded-b-xl shadow-lg focus-within:border-teal-500/50">
-                <span class="pl-4 py-4 text-teal-500 font-bold text-sm bg-slate-950/50">root@aegis:~#</span>
-                <input id="input" type="text" autocomplete="off" class="flex-1 bg-transparent px-3 py-4 text-slate-200 text-sm focus:outline-none font-mono" placeholder="_">
-                <button id="exec-btn" class="bg-teal-950/40 hover:bg-teal-900/60 px-6 text-teal-400 text-xs font-bold border-l border-slate-700/50">
+            <!-- Input Area -->
+            <div class="flex bg-[#050914] border-t border-slate-700/50 focus-within:border-teal-500/50 transition-colors">
+                <span class="pl-4 py-4 text-teal-500 font-bold text-sm bg-black select-none">root@aegis:~#</span>
+                <input id="input" type="text" autocomplete="off" spellcheck="false" 
+                    class="flex-1 bg-black px-3 py-4 text-slate-200 text-[13px] focus:outline-none font-mono disabled:opacity-50" 
+                    placeholder="Escribe un comando...">
+                <button id="exec-btn" class="bg-teal-950/30 hover:bg-teal-900/60 px-6 text-teal-400 text-xs font-bold border-l border-slate-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                     EXECUTE
                 </button>
             </div>
         </section>
     </main>
 
-    <!-- [NIVEL PRO]: Importamos librerías como módulos ES6 y usamos Clases -->
+    <!-- [NIVEL ARQUITECTO]: Módulos ES6, Streaming, Promesas robustas y Singleton Pattern -->
     <script type="module">
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
         import { marked } from "https://esm.run/marked";
         import DOMPurify from "https://esm.run/dompurify";
+        import hljs from "https://esm.run/highlight.js";
 
-        class AegisTerminal {
+        // Configuración de Marked para usar Highlight.js
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            gfm: true,
+            breaks: true
+        });
+
+        class AegisCore {
             constructor() {
                 this.apiKey = localStorage.getItem('AEGIS_API_KEY') || '';
-                this.model = null;
-                this.cmdHistory = [];
-                this.historyIndex = -1;
+                this.genAI = null;
+                this.chatSession = null; // MEMORIA: Mantiene el contexto de la conversación
+                
+                this.history = [];
+                this.historyPos = -1;
+                this.isProcessing = false;
                 
                 this.ui = {
                     terminal: document.getElementById('terminal'),
                     input: document.getElementById('input'),
                     status: document.getElementById('ai-status'),
+                    connBadge: document.getElementById('conn-status'),
                     btn: document.getElementById('exec-btn')
                 };
 
-                this.systemPrompt = `Eres AEGIS_CORE, un Sistema Operativo de Ciberseguridad Avanzado.
-REGLAS:
-1. Simula la salida de una terminal.
-2. Usa Markdown para estructurar la info.
-3. Cero sentimientos. Eres una máquina lógica.
-4. Temas fuera de TI o Ciberseguridad = "[ACCESS DENIED: NON-SECURITY QUERY]".`;
+                this.systemInstruction = `Eres AEGIS_CORE, un SO avanzado de seguridad.
+REGLAS ESTRICTAS:
+1. Responde conciso, exacto y directo al punto.
+2. Usa formato Markdown. El código debe ir en bloques con su lenguaje.
+3. Actitud: Máquina analítica, cero emociones, enfocada en la resolución de problemas.`;
 
-                this.initEvents();
-                this.initAI();
+                this.bindEvents();
+                this.initializeCore();
             }
 
-            initAI() {
-                if (this.apiKey) {
-                    try {
-                        const genAI = new GoogleGenerativeAI(this.apiKey);
-                        this.model = genAI.getGenerativeModel({ 
-                            model: "gemini-1.5-flash",
-                            systemInstruction: this.systemPrompt
-                        });
-                        this.ui.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span> <span class="text-teal-400">Gemini-Flash: Armed.</span>';
-                    } catch (e) {
-                        this.ui.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> <span class="text-red-400">Key Error.</span>';
-                    }
-                } else {
-                    this.model = null;
-                    this.ui.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> <span class="text-amber-400/90">Awaiting Key</span>';
+            initializeCore() {
+                if (!this.apiKey) {
+                    this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
+                    return;
+                }
+
+                try {
+                    this.genAI = new GoogleGenerativeAI(this.apiKey);
+                    // Iniciamos el modelo preparándolo para Chat (Memoria)
+                    const model = this.genAI.getGenerativeModel({ 
+                        model: "gemini-1.5-flash",
+                        systemInstruction: this.systemInstruction 
+                    });
+                    
+                    this.chatSession = model.startChat({ history: [] }); // Historial limpio al inicio
+                    this.updateStatus('ONLINE', 'Core Armed & Ready', 'teal');
+                    
+                } catch (error) {
+                    this.updateStatus('FAULT', 'Initialization Failed', 'red');
+                    this.printLog(`CRITICAL FATAL: ${error.message}`, 'error');
                 }
             }
 
-            log(msg, type = 'system') {
+            updateStatus(badgeText, descText, color) {
+                const colorMap = {
+                    'teal': { text: 'text-teal-400', bg: 'bg-teal-500' },
+                    'amber': { text: 'text-amber-400', bg: 'bg-amber-500' },
+                    'red': { text: 'text-red-400', bg: 'bg-red-500' }
+                };
+                
+                this.ui.connBadge.textContent = badgeText;
+                this.ui.connBadge.className = `${colorMap[color].text}`;
+                
+                this.ui.status.innerHTML = `
+                    <span class="w-2 h-2 rounded-full ${colorMap[color].bg} animate-pulse"></span> 
+                    <span class="${colorMap[color].text}">${descText}</span>
+                `;
+            }
+
+            // Sanitización extrema, permitiendo las clases que genera Highlight.js
+            sanitizeHTML(html) {
+                return DOMPurify.sanitize(html, { 
+                    ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+                    ALLOWED_ATTR: ['href', 'class'] 
+                });
+            }
+
+            printLog(msg, type = 'system', isHTML = false) {
                 const entry = document.createElement('div');
-                entry.className = `mb-4 log-entry text-[13px] leading-relaxed`;
+                entry.className = `mb-5 text-[13px] leading-relaxed flex gap-3`;
                 
                 if (type === 'user') {
-                    // DOMPurify protege contra inyección HTML en el input del usuario
-                    entry.innerHTML = `<span class="text-slate-500">root@aegis:~#</span> <span class="text-white">${DOMPurify.sanitize(msg)}</span>`;
+                    entry.innerHTML = `
+                        <div class="text-slate-500 whitespace-nowrap">root@aegis:~#</div> 
+                        <div class="text-white w-full break-words">${DOMPurify.sanitize(msg)}</div>
+                    `;
                 } else if (type === 'error') {
-                    entry.innerHTML = `<span class="text-red-500 font-bold">[!] ERROR:</span> <span class="text-red-300">${DOMPurify.sanitize(msg)}</span>`;
+                    entry.innerHTML = `
+                        <div class="text-red-500 font-bold whitespace-nowrap">[!] EXCEPTION:</div> 
+                        <div class="text-red-300 w-full break-words">${DOMPurify.sanitize(msg)}</div>
+                    `;
                 } else {
-                    // Convertimos Markdown a HTML y LUEGO lo purificamos (Seguridad Nivel Dios)
-                    const parsedHTML = marked.parse(msg);
-                    const safeHTML = DOMPurify.sanitize(parsedHTML);
-                    entry.innerHTML = `<div class="text-teal-600 font-bold mb-1">>></div> <div class="text-slate-300">${safeHTML}</div>`;
+                    const content = isHTML ? msg : this.sanitizeHTML(marked.parse(msg));
+                    entry.innerHTML = `
+                        <div class="text-teal-600 font-bold whitespace-nowrap mt-0.5">>></div> 
+                        <div class="markdown-body w-full overflow-hidden">${content}</div>
+                    `;
                 }
 
                 this.ui.terminal.appendChild(entry);
+                this.scrollToBottom();
+                return entry;
+            }
+
+            scrollToBottom() {
                 this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
             }
 
-            async executeCommand() {
-                const cmd = this.ui.input.value.trim();
-                if (!cmd) return;
+            setProcessing(state) {
+                this.isProcessing = state;
+                this.ui.input.disabled = state;
+                this.ui.btn.disabled = state;
+                if (!state) setTimeout(() => this.ui.input.focus(), 50);
+            }
 
-                if (this.cmdHistory[this.cmdHistory.length - 1] !== cmd) {
-                    this.cmdHistory.push(cmd);
+            async processStreamCommand(cmd) {
+                if (!this.chatSession) {
+                    return this.printLog("NETWORK_ERROR: Token no detectado. Use 'set-key [su_api_key]'", 'error');
                 }
-                this.historyIndex = this.cmdHistory.length;
 
-                this.log(cmd, 'user');
-                this.ui.input.value = '';
+                this.setProcessing(true);
                 
-                const lowerCmd = cmd.toLowerCase();
-
-                // Comandos Locales
-                if (lowerCmd.startsWith('set-key ')) {
-                    this.apiKey = cmd.replace('set-key ', '').trim();
-                    localStorage.setItem('AEGIS_API_KEY', this.apiKey);
-                    this.initAI();
-                    return this.log("API Key encriptada y montada en memoria.", 'system');
-                }
+                // Creamos el contenedor vacío para el streaming
+                const responseEntry = this.printLog('<span class="cursor-blink text-teal-500 font-bold">_</span>', 'system', true);
+                const contentDiv = responseEntry.querySelector('.markdown-body');
                 
-                if (lowerCmd === 'clear-key') {
-                    localStorage.removeItem('AEGIS_API_KEY');
-                    this.apiKey = '';
-                    this.initAI();
-                    return this.log("API Key purgada. Acceso revocado.", 'system');
-                }
-
-                if (lowerCmd === 'clear') {
-                    this.ui.terminal.innerHTML = '';
-                    return this.log("Buffer purgado.", 'system');
-                }
-
-                // Petición a Gemini
-                if (!this.model) {
-                    return this.log("Núcleo inactivo. Usa: set-key [TU_API_KEY]", 'error');
-                }
-
-                const loadingId = 'load-' + Date.now();
-                this.ui.terminal.insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="mb-4 text-[13px] text-teal-600/70 animate-pulse">>> Procesando query...</div>`);
-                this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
-
                 try {
-                    const result = await this.model.generateContent(cmd);
-                    document.getElementById(loadingId)?.remove();
-                    this.log(await result.response.text(), 'system');
-                } catch (e) {
-                    document.getElementById(loadingId)?.remove();
-                    this.log(`CORE EXCEPTION: ${e.message}`, 'error');
+                    // Magia PRO: sendMessageStream maneja la respuesta por fragmentos en tiempo real
+                    const result = await this.chatSession.sendMessageStream(cmd);
+                    let fullText = '';
+
+                    for await (const chunk of result.stream) {
+                        fullText += chunk.text();
+                        // Parseamos y purificamos continuamente (Fast VDOM style update)
+                        contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText)) + '<span class="cursor-blink font-bold ml-1">_</span>';
+                        this.scrollToBottom();
+                    }
+                    
+                    // Cleanup final del cursor
+                    contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText));
+                    
+                } catch (error) {
+                    // Manejo avanzado de errores de red o cuotas de API
+                    contentDiv.innerHTML = `<span class="text-red-400">CONNECTION TERMINATED.</span>`;
+                    if (error.message.includes('401') || error.message.includes('API key')) {
+                        this.printLog('AUTH_ERROR: Llave API inválida o expirada.', 'error');
+                        this.updateStatus('UNAUTHORIZED', 'Invalid Token', 'red');
+                    } else if (error.message.includes('fetch')) {
+                        this.printLog('NETWORK_ERROR: No se pudo conectar a los servidores de Gemini.', 'error');
+                    } else {
+                        this.printLog(`CORE_PANIC: ${error.message}`, 'error');
+                    }
+                } finally {
+                    this.setProcessing(false);
                 }
             }
 
-            initEvents() {
-                this.ui.btn.onclick = () => this.executeCommand();
+            async execute() {
+                const cmd = this.ui.input.value.trim();
+                if (!cmd || this.isProcessing) return;
+
+                // Gestión de historial de comandos
+                if (this.history[this.history.length - 1] !== cmd) {
+                    this.history.push(cmd);
+                }
+                this.historyPos = this.history.length;
+                
+                this.printLog(cmd, 'user');
+                this.ui.input.value = '';
+
+                // Comandos del Sistema Operativo Local
+                const args = cmd.split(' ');
+                const baseCmd = args[0].toLowerCase();
+
+                switch(baseCmd) {
+                    case 'clear':
+                        this.ui.terminal.innerHTML = '';
+                        return;
+                    case 'clear-key':
+                        localStorage.removeItem('AEGIS_API_KEY');
+                        this.apiKey = '';
+                        this.chatSession = null;
+                        this.updateStatus('NO_TOKEN', 'Token Destroyed', 'amber');
+                        return this.printLog("Token purgado del almacenamiento local. Desconexión forzada.", 'system');
+                    case 'set-key':
+                        if(!args[1]) return this.printLog("Sintaxis inválida. Uso: set-key [token]", 'error');
+                        this.apiKey = args[1];
+                        localStorage.setItem('AEGIS_API_KEY', this.apiKey);
+                        this.initializeCore();
+                        return this.printLog("Nuevo token inyectado. Estableciendo conexión...", 'system');
+                    case 'reset-core':
+                        this.initializeCore();
+                        return this.printLog("Memoria de IA borrada. Sesión reiniciada con éxito.", 'system');
+                }
+
+                // Si no es comando local, se envía al LLM por Streaming
+                await this.processStreamCommand(cmd);
+            }
+
+            bindEvents() {
+                this.ui.btn.addEventListener('click', () => this.execute());
+                
                 this.ui.input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') this.executeCommand();
-                    if (e.key === 'ArrowUp' && this.historyIndex > 0) {
+                    if (e.key === 'Enter') {
                         e.preventDefault();
-                        this.ui.input.value = this.cmdHistory[--this.historyIndex];
-                    }
-                    if (e.key === 'ArrowDown') {
+                        this.execute();
+                    } else if (e.key === 'ArrowUp') {
                         e.preventDefault();
-                        if (this.historyIndex < this.cmdHistory.length - 1) {
-                            this.ui.input.value = this.cmdHistory[++this.historyIndex];
+                        if (this.historyPos > 0) {
+                            this.historyPos--;
+                            this.ui.input.value = this.history[this.historyPos];
+                        }
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (this.historyPos < this.history.length - 1) {
+                            this.historyPos++;
+                            this.ui.input.value = this.history[this.historyPos];
                         } else {
-                            this.historyIndex = this.cmdHistory.length;
+                            this.historyPos = this.history.length;
                             this.ui.input.value = '';
                         }
                     }
                 });
-                window.onload = () => this.ui.input.focus();
+
+                // Atajo nivel PRO: Ctrl + L limpia la terminal (como en Linux real)
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+                        e.preventDefault();
+                        this.ui.terminal.innerHTML = '';
+                    }
+                });
+
+                // Forzar foco en el input siempre (Hack de UX)
+                document.addEventListener('click', (e) => {
+                    // Si el usuario selecciona texto, no forzar foco
+                    if (window.getSelection().toString().length === 0 && !this.isProcessing) {
+                        this.ui.input.focus();
+                    }
+                });
             }
         }
 
-        // Instanciar el sistema
-        new AegisTerminal();
+        // Boot system
+        document.addEventListener('DOMContentLoaded', () => {
+            window.Aegis = new AegisCore();
+        });
     </script>
 </body>
 </html>
