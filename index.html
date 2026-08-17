@@ -64,7 +64,7 @@
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                 </span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.0 LEAD-ARCHITECT]</span>
+                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.1 LEAD-ARCHITECT]</span>
             </h1>
             <p class="text-[10px] text-slate-500 mt-1 tracking-widest uppercase">Stateful Streaming // Fault Tolerant // Sanitized</p>
         </div>
@@ -103,7 +103,7 @@
             <div id="terminal" class="flex-1 bg-black/80 p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar scroll-smooth">
                 <div class="text-teal-500/80 font-bold mb-6 text-[12px] flex flex-col gap-1 select-none">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v5.0 // STATEFUL SESSION                   ║</span>
+                    <span>║ AEGIS_CORE SHELL v5.1 // STATEFUL SESSION                   ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
                     <span class="text-slate-500 font-normal mt-2">> Memory allocation: OK</span>
                     <span class="text-slate-500 font-normal">> Awaiting user input...</span>
@@ -144,7 +144,7 @@
             constructor() {
                 this.apiKey = localStorage.getItem('AEGIS_API_KEY') || '';
                 this.genAI = null;
-                this.chatSession = null; // MEMORIA: Mantiene el contexto de la conversación
+                this.chatSession = null;
                 
                 this.history = [];
                 this.historyPos = -1;
@@ -176,13 +176,14 @@ REGLAS ESTRICTAS:
 
                 try {
                     this.genAI = new GoogleGenerativeAI(this.apiKey);
-                    // Iniciamos el modelo preparándolo para Chat (Memoria)
+                    
+                    // CORRECCIÓN: Se usa el modelo estándar activo de Gemini Flash
                     const model = this.genAI.getGenerativeModel({ 
                         model: "gemini-1.5-flash",
                         systemInstruction: this.systemInstruction 
                     });
                     
-                    this.chatSession = model.startChat({ history: [] }); // Historial limpio al inicio
+                    this.chatSession = model.startChat({ history: [] });
                     this.updateStatus('ONLINE', 'Core Armed & Ready', 'teal');
                     
                 } catch (error) {
@@ -207,7 +208,6 @@ REGLAS ESTRICTAS:
                 `;
             }
 
-            // Sanitización extrema, permitiendo las clases que genera Highlight.js
             sanitizeHTML(html) {
                 return DOMPurify.sanitize(html, { 
                     ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
@@ -260,31 +260,28 @@ REGLAS ESTRICTAS:
 
                 this.setProcessing(true);
                 
-                // Creamos el contenedor vacío para el streaming
                 const responseEntry = this.printLog('<span class="cursor-blink text-teal-500 font-bold">_</span>', 'system', true);
                 const contentDiv = responseEntry.querySelector('.markdown-body');
                 
                 try {
-                    // Magia PRO: sendMessageStream maneja la respuesta por fragmentos en tiempo real
                     const result = await this.chatSession.sendMessageStream(cmd);
                     let fullText = '';
 
                     for await (const chunk of result.stream) {
                         fullText += chunk.text();
-                        // Parseamos y purificamos continuamente (Fast VDOM style update)
                         contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText)) + '<span class="cursor-blink font-bold ml-1">_</span>';
                         this.scrollToBottom();
                     }
                     
-                    // Cleanup final del cursor
                     contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText));
                     
                 } catch (error) {
-                    // Manejo avanzado de errores de red o cuotas de API
                     contentDiv.innerHTML = `<span class="text-red-400">CONNECTION TERMINATED.</span>`;
                     if (error.message.includes('401') || error.message.includes('API key')) {
                         this.printLog('AUTH_ERROR: Llave API inválida o expirada.', 'error');
                         this.updateStatus('UNAUTHORIZED', 'Invalid Token', 'red');
+                    } else if (error.message.includes('404')) {
+                        this.printLog('MODEL_ERROR: El modelo especificado no está disponible o requiere actualización en la API key.', 'error');
                     } else if (error.message.includes('fetch')) {
                         this.printLog('NETWORK_ERROR: No se pudo conectar a los servidores de Gemini.', 'error');
                     } else {
@@ -299,7 +296,6 @@ REGLAS ESTRICTAS:
                 const cmd = this.ui.input.value.trim();
                 if (!cmd || this.isProcessing) return;
 
-                // Gestión de historial de comandos
                 if (this.history[this.history.length - 1] !== cmd) {
                     this.history.push(cmd);
                 }
@@ -308,7 +304,6 @@ REGLAS ESTRICTAS:
                 this.printLog(cmd, 'user');
                 this.ui.input.value = '';
 
-                // Comandos del Sistema Operativo Local
                 const args = cmd.split(' ');
                 const baseCmd = args[0].toLowerCase();
 
@@ -333,7 +328,6 @@ REGLAS ESTRICTAS:
                         return this.printLog("Memoria de IA borrada. Sesión reiniciada con éxito.", 'system');
                 }
 
-                // Si no es comando local, se envía al LLM por Streaming
                 await this.processStreamCommand(cmd);
             }
 
@@ -362,7 +356,6 @@ REGLAS ESTRICTAS:
                     }
                 });
 
-                // Atajo nivel PRO: Ctrl + L limpia la terminal (como en Linux real)
                 document.addEventListener('keydown', (e) => {
                     if (e.ctrlKey && e.key.toLowerCase() === 'l') {
                         e.preventDefault();
@@ -370,9 +363,7 @@ REGLAS ESTRICTAS:
                     }
                 });
 
-                // Forzar foco en el input siempre (Hack de UX)
                 document.addEventListener('click', (e) => {
-                    // Si el usuario selecciona texto, no forzar foco
                     if (window.getSelection().toString().length === 0 && !this.isProcessing) {
                         this.ui.input.focus();
                     }
@@ -380,7 +371,6 @@ REGLAS ESTRICTAS:
             }
         }
 
-        // Boot system
         document.addEventListener('DOMContentLoaded', () => {
             window.Aegis = new AegisCore();
         });
