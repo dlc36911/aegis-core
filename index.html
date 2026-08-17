@@ -3,28 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
     
     <style>
-        :root { --bg-deep: #050914; }
+        :root { 
+            --bg-deep: #050914; 
+            --teal-400: #2dd4bf;
+            --teal-500: #14b8a6;
+            --teal-600: #0d9488;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --amber-400: #fbbf24;
+            --red-400: #f87171;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
             font-family: 'JetBrains Mono', monospace; 
             background-color: var(--bg-deep); 
             background-image: radial-gradient(circle at 50% 0%, #111827 0%, transparent 80%);
+            color: var(--slate-300);
+            min-height: 100vh;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            selection-background-color: rgba(20, 184, 166, 0.3);
+            selection-color: var(--teal-200);
         }
-        .terminal-glow { box-shadow: inset 0 0 25px rgba(20, 184, 166, 0.05), 0 0 20px rgba(0, 0, 0, 0.8); }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #374151; }
-        
+
+        header {
+            border-bottom: 1px solid rgba(30, 41, 59, 0.8);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--teal-400);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .ping-dot {
+            position: relative;
+            display: inline-flex;
+            width: 0.75rem;
+            height: 0.75rem;
+        }
+        .ping-dot-ping {
+            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+            position: absolute;
+            display: inline-flex;
+            height: 100%;
+            width: 100%;
+            border-radius: 9999px;
+            background-color: var(--teal-400);
+            opacity: 0.75;
+        }
+        .ping-dot-base {
+            position: relative;
+            display: inline-flex;
+            border-radius: 9999px;
+            height: 0.75rem;
+            width: 0.75rem;
+            background-color: var(--teal-500);
+        }
+        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+
+        .badge {
+            padding: 0.375rem 1rem;
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            border-radius: 0.25rem;
+            box-shadow: 0 0 10px rgba(20, 184, 166, 0.1);
+            font-size: 0.7rem;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: var(--teal-400);
+            font-weight: 700;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            flex: 1;
+            height: calc(100vh - 140px);
+        }
+        @media(min-width: 1024px) {
+            main { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        .sidebar {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        @media(min-width: 1024px) {
+            .sidebar { display: flex; grid-column: span 1 / span 1; }
+        }
+
+        .card {
+            padding: 1rem;
+            border: 1px solid rgba(30, 41, 59, 0.8);
+            border-radius: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 20px 25px -5px rgb(0 0_0 / 0.5);
+        }
+
+        .status-box {
+            font-size: 0.75rem;
+            color: rgba(251, 191, 36, 0.9);
+            padding: 0.5rem 0.75rem;
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 0.25rem;
+            border: 1px solid var(--slate-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .man-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            color: var(--teal-500);
+            border-bottom: 1px solid var(--slate-800);
+            padding-bottom: 0.5rem;
+        }
+
+        ul.man-list {
+            list-style: none;
+            font-size: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        ul.man-list li span:first-child { color: var(--teal-300); font-weight: bold; }
+        ul.man-list li span:last-child { color: var(--slate-500); margin-left: 0.5rem; }
+
+        .workspace {
+            grid-column: span 3 / span 3;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 1);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            overflow: hidden;
+            height: 100%;
+        }
+
+        #terminal {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1.25rem;
+            overflow-y: auto;
+            box-shadow: inset 0 0 25px rgba(20, 184, 166, 0.05), 0 0 20px rgba(0, 0, 0, 0.8);
+            scroll-behavior: smooth;
+        }
+
+        .input-bar {
+            display: flex;
+            background-color: #050914;
+            border-top: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .input-bar:focus-within {
+            border-color: rgba(20, 184, 166, 0.5);
+        }
+
+        .prompt-prefix {
+            padding: 1rem;
+            color: var(--teal-500);
+            font-weight: bold;
+            font-size: 0.875rem;
+            background-color: #000;
+            user-select: none;
+        }
+
+        #input {
+            flex: 1;
+            background-color: #000;
+            padding: 1rem;
+            color: var(--slate-200);
+            font-size: 0.8125rem;
+            border: none;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #input:disabled { opacity: 0.5; }
+
+        #exec-btn {
+            background-color: rgba(4, 47, 46, 0.3);
+            color: var(--teal-400);
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0 1.5rem;
+            border: none;
+            border-left: 1px solid rgba(51, 65, 85, 0.5);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #exec-btn:hover:not(:disabled) { background-color: rgba(19, 78, 74, 0.6); }
+        #exec-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+        /* Markdown Styles */
         .markdown-body { color: #cbd5e1; font-size: 13px; line-height: 1.6; }
         .markdown-body p { margin-bottom: 0.75rem; }
         .markdown-body ul { list-style-type: square; margin-left: 1.5rem; margin-bottom: 0.75rem; color: #94a3b8; }
@@ -44,72 +252,64 @@
             border-radius: 4px; 
             font-size: 0.9em;
         }
-        .markdown-body strong { color: #fff; font-weight: 700; text-shadow: 0 0 5px rgba(255,255,255,0.2); }
-        
+        .markdown-body strong { color: #fff; font-weight: 700; }
         .cursor-blink { animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
-<body class="text-slate-300 min-h-screen p-4 md:p-6 flex flex-col selection:bg-teal-500/30 selection:text-teal-200">
+<body>
 
-    <header class="border-b border-slate-800/80 pb-4 mb-6 flex flex-wrap justify-between items-center gap-4">
+    <header>
         <div>
-            <h1 class="text-xl md:text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
-                <span class="relative flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+            <h1>
+                <span class="ping-dot">
+                  <span class="ping-dot-ping"></span>
+                  <span class="ping-dot-base"></span>
                 </span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.5 AUTO-DISCOVER]</span>
+                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v5.6 DEBUGGER PRO]</span>
             </h1>
-            <p class="text-[10px] text-slate-500 mt-1 tracking-widest uppercase">Multi-Model Fallback // Fault Tolerant // Sanitized</p>
+            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Zero Warning // Raw Diagnostic // Sanitized</p>
         </div>
-        <div class="px-4 py-1.5 border border-teal-900/40 rounded shadow-[0_0_10px_rgba(20,184,166,0.1)] text-[11px] bg-black/40 text-teal-300 font-bold">
-            SYS: <span id="conn-status" class="text-amber-400">PENDING_HANDSHAKE</span>
+        <div class="badge">
+            SYS: <span id="conn-status" style="color: var(--amber-400);">PENDING_HANDSHAKE</span>
         </div>
     </header>
 
-    <main class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 h-[calc(100vh-140px)]">
-        
-        <section class="space-y-4 lg:col-span-1 hidden lg:flex flex-col">
-            <div class="p-4 border border-slate-800/80 rounded-lg bg-black/40 shadow-xl relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-teal-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                <h2 class="text-[11px] font-bold uppercase mb-3 text-slate-400">Environment Core</h2>
-                <div id="ai-status" class="text-xs text-amber-500/90 py-2 px-3 bg-slate-900/50 rounded border border-slate-800 flex items-center gap-2">
-                    <span class="animate-spin text-lg leading-none">⟳</span> Validating Token...
+    <main>
+        <section class="sidebar">
+            <div class="card" style="position: relative; overflow: hidden;">
+                <h2 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 0.75rem; color: var(--slate-400);">Environment Core</h2>
+                <div id="ai-status" class="status-box">
+                    <span style="font-size: 1rem; line-height: 1;">⟳</span> Validating Token...
                 </div>
             </div>
             
-            <div class="p-4 border border-slate-800/80 rounded-lg bg-black/40 shadow-xl text-xs text-slate-400 flex-1">
-                <h2 class="text-[11px] font-bold uppercase mb-4 text-teal-500 border-b border-slate-800 pb-2">Man Pages</h2>
-                <ul class="space-y-3 font-mono text-[11px]">
-                    <li class="flex flex-col"><span class="text-teal-300 font-bold">set-key [key]</span> <span class="text-slate-500 ml-2">Auto-detect & Connect</span></li>
-                    <li class="flex flex-col"><span class="text-teal-300 font-bold">ping-core</span> <span class="text-slate-500 ml-2">Manual Connection Test</span></li>
-                    <li class="flex flex-col"><span class="text-teal-300 font-bold">clear-key</span> <span class="text-slate-500 ml-2">Destroy Auth Token</span></li>
-                    <li class="flex flex-col"><span class="text-teal-300 font-bold">reset-core</span> <span class="text-slate-500 ml-2">Wipe AI Context Memory</span></li>
-                    <li class="flex flex-col"><span class="text-teal-300 font-bold">clear / Ctrl+L</span> <span class="text-slate-500 ml-2">Clear visual buffer</span></li>
+            <div class="card" style="flex: 1;">
+                <div class="man-title">Man Pages</div>
+                <ul class="man-list">
+                    <li><span>set-key [key]</span> <span>Inject & Raw Test Token</span></li>
+                    <li><span>ping-core</span> <span>Inspect API Raw Error</span></li>
+                    <li><span>clear-key</span> <span>Destroy Auth Token</span></li>
+                    <li><span>reset-core</span> <span>Wipe AI Context</span></li>
+                    <li><span>clear / Ctrl+L</span> <span>Clear Buffer</span></li>
                 </ul>
             </div>
         </section>
 
-        <section class="lg:col-span-3 flex flex-col relative rounded-xl shadow-2xl shadow-black border border-slate-700/50 overflow-hidden h-full">
-            
-            <div id="terminal" class="flex-1 bg-black/80 p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar scroll-smooth">
-                <div class="text-teal-500/80 font-bold mb-6 text-[12px] flex flex-col gap-1 select-none">
+        <section class="workspace">
+            <div id="terminal">
+                <div style="color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v5.5 // MULTI-MODEL FALLBACK ENGINE        ║</span>
+                    <span>║ AEGIS_CORE SHELL v5.6 // RAW DIAGNOSTIC CONSOLE             ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
-                    <span class="text-slate-500 font-normal mt-2">> Use: set-key [TU_API_KEY] para auto-descubrir modelo compatible</span>
+                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Use: set-key [TU_API_KEY] para inicializar diagnóstico en bruto</span>
                 </div>
             </div>
             
-            <div class="flex bg-[#050914] border-t border-slate-700/50 focus-within:border-teal-500/50 transition-colors">
-                <span class="pl-4 py-4 text-teal-500 font-bold text-sm bg-black select-none">root@aegis:~#</span>
-                <input id="input" type="text" autocomplete="off" spellcheck="false" 
-                    class="flex-1 bg-black px-3 py-4 text-slate-200 text-[13px] focus:outline-none font-mono disabled:opacity-50" 
-                    placeholder="Escribe un comando...">
-                <button id="exec-btn" class="bg-teal-950/30 hover:bg-teal-900/60 px-6 text-teal-400 text-xs font-bold border-l border-slate-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-                    EXECUTE
-                </button>
+            <div class="input-bar">
+                <span class="prompt-prefix">root@aegis:~#</span>
+                <input id="input" type="text" autocomplete="off" spellcheck="false" placeholder="Escribe un comando...">
+                <button id="exec-btn">EXECUTE</button>
             </div>
         </section>
     </main>
@@ -132,7 +332,7 @@
         class AegisCore {
             constructor() {
                 this.apiKey = localStorage.getItem('AEGIS_API_KEY') || '';
-                this.activeModelName = localStorage.getItem('AEGIS_MODEL') || null;
+                this.activeModelName = localStorage.getItem('AEGIS_MODEL') || 'gemini-1.5-flash';
                 this.genAI = null;
                 this.chatSession = null;
                 
@@ -148,19 +348,11 @@
                     btn: document.getElementById('exec-btn')
                 };
 
-                this.systemInstruction = `Eres AEGIS_CORE, un SO avanzado de seguridad.
-REGLAS ESTRICTAS:
-1. Responde conciso, exacto y directo al punto.
-2. Usa formato Markdown. El código debe ir en bloques con su lenguaje.
-3. Actitud: Máquina analítica, cero emociones, enfocada en la resolución de problemas.`;
+                this.systemInstruction = `Eres AEGIS_CORE, un SO avanzado de seguridad. Responde conciso, en Markdown estricto.`;
 
                 this.bindEvents();
                 if (this.apiKey) {
-                    if (this.activeModelName) {
-                        this.initializeCore(this.activeModelName);
-                    } else {
-                        this.testConnection();
-                    }
+                    this.testConnection();
                 } else {
                     this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
                 }
@@ -186,17 +378,17 @@ REGLAS ESTRICTAS:
 
             updateStatus(badgeText, descText, color) {
                 const colorMap = {
-                    'teal': { text: 'text-teal-400', bg: 'bg-teal-500' },
-                    'amber': { text: 'text-amber-400', bg: 'bg-amber-500' },
-                    'red': { text: 'text-red-400', bg: 'bg-red-500' }
+                    'teal': { text: 'var(--teal-400)', bg: 'var(--teal-500)' },
+                    'amber': { text: 'var(--amber-400)', bg: 'var(--amber-400)' },
+                    'red': { text: 'var(--red-400)', bg: 'var(--red-400)' }
                 };
                 
                 this.ui.connBadge.textContent = badgeText;
-                this.ui.connBadge.className = `${colorMap[color].text}`;
+                this.ui.connBadge.style.color = colorMap[color].text;
                 
                 this.ui.status.innerHTML = `
-                    <span class="w-2 h-2 rounded-full ${colorMap[color].bg} animate-pulse"></span> 
-                    <span class="${colorMap[color].text}">${descText}</span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${colorMap[color].bg}; display: inline-block;"></span> 
+                    <span style="color: ${colorMap[color].text};">${descText}</span>
                 `;
             }
 
@@ -209,23 +401,23 @@ REGLAS ESTRICTAS:
 
             printLog(msg, type = 'system', isHTML = false) {
                 const entry = document.createElement('div');
-                entry.className = `mb-5 text-[13px] leading-relaxed flex gap-3`;
+                entry.style.cssText = "margin-bottom: 1.25rem; font-size: 13px; line-height: 1.6; display: flex; gap: 0.75rem;";
                 
                 if (type === 'user') {
                     entry.innerHTML = `
-                        <div class="text-slate-500 whitespace-nowrap">root@aegis:~#</div> 
-                        <div class="text-white w-full break-words">${DOMPurify.sanitize(msg)}</div>
+                        <div style="color: var(--slate-500); white-space: nowrap;">root@aegis:~#</div> 
+                        <div style="color: #fff; width: 100%; word-break: break-word;">${DOMPurify.sanitize(msg)}</div>
                     `;
                 } else if (type === 'error') {
                     entry.innerHTML = `
-                        <div class="text-red-500 font-bold whitespace-nowrap">[!] EXCEPTION:</div> 
-                        <div class="text-red-300 w-full break-words">${DOMPurify.sanitize(msg)}</div>
+                        <div style="color: var(--red-400); font-weight: bold; white-space: nowrap;">[!] EXCEPTION:</div> 
+                        <div style="color: #fca5a5; width: 100%; word-break: break-word; font-family: monospace; background: rgba(127, 29, 29, 0.2); padding: 8px; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.3);">${DOMPurify.sanitize(msg)}</div>
                     `;
                 } else {
                     const content = isHTML ? msg : this.sanitizeHTML(marked.parse(msg));
                     entry.innerHTML = `
-                        <div class="text-teal-600 font-bold whitespace-nowrap mt-0.5">>></div> 
-                        <div class="markdown-body w-full overflow-hidden">${content}</div>
+                        <div style="color: var(--teal-600); font-weight: bold; white-space: nowrap; margin-top: 2px;">>></div> 
+                        <div class="markdown-body" style="width: 100%; overflow: hidden;">${content}</div>
                     `;
                 }
 
@@ -252,39 +444,39 @@ REGLAS ESTRICTAS:
                 }
                 
                 this.setProcessing(true);
-                this.printLog("Iniciando auto-descubrimiento de modelo compatible...", 'system');
+                this.printLog("Ejecutando escaneo y diagnóstico de modelos con Google AI Studio...", 'system');
                 
                 const candidateModels = [
-                    "gemini-2.0-flash", 
-                    "gemini-1.5-flash", 
-                    "gemini-1.5-flash-latest", 
+                    "gemini-1.5-flash",
                     "gemini-1.5-pro",
-                    "gemini-pro"
+                    "gemini-1.0-pro"
                 ];
 
                 let successfulModel = null;
+                let lastErrorDetails = "";
                 const tempClient = new GoogleGenerativeAI(this.apiKey);
 
                 for (const modelName of candidateModels) {
                     try {
-                        this.printLog(`Probando modelo: ${modelName}...`, 'system');
+                        this.printLog(`Enviando handshake de prueba a: ${modelName}`, 'system');
                         const testModel = tempClient.getGenerativeModel({ model: modelName });
-                        const response = await testModel.generateContent("OK");
+                        const response = await testModel.generateContent("Test");
                         if (response && response.response) {
                             successfulModel = modelName;
                             break;
                         }
                     } catch (err) {
-                        // Ignorar individualmente e intentar con el siguiente modelo
+                        lastErrorDetails = `[Modelo: ${modelName}] -> ${err.message}`;
+                        this.printLog(lastErrorDetails, 'error');
                     }
                 }
 
                 if (successfulModel) {
                     this.initializeCore(successfulModel);
-                    this.printLog(`CONEXIÓN ESTABLECIDA EXITOSAMENTE con [${successfulModel}]. Sistema listo.`, 'system');
+                    this.printLog(`CONEXIÓN ESTABLECIDA con éxito mediante [${successfulModel}]. Núcleo armado.`, 'system');
                 } else {
-                    this.updateStatus('FAULT', 'All Models Failed', 'red');
-                    this.printLog("AUTH_ERROR: Ninguno de los modelos estándar respondió. Verifica que tu API Key sea válida y tenga permisos de uso activos.", 'error');
+                    this.updateStatus('FAULT', 'Diagnostic Failed', 'red');
+                    this.printLog(`DIAGNOSTICO CRITICO: Todos los modelos fallaron. Asegúrate de que tu clave API de Google AI Studio sea válida, esté activa y tenga créditos o cuota disponible.\nÚltimo error del servidor:\n${lastErrorDetails}`, 'error');
                 }
                 
                 this.setProcessing(false);
@@ -292,11 +484,11 @@ REGLAS ESTRICTAS:
 
             async processStreamCommand(cmd) {
                 if (!this.chatSession) {
-                    return this.printLog("NETWORK_ERROR: Token no verificado o ausente. Ejecute 'ping-core' o 'set-key [token]'", 'error');
+                    return this.printLog("NETWORK_ERROR: Token no verificado. Ejecute 'ping-core' o 'set-key [token]'", 'error');
                 }
 
                 this.setProcessing(true);
-                const responseEntry = this.printLog('<span class="cursor-blink text-teal-500 font-bold">_</span>', 'system', true);
+                const responseEntry = this.printLog('<span class="cursor-blink" style="color: var(--teal-500); font-weight: bold;">_</span>', 'system', true);
                 const contentDiv = responseEntry.querySelector('.markdown-body');
                 
                 try {
@@ -305,14 +497,14 @@ REGLAS ESTRICTAS:
 
                     for await (const chunk of result.stream) {
                         fullText += chunk.text();
-                        contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText)) + '<span class="cursor-blink font-bold ml-1">_</span>';
+                        contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText)) + '<span class="cursor-blink" style="font-weight: bold; margin-left: 4px;">_</span>';
                         this.scrollToBottom();
                     }
                     
                     contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText));
                     
                 } catch (error) {
-                    contentDiv.innerHTML = `<span class="text-red-400">CONNECTION TERMINATED.</span>`;
+                    contentDiv.innerHTML = `<span style="color: var(--red-400);">CONNECTION TERMINATED.</span>`;
                     this.printLog(`CORE_PANIC: ${error.message}`, 'error');
                 } finally {
                     this.setProcessing(false);
@@ -345,7 +537,6 @@ REGLAS ESTRICTAS:
                         localStorage.removeItem('AEGIS_API_KEY');
                         localStorage.removeItem('AEGIS_MODEL');
                         this.apiKey = '';
-                        this.activeModelName = null;
                         this.chatSession = null;
                         this.updateStatus('NO_TOKEN', 'Token Destroyed', 'amber');
                         return this.printLog("Token purgado del almacenamiento local. Desconexión forzada.", 'system');
@@ -396,7 +587,7 @@ REGLAS ESTRICTAS:
                     }
                 });
 
-                document.addEventListener('click', (e) => {
+                document.addEventListener('click', () => {
                     if (window.getSelection().toString().length === 0 && !this.isProcessing) {
                         this.ui.input.focus();
                     }
