@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- CSP Optimizado para permitir Highlight.js y Streaming -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Highlight.js CSS para el código renderizado por la IA -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
     
     <style>
@@ -27,7 +25,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #374151; }
         
-        /* CSS Avanzado para Markdown y Código */
         .markdown-body { color: #cbd5e1; font-size: 13px; line-height: 1.6; }
         .markdown-body p { margin-bottom: 0.75rem; }
         .markdown-body ul { list-style-type: square; margin-left: 1.5rem; margin-bottom: 0.75rem; color: #94a3b8; }
@@ -49,14 +46,12 @@
         }
         .markdown-body strong { color: #fff; font-weight: 700; text-shadow: 0 0 5px rgba(255,255,255,0.2); }
         
-        /* Cursor parpadeante hacker */
         .cursor-blink { animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body class="text-slate-300 min-h-screen p-4 md:p-6 flex flex-col selection:bg-teal-500/30 selection:text-teal-200">
 
-    <!-- Header -->
     <header class="border-b border-slate-800/80 pb-4 mb-6 flex flex-wrap justify-between items-center gap-4">
         <div>
             <h1 class="text-xl md:text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
@@ -64,7 +59,7 @@
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                 </span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.1 LEAD-ARCHITECT]</span>
+                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.2 LEAD-ARCHITECT]</span>
             </h1>
             <p class="text-[10px] text-slate-500 mt-1 tracking-widest uppercase">Stateful Streaming // Fault Tolerant // Sanitized</p>
         </div>
@@ -75,7 +70,6 @@
 
     <main class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 h-[calc(100vh-140px)]">
         
-        <!-- Sidebar -->
         <section class="space-y-4 lg:col-span-1 hidden lg:flex flex-col">
             <div class="p-4 border border-slate-800/80 rounded-lg bg-black/40 shadow-xl relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-teal-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
@@ -96,21 +90,18 @@
             </div>
         </section>
 
-        <!-- Terminal Workspace -->
         <section class="lg:col-span-3 flex flex-col relative rounded-xl shadow-2xl shadow-black border border-slate-700/50 overflow-hidden h-full">
             
-            <!-- Terminal Output -->
             <div id="terminal" class="flex-1 bg-black/80 p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar scroll-smooth">
                 <div class="text-teal-500/80 font-bold mb-6 text-[12px] flex flex-col gap-1 select-none">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v5.1 // STATEFUL SESSION                   ║</span>
+                    <span>║ AEGIS_CORE SHELL v5.2 // STATEFUL SESSION                   ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
                     <span class="text-slate-500 font-normal mt-2">> Memory allocation: OK</span>
                     <span class="text-slate-500 font-normal">> Awaiting user input...</span>
                 </div>
             </div>
             
-            <!-- Input Area -->
             <div class="flex bg-[#050914] border-t border-slate-700/50 focus-within:border-teal-500/50 transition-colors">
                 <span class="pl-4 py-4 text-teal-500 font-bold text-sm bg-black select-none">root@aegis:~#</span>
                 <input id="input" type="text" autocomplete="off" spellcheck="false" 
@@ -123,14 +114,12 @@
         </section>
     </main>
 
-    <!-- [NIVEL ARQUITECTO]: Módulos ES6, Streaming, Promesas robustas y Singleton Pattern -->
     <script type="module">
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
         import { marked } from "https://esm.run/marked";
         import DOMPurify from "https://esm.run/dompurify";
         import hljs from "https://esm.run/highlight.js";
 
-        // Configuración de Marked para usar Highlight.js
         marked.setOptions({
             highlight: function(code, lang) {
                 const language = hljs.getLanguage(lang) ? lang : 'plaintext';
@@ -177,9 +166,9 @@ REGLAS ESTRICTAS:
                 try {
                     this.genAI = new GoogleGenerativeAI(this.apiKey);
                     
-                    // CORRECCIÓN: Se usa el modelo estándar activo de Gemini Flash
+                    // Actualizado al modelo estándar compatible actual
                     const model = this.genAI.getGenerativeModel({ 
-                        model: "gemini-1.5-flash",
+                        model: "gemini-2.0-flash",
                         systemInstruction: this.systemInstruction 
                     });
                     
