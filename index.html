@@ -4,308 +4,240 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- [ESCUDO CSP BLINDADO V5] Permite todos los subdominios de jsDelivr y ESM -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run https://*.jsdelivr.net https://*.jsdelivr.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    <!-- CSP Actualizado -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://esm.run; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
-    <!-- Tailwind CSS v4 para producción (Elimina el aviso de consola) -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
-    <script type="module">
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-        window.GoogleGenerativeAI = GoogleGenerativeAI;
-    </script>
-    
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --bg-deep: #0b0f19;
-            --bg-panel: #111827;
-        }
+        :root { --bg-deep: #0b0f19; }
         body { 
             font-family: 'JetBrains Mono', monospace; 
             background-color: var(--bg-deep); 
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 70%);
         }
-        .terminal-glow { 
-            box-shadow: inset 0 0 20px rgba(20, 184, 166, 0.05), 0 0 15px rgba(0, 0, 0, 0.5); 
-        }
+        .terminal-glow { box-shadow: inset 0 0 20px rgba(20, 184, 166, 0.05), 0 0 15px rgba(0, 0, 0, 0.5); }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         
-        .log-entry { white-space: pre-wrap; word-break: break-word; }
-        
+        /* Mejoras en el renderizado Markdown */
+        .log-entry ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; }
+        .log-entry p { margin-bottom: 0.5rem; }
         .log-entry pre {
-            background-color: #030712;
-            border: 1px solid #1f2937;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 6px;
-            margin-bottom: 6px;
-            overflow-x: auto;
+            background-color: #030712; border: 1px solid #1f2937; padding: 10px;
+            border-radius: 6px; margin: 8px 0; overflow-x: auto;
         }
-        .log-entry code {
-            font-family: 'JetBrains Mono', monospace;
-            color: #2dd4bf;
-        }
+        .log-entry code { color: #2dd4bf; }
+        .log-entry strong { color: #5eead4; font-weight: 700; }
     </style>
 </head>
 <body class="text-slate-300 min-h-screen p-4 md:p-8 flex flex-col">
 
     <!-- Header -->
-    <header class="border-b border-slate-800 pb-5 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <header class="border-b border-slate-800 pb-5 mb-8 flex justify-between items-center">
         <div>
             <h1 class="text-2xl font-bold tracking-wider text-teal-400 flex items-center gap-3">
-                <span id="core-indicator" class="h-3 w-3 rounded-full bg-teal-500 animate-pulse"></span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v3.2 SECURE PRO]</span>
+                <span class="h-3 w-3 rounded-full bg-teal-500 animate-pulse"></span>
+                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v4.0 ENTERPRISE]</span>
             </h1>
-            <p class="text-xs text-slate-500 mt-1 tracking-widest">ZERO-TRUST ARCHITECTURE // PRE-FLIGHT OPTIMIZED</p>
+            <p class="text-xs text-slate-500 mt-1 tracking-widest">ZERO-TRUST ARCHITECTURE // OOP REFACTORED</p>
         </div>
-        <div id="status-badge" class="px-4 py-2 border border-teal-900/50 rounded-lg text-xs bg-teal-950/30 text-teal-300 shadow-sm backdrop-blur-sm">
+        <div class="px-4 py-2 border border-teal-900/50 rounded-lg text-xs bg-teal-950/30 text-teal-300">
             SYSTEM: ONLINE | SEC-LEVEL: MAXIMUM
         </div>
     </header>
 
-    <!-- Dashboard Grid -->
     <main class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
         
-        <!-- Sidebar Metrics -->
+        <!-- Sidebar -->
         <section class="space-y-4 lg:col-span-1">
-            <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 backdrop-blur-md shadow-lg">
-                <h2 class="text-xs font-bold uppercase mb-3 text-slate-400 flex justify-between">
-                    System Integrity <span id="integrity-val" class="text-teal-400">100%</span>
-                </h2>
-                <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden w-full">
-                    <div id="integrity-bar" class="h-full bg-teal-500 w-[100%] shadow-[0_0_10px_rgba(20,184,166,0.8)] transition-all duration-500"></div>
-                </div>
-                <p id="integrity-desc" class="text-[10px] mt-3 text-slate-500 uppercase">Sanitization protocols active.</p>
-            </div>
-
-            <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 backdrop-blur-md shadow-lg">
+            <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 shadow-lg">
                 <h2 class="text-xs font-bold uppercase mb-2 text-slate-400">AI Logic Core</h2>
                 <p id="ai-status" class="text-xs text-amber-400/90 py-1 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Awaiting API Key
+                    Awaiting API Key...
                 </p>
             </div>
-
-            <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 backdrop-blur-md shadow-lg text-xs text-slate-400">
+            <div class="p-5 border border-slate-800 rounded-xl bg-slate-900/50 shadow-lg text-xs text-slate-400">
                 <h2 class="text-xs font-bold uppercase mb-3 text-teal-400/80">Local Router Docs</h2>
                 <ul class="space-y-2 font-mono text-[11px]">
                     <li><span class="text-teal-300">set-key [key]</span> : Configurar IA</li>
                     <li><span class="text-teal-300">clear-key</span> : Borrar llaves</li>
-                    <li><span class="text-teal-300">help</span> : Lista de comandos</li>
-                    <li><span class="text-teal-300">clear</span> : Limpiar terminal</li>
-                    <li><span class="text-slate-500 pt-2 block border-t border-slate-800">Usa Flecha ↑/↓ para historial.</span></li>
+                    <li><span class="text-teal-300">help</span> / <span class="text-teal-300">clear</span></li>
                 </ul>
             </div>
         </section>
 
-        <!-- Main Terminal -->
+        <!-- Terminal -->
         <section class="lg:col-span-3 flex flex-col h-[600px] lg:h-auto">
             <div id="terminal" class="flex-1 bg-black/60 border border-slate-700/50 rounded-t-xl p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar">
                 <div class="text-teal-500 font-bold mb-6 text-sm flex flex-col gap-1">
                     <span>╔══════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE TERMINAL v3.2 - ENCRYPTED SESSION ║</span>
+                    <span>║ AEGIS_CORE TERMINAL v4.0 - ENCRYPTED SESSION ║</span>
                     <span>╚══════════════════════════════════════════════╝</span>
-                    <span class="text-slate-400 font-normal mt-2">>> Inicialización segura completada sin errores.</span>
+                    <span class="text-slate-400 font-normal mt-2">>> Inicialización segura completada.</span>
                 </div>
             </div>
             
-            <div class="flex bg-slate-900 border border-t-0 border-slate-700/50 rounded-b-xl overflow-hidden focus-within:border-teal-500/50 transition-colors shadow-lg">
+            <div class="flex bg-slate-900 border border-t-0 border-slate-700/50 rounded-b-xl shadow-lg focus-within:border-teal-500/50">
                 <span class="pl-4 py-4 text-teal-500 font-bold text-sm bg-slate-950/50">root@aegis:~#</span>
-                <input id="input" type="text" autocomplete="off" class="flex-1 bg-transparent px-3 py-4 text-slate-200 text-sm focus:outline-none placeholder-slate-700 font-mono w-full" placeholder="_">
-                <button onclick="sendCommand()" class="bg-teal-950/40 hover:bg-teal-900/60 transition-colors px-6 text-teal-400 text-xs font-bold tracking-widest border-l border-slate-700/50">
+                <input id="input" type="text" autocomplete="off" class="flex-1 bg-transparent px-3 py-4 text-slate-200 text-sm focus:outline-none font-mono" placeholder="_">
+                <button id="exec-btn" class="bg-teal-950/40 hover:bg-teal-900/60 px-6 text-teal-400 text-xs font-bold border-l border-slate-700/50">
                     EXECUTE
                 </button>
             </div>
         </section>
     </main>
 
-    <script>
-        let API_KEY = localStorage.getItem('AEGIS_API_KEY') || '';
-        let genAI = null;
-        let model = null;
-        
-        const cmdHistory = [];
-        let historyIndex = -1;
+    <!-- [NIVEL PRO]: Importamos librerías como módulos ES6 y usamos Clases -->
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+        import { marked } from "https://esm.run/marked";
+        import DOMPurify from "https://esm.run/dompurify";
 
-        const terminal = document.getElementById('terminal');
-        const aiStatus = document.getElementById('ai-status');
-        const inputField = document.getElementById('input');
+        class AegisTerminal {
+            constructor() {
+                this.apiKey = localStorage.getItem('AEGIS_API_KEY') || '';
+                this.model = null;
+                this.cmdHistory = [];
+                this.historyIndex = -1;
+                
+                this.ui = {
+                    terminal: document.getElementById('terminal'),
+                    input: document.getElementById('input'),
+                    status: document.getElementById('ai-status'),
+                    btn: document.getElementById('exec-btn')
+                };
 
-        function sanitize(str) {
-            const temp = document.createElement('div');
-            temp.textContent = str;
-            return temp.innerHTML;
-        }
+                this.systemPrompt = `Eres AEGIS_CORE, un Sistema Operativo de Ciberseguridad Avanzado.
+REGLAS:
+1. Simula la salida de una terminal.
+2. Usa Markdown para estructurar la info.
+3. Cero sentimientos. Eres una máquina lógica.
+4. Temas fuera de TI o Ciberseguridad = "[ACCESS DENIED: NON-SECURITY QUERY]".`;
 
-        function formatOutput(rawText) {
-            let safe = sanitize(rawText);
-            safe = safe.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-            safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-300">$1</strong>');
-            return safe;
-        }
+                this.initEvents();
+                this.initAI();
+            }
 
-        function initAI() {
-            if (API_KEY) {
-                try {
-                    genAI = new window.GoogleGenerativeAI(API_KEY);
-                    const systemPrompt = `Eres AEGIS_CORE, un Sistema Operativo de Ciberseguridad Avanzado.
-REGLAS ESTRICTAS:
-1. Tu formato de respuesta DEBE simular la salida de una terminal de comandos (conciso, analítico, estructurado).
-2. Usa bloques de código o estructuras JSON cuando aplique.
-3. ESTRICTAMENTE PROHIBIDO hablar de sentimientos, ser conversacional o actuar como un asistente amigable. Eres una máquina lógica.
-4. Si el usuario pregunta por temas fuera de ciberseguridad, redes, programación o sistemas, responde ÚNICAMENTE con: "[ACCESS DENIED: NON-SECURITY QUERY]".`;
-
-                    model = genAI.getGenerativeModel({ 
-                        model: "gemini-1.5-flash",
-                        systemInstruction: systemPrompt
-                    });
-
-                    aiStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span> <span class="text-teal-400">Gemini-Flash-1.5: Linked & Armed.</span>';
-                } catch (e) {
-                    aiStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> <span class="text-red-400">Gemini Error: Invalid Key Structure.</span>';
+            initAI() {
+                if (this.apiKey) {
+                    try {
+                        const genAI = new GoogleGenerativeAI(this.apiKey);
+                        this.model = genAI.getGenerativeModel({ 
+                            model: "gemini-1.5-flash",
+                            systemInstruction: this.systemPrompt
+                        });
+                        this.ui.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span> <span class="text-teal-400">Gemini-Flash: Armed.</span>';
+                    } catch (e) {
+                        this.ui.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> <span class="text-red-400">Key Error.</span>';
+                    }
+                } else {
+                    this.model = null;
+                    this.ui.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> <span class="text-amber-400/90">Awaiting Key</span>';
                 }
-            } else {
-                aiStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> <span class="text-amber-400/90">Awaiting API Key (Use set-key)</span>';
-            }
-        }
-
-        initAI();
-
-        function log(msg, type = 'system', isHtml = false) {
-            const entry = document.createElement('div');
-            entry.className = `mb-4 log-entry text-[13px] leading-relaxed`;
-            
-            if (type === 'user') {
-                entry.innerHTML = `<span class="text-slate-500">root@aegis:~#</span> <span class="text-white">${sanitize(msg)}</span>`;
-            } else if (type === 'error') {
-                entry.innerHTML = `<span class="text-red-500 font-bold">[!] ERROR:</span> <span class="text-red-300">${sanitize(msg)}</span>`;
-            } else {
-                const content = isHtml ? msg : formatOutput(msg);
-                entry.innerHTML = `<span class="text-teal-600 font-bold">>></span> <span class="text-slate-300">${content}</span>`;
             }
 
-            terminal.appendChild(entry);
-            terminal.scrollTop = terminal.scrollHeight;
-        }
+            log(msg, type = 'system') {
+                const entry = document.createElement('div');
+                entry.className = `mb-4 log-entry text-[13px] leading-relaxed`;
+                
+                if (type === 'user') {
+                    // DOMPurify protege contra inyección HTML en el input del usuario
+                    entry.innerHTML = `<span class="text-slate-500">root@aegis:~#</span> <span class="text-white">${DOMPurify.sanitize(msg)}</span>`;
+                } else if (type === 'error') {
+                    entry.innerHTML = `<span class="text-red-500 font-bold">[!] ERROR:</span> <span class="text-red-300">${DOMPurify.sanitize(msg)}</span>`;
+                } else {
+                    // Convertimos Markdown a HTML y LUEGO lo purificamos (Seguridad Nivel Dios)
+                    const parsedHTML = marked.parse(msg);
+                    const safeHTML = DOMPurify.sanitize(parsedHTML);
+                    entry.innerHTML = `<div class="text-teal-600 font-bold mb-1">>></div> <div class="text-slate-300">${safeHTML}</div>`;
+                }
 
-        async function sendCommand() {
-            const cmd = inputField.value.trim();
-            if(!cmd) return;
-
-            if (cmdHistory[cmdHistory.length - 1] !== cmd) {
-                cmdHistory.push(cmd);
-            }
-            historyIndex = cmdHistory.length;
-
-            log(cmd, 'user');
-            inputField.value = '';
-            
-            const lowerCmd = cmd.toLowerCase();
-
-            if (lowerCmd.startsWith('set-key ')) {
-                const newKey = cmd.replace('set-key ', '').trim();
-                localStorage.setItem('AEGIS_API_KEY', newKey);
-                API_KEY = newKey;
-                initAI();
-                log("SYSTEM UPDATE: API Key encriptada y guardada en localStorage del navegador.", 'system');
-                inputField.focus();
-                return;
+                this.ui.terminal.appendChild(entry);
+                this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
             }
 
-            switch (lowerCmd) {
-                case 'clear-key':
+            async executeCommand() {
+                const cmd = this.ui.input.value.trim();
+                if (!cmd) return;
+
+                if (this.cmdHistory[this.cmdHistory.length - 1] !== cmd) {
+                    this.cmdHistory.push(cmd);
+                }
+                this.historyIndex = this.cmdHistory.length;
+
+                this.log(cmd, 'user');
+                this.ui.input.value = '';
+                
+                const lowerCmd = cmd.toLowerCase();
+
+                // Comandos Locales
+                if (lowerCmd.startsWith('set-key ')) {
+                    this.apiKey = cmd.replace('set-key ', '').trim();
+                    localStorage.setItem('AEGIS_API_KEY', this.apiKey);
+                    this.initAI();
+                    return this.log("API Key encriptada y montada en memoria.", 'system');
+                }
+                
+                if (lowerCmd === 'clear-key') {
                     localStorage.removeItem('AEGIS_API_KEY');
-                    API_KEY = '';
-                    model = null;
-                    initAI();
-                    log("SYSTEM UPDATE: API Key purgada de la memoria local. Acceso revocado.", 'system');
-                    inputField.focus();
-                    return;
-                case 'help':
-                    log(`COMANDOS LOCALES DISPONIBLES:\n  help       - Muestra este manual de sistema.\n  clear      - Limpia el buffer visual de la terminal.\n  status     - Diagnóstico de integridad de la IA.\n  set-key    - Vincula el modelo [uso: set-key TU_API_KEY].\n  clear-key  - Revoca el acceso de la API Key.\n\nCualquier otro comando será derivado al Núcleo IA (AEGIS_CORE).`, 'system');
-                    inputField.focus();
-                    return;
-                case 'clear':
-                    terminal.innerHTML = `<div class="text-teal-500 font-bold mb-6 text-sm flex flex-col gap-1">
-                    <span>>> Buffer purgado. Protocolos reestablecidos.</span>
-                </div>`;
-                    inputField.focus();
-                    return;
-                case 'status':
-                    const estadoAPI = model ? 'ARMED' : 'OFFLINE';
-                    log(`[DIAGNÓSTICO DEL SISTEMA]\n  INTEGRIDAD DE MEMORIA : 100% NOMINAL\n  PROTECCIÓN XSS        : ACTIVA\n  CONEXIÓN LLAVE LOCAL  : ${API_KEY ? 'CONFIGURADA (ENCRIPTADA)' : 'NO ENCONTRADA'}\n  ESTADO DEL NÚCLEO IA  : ${estadoAPI}`, 'system');
-                    inputField.focus();
-                    return;
-            }
-
-            if (!model) {
-                log("ACCESS DENIED: Núcleo inactivo. Requiere configuración previa. Usa: set-key TU_API_KEY", 'error');
-                inputField.focus();
-                return;
-            }
-
-            let loadingId = null;
-            try {
-                loadingId = 'loading-' + Date.now();
-                const loadingEntry = document.createElement('div');
-                loadingEntry.id = loadingId;
-                loadingEntry.className = "mb-4 text-[13px] text-teal-600/70 animate-pulse";
-                loadingEntry.innerText = ">> Procesando query a través de túnel seguro CSP...";
-                terminal.appendChild(loadingEntry);
-                terminal.scrollTop = terminal.scrollHeight;
-
-                const result = await model.generateContent(cmd);
-                
-                const loadEl = document.getElementById(loadingId);
-                if(loadEl) loadEl.remove();
-                
-                const responseText = await result.response.text();
-                log(responseText, 'system', false);
-            } catch (e) {
-                if(loadingId) {
-                    const loadEl = document.getElementById(loadingId);
-                    if(loadEl) loadEl.remove();
+                    this.apiKey = '';
+                    this.initAI();
+                    return this.log("API Key purgada. Acceso revocado.", 'system');
                 }
 
-                if (e.message.includes('429')) {
-                    log("HTTP 429 [RATE LIMIT EXCEEDED]: La red externa está saturada o has superado la cuota de tu API. Espera y reintenta.", 'error');
-                } else if (e.message.includes('API key not valid')) {
-                    log("HTTP 401 [UNAUTHORIZED]: API Key inválida o revocada por Google. Usa clear-key y luego set-key para reemplazarla.", 'error');
-                } else {
-                    log(`CORE EXCEPTION: ${e.message}`, 'error');
+                if (lowerCmd === 'clear') {
+                    this.ui.terminal.innerHTML = '';
+                    return this.log("Buffer purgado.", 'system');
+                }
+
+                // Petición a Gemini
+                if (!this.model) {
+                    return this.log("Núcleo inactivo. Usa: set-key [TU_API_KEY]", 'error');
+                }
+
+                const loadingId = 'load-' + Date.now();
+                this.ui.terminal.insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="mb-4 text-[13px] text-teal-600/70 animate-pulse">>> Procesando query...</div>`);
+                this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
+
+                try {
+                    const result = await this.model.generateContent(cmd);
+                    document.getElementById(loadingId)?.remove();
+                    this.log(await result.response.text(), 'system');
+                } catch (e) {
+                    document.getElementById(loadingId)?.remove();
+                    this.log(`CORE EXCEPTION: ${e.message}`, 'error');
                 }
             }
-            inputField.focus();
+
+            initEvents() {
+                this.ui.btn.onclick = () => this.executeCommand();
+                this.ui.input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') this.executeCommand();
+                    if (e.key === 'ArrowUp' && this.historyIndex > 0) {
+                        e.preventDefault();
+                        this.ui.input.value = this.cmdHistory[--this.historyIndex];
+                    }
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (this.historyIndex < this.cmdHistory.length - 1) {
+                            this.ui.input.value = this.cmdHistory[++this.historyIndex];
+                        } else {
+                            this.historyIndex = this.cmdHistory.length;
+                            this.ui.input.value = '';
+                        }
+                    }
+                });
+                window.onload = () => this.ui.input.focus();
+            }
         }
 
-        inputField.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                sendCommand();
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (historyIndex > 0) {
-                    historyIndex--;
-                    inputField.value = cmdHistory[historyIndex];
-                }
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (historyIndex < cmdHistory.length - 1) {
-                    historyIndex++;
-                    inputField.value = cmdHistory[historyIndex];
-                } else {
-                    historyIndex = cmdHistory.length;
-                    inputField.value = '';
-                }
-            }
-        });
-        
-        window.onload = () => inputField.focus();
+        // Instanciar el sistema
+        new AegisTerminal();
     </script>
 </body>
 </html>
