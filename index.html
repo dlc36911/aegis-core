@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- CSP Optimizado -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
@@ -60,9 +59,9 @@
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                 </span>
-                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.3 PROD]</span>
+                AEGIS_CORE <span class="text-slate-600 text-sm font-normal">[v5.4 PROD]</span>
             </h1>
-            <p class="text-[10px] text-slate-500 mt-1 tracking-widest uppercase">Stateful Streaming // Fault Tolerant // Sanitized</p>
+            <p class="text-[10px] text-slate-500 mt-1 tracking-widest uppercase">Auto-Validation // Fault Tolerant // Sanitized</p>
         </div>
         <div class="px-4 py-1.5 border border-teal-900/40 rounded shadow-[0_0_10px_rgba(20,184,166,0.1)] text-[11px] bg-black/40 text-teal-300 font-bold">
             SYS: <span id="conn-status" class="text-amber-400">PENDING_HANDSHAKE</span>
@@ -83,8 +82,8 @@
             <div class="p-4 border border-slate-800/80 rounded-lg bg-black/40 shadow-xl text-xs text-slate-400 flex-1">
                 <h2 class="text-[11px] font-bold uppercase mb-4 text-teal-500 border-b border-slate-800 pb-2">Man Pages</h2>
                 <ul class="space-y-3 font-mono text-[11px]">
-                    <li class="flex flex-col"><span class="text-teal-300 font-bold">set-key [key]</span> <span class="text-slate-500 ml-2">Inject Auth Token</span></li>
-                    <li class="flex flex-col"><span class="text-teal-300 font-bold">ping-core</span> <span class="text-slate-500 ml-2">Test API Connection</span></li>
+                    <li class="flex flex-col"><span class="text-teal-300 font-bold">set-key [key]</span> <span class="text-slate-500 ml-2">Inject & Test Token</span></li>
+                    <li class="flex flex-col"><span class="text-teal-300 font-bold">ping-core</span> <span class="text-slate-500 ml-2">Manual Connection Test</span></li>
                     <li class="flex flex-col"><span class="text-teal-300 font-bold">clear-key</span> <span class="text-slate-500 ml-2">Destroy Auth Token</span></li>
                     <li class="flex flex-col"><span class="text-teal-300 font-bold">reset-core</span> <span class="text-slate-500 ml-2">Wipe AI Context Memory</span></li>
                     <li class="flex flex-col"><span class="text-teal-300 font-bold">clear / Ctrl+L</span> <span class="text-slate-500 ml-2">Clear visual buffer</span></li>
@@ -97,10 +96,9 @@
             <div id="terminal" class="flex-1 bg-black/80 p-5 overflow-y-auto mb-0 terminal-glow custom-scrollbar scroll-smooth">
                 <div class="text-teal-500/80 font-bold mb-6 text-[12px] flex flex-col gap-1 select-none">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v5.3 // SECURE STREAMING ENGINE            ║</span>
+                    <span>║ AEGIS_CORE SHELL v5.4 // AUTO-VALIDATION ENGINE             ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
-                    <span class="text-slate-500 font-normal mt-2">> Memory allocation: OK</span>
-                    <span class="text-slate-500 font-normal">> Type 'ping-core' to test connection after setting key...</span>
+                    <span class="text-slate-500 font-normal mt-2">> Use: set-key [TU_API_KEY] para iniciar sesión</span>
                 </div>
             </div>
             
@@ -156,26 +154,21 @@ REGLAS ESTRICTAS:
 3. Actitud: Máquina analítica, cero emociones, enfocada en la resolución de problemas.`;
 
                 this.bindEvents();
-                this.initializeCore();
+                if (this.apiKey) {
+                    this.initializeCore();
+                } else {
+                    this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
+                }
             }
 
             initializeCore() {
-                if (!this.apiKey) {
-                    this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
-                    return;
-                }
-
                 try {
                     this.genAI = new GoogleGenerativeAI(this.apiKey);
-                    
                     const model = this.genAI.getGenerativeModel({ 
                         model: "gemini-2.0-flash",
                         systemInstruction: this.systemInstruction 
                     });
-                    
                     this.chatSession = model.startChat({ history: [] });
-                    this.updateStatus('ONLINE', 'Core Armed & Ready', 'teal');
-                    
                 } catch (error) {
                     this.updateStatus('FAULT', 'Initialization Failed', 'red');
                     this.printLog(`CRITICAL FATAL: ${error.message}`, 'error');
@@ -244,17 +237,33 @@ REGLAS ESTRICTAS:
             }
 
             async testConnection() {
-                if (!this.apiKey) return this.printLog("ERROR: No hay token inyectado. Usa set-key.", 'error');
+                if (!this.apiKey) {
+                    this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
+                    return this.printLog("ERROR: No hay token inyectado. Usa set-key [token].", 'error');
+                }
+                
                 this.setProcessing(true);
-                this.printLog("Iniciando prueba de diagnóstico con Gemini API...", 'system');
+                this.printLog("Probando conexión en vivo con los servidores de Google...", 'system');
+                
                 try {
                     const tempClient = new GoogleGenerativeAI(this.apiKey);
                     const testModel = tempClient.getGenerativeModel({ model: "gemini-2.0-flash" });
-                    const response = await testModel.generateContent("Responde solo con: CONEXIÓN_ESTABLE_OK");
-                    const text = response.response.text();
-                    this.printLog(`[DIAGNOSTICO EXitoso]: ${text}`, 'system');
-                } catch (err) {
-                    this.printLog(`[DIAGNOSTICO FALLIDO]: ${err.message}`, 'error');
+                    const response = await testModel.generateContent("Test connection OK");
+                    
+                    if (response && response.response) {
+                        this.initializeCore();
+                        this.updateStatus('ONLINE', 'Core Armed & Ready', 'teal');
+                        this.printLog("CONEXIÓN ESTABLECIDA EXITOSAMENTE. Sistema listo para recibir comandos.", 'system');
+                    }
+                } catch (error) {
+                    this.updateStatus('FAULT', 'Auth Failed', 'red');
+                    if (error.message.includes('401') || error.message.includes('API key')) {
+                        this.printLog("AUTH_ERROR: La API Key ingresada no es válida.", 'error');
+                    } else if (error.message.includes('404')) {
+                        this.printLog("MODEL_ERROR: El modelo gemini-2.0-flash no está disponible para esta cuenta.", 'error');
+                    } else {
+                        this.printLog(`CONNECTION FAILED: ${error.message}`, 'error');
+                    }
                 } finally {
                     this.setProcessing(false);
                 }
@@ -262,7 +271,7 @@ REGLAS ESTRICTAS:
 
             async processStreamCommand(cmd) {
                 if (!this.chatSession) {
-                    return this.printLog("NETWORK_ERROR: Token no detectado. Use 'set-key [su_api_key]'", 'error');
+                    return this.printLog("NETWORK_ERROR: Token no verificado o ausente. Ejecute 'set-key [token]'", 'error');
                 }
 
                 this.setProcessing(true);
@@ -283,16 +292,7 @@ REGLAS ESTRICTAS:
                     
                 } catch (error) {
                     contentDiv.innerHTML = `<span class="text-red-400">CONNECTION TERMINATED.</span>`;
-                    if (error.message.includes('401') || error.message.includes('API key')) {
-                        this.printLog('AUTH_ERROR: Llave API inválida o expirada.', 'error');
-                        this.updateStatus('UNAUTHORIZED', 'Invalid Token', 'red');
-                    } else if (error.message.includes('404')) {
-                        this.printLog('MODEL_ERROR: El modelo gemini-2.0-flash no está disponible para este token o versión de API.', 'error');
-                    } else if (error.message.includes('fetch')) {
-                        this.printLog('NETWORK_ERROR: No se pudo conectar a los servidores de Gemini.', 'error');
-                    } else {
-                        this.printLog(`CORE_PANIC: ${error.message}`, 'error');
-                    }
+                    this.printLog(`CORE_PANIC: ${error.message}`, 'error');
                 } finally {
                     this.setProcessing(false);
                 }
@@ -330,11 +330,12 @@ REGLAS ESTRICTAS:
                         if(!args[1]) return this.printLog("Sintaxis inválida. Uso: set-key [token]", 'error');
                         this.apiKey = args[1];
                         localStorage.setItem('AEGIS_API_KEY', this.apiKey);
-                        this.initializeCore();
-                        return this.printLog("Nuevo token inyectado. Estableciendo conexión...", 'system');
+                        await this.testConnection();
+                        return;
                     case 'reset-core':
-                        this.initializeCore();
-                        return this.printLog("Memoria de IA borrada. Sesión reiniciada con éxito.", 'system');
+                        if(!this.apiKey) return this.printLog("No hay token para reiniciar.", 'error');
+                        await this.testConnection();
+                        return this.printLog("Memoria de sesión limpiada.", 'system');
                 }
 
                 await this.processStreamCommand(cmd);
