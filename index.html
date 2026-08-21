@@ -271,7 +271,6 @@
         renderHistory() {
             if (!this.ui.terminal) return;
             this.ui.terminal.innerHTML = '';
-            // Ignoramos el mensaje del sistema al renderizar el historial visual
             this.messages.forEach(msg => {
                 if (msg.role === 'system') return;
                 this.printLog(msg.content, msg.role === 'user' ? 'user' : 'system');
@@ -283,7 +282,6 @@
             if (savedHistory) {
                 try {
                     this.messages = JSON.parse(savedHistory);
-                    // Damos un pequeño delay para asegurar que el DOM esté listo
                     setTimeout(() => this.renderHistory(), 100);
                 } catch (e) {
                     this.messages = [{ role: "system", content: this.systemInstruction }];
@@ -370,7 +368,8 @@
             }
             
             this.setProcessing(true);
-            const candidateModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
+            // Modelos activos actuales en Groq (eliminado mixtral obsoleto)
+            const candidateModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
             let connected = false;
             let lastErrorDetails = "";
 
@@ -411,7 +410,7 @@
 
             this.setProcessing(true);
             this.messages.push({ role: "user", content: cmd });
-            this.saveHistory(); // Guardar mensaje usuario
+            this.saveHistory();
             
             const responseEntry = this.printLog('<span class="cursor-blink" style="color: var(--teal-500); font-weight: bold;">_</span>', 'system', true);
             const contentDiv = responseEntry.querySelector('.markdown-body');
@@ -457,7 +456,7 @@
                 }
                 contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText));
                 this.messages.push({ role: "assistant", content: fullText });
-                this.saveHistory(); // Guardar mensaje IA
+                this.saveHistory();
             } catch (error) {
                 this.messages.pop();
                 contentDiv.innerHTML = `<span style="color: var(--red-400);">CONNECTION TERMINATED.</span>`;
