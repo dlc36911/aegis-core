@@ -237,7 +237,15 @@
     class AegisCore {
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
-            this.activeModelName = localStorage.getItem('AEGIS_MODEL') || 'llama-3.3-70b-versatile';
+            
+            // Autocorrección: Si el modelo guardado es obsoleto, se fuerza el actual por defecto
+            let savedModel = localStorage.getItem('AEGIS_MODEL');
+            if (!savedModel || savedModel.includes('mixtral')) {
+                savedModel = 'llama-3.3-70b-versatile';
+                localStorage.setItem('AEGIS_MODEL', savedModel);
+            }
+            this.activeModelName = savedModel;
+            
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             
             this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde conciso, técnico y en Markdown estricto.";
@@ -368,7 +376,6 @@
             }
             
             this.setProcessing(true);
-            // Modelos activos actuales en Groq (eliminado mixtral obsoleto)
             const candidateModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
             let connected = false;
             let lastErrorDetails = "";
@@ -486,6 +493,7 @@
                 localStorage.removeItem('AEGIS_GROQ_KEY');
                 localStorage.removeItem('AEGIS_MODEL');
                 this.apiKey = '';
+                this.activeModelName = 'llama-3.3-70b-versatile';
                 this.initContext();
                 this.updateStatus('NO_TOKEN', 'Token Destroyed', 'amber');
                 return this.printLog("Token purgado del almacenamiento local. Desconexión forzada.", 'system');
