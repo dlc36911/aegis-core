@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+    <!-- CSP Actualizado: Se elimina Google, se permite api.groq.com -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://api.groq.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
     
     <title>AEGIS CORE | SECURE OS PRO</title>
     
@@ -61,30 +62,9 @@
             gap: 0.75rem;
         }
 
-        .ping-dot {
-            position: relative;
-            display: inline-flex;
-            width: 0.75rem;
-            height: 0.75rem;
-        }
-        .ping-dot-ping {
-            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-            position: absolute;
-            display: inline-flex;
-            height: 100%;
-            width: 100%;
-            border-radius: 9999px;
-            background-color: var(--teal-400);
-            opacity: 0.75;
-        }
-        .ping-dot-base {
-            position: relative;
-            display: inline-flex;
-            border-radius: 9999px;
-            height: 0.75rem;
-            width: 0.75rem;
-            background-color: var(--teal-500);
-        }
+        .ping-dot { position: relative; display: inline-flex; width: 0.75rem; height: 0.75rem; }
+        .ping-dot-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: var(--teal-400); opacity: 0.75; }
+        .ping-dot-base { position: relative; display: inline-flex; border-radius: 9999px; height: 0.75rem; width: 0.75rem; background-color: var(--teal-500); }
         @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
 
         .badge {
@@ -105,18 +85,10 @@
             flex: 1;
             height: calc(100vh - 140px);
         }
-        @media(min-width: 1024px) {
-            main { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        }
+        @media(min-width: 1024px) { main { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-        .sidebar {
-            display: none;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        @media(min-width: 1024px) {
-            .sidebar { display: flex; grid-column: span 1 / span 1; }
-        }
+        .sidebar { display: none; flex-direction: column; gap: 1rem; }
+        @media(min-width: 1024px) { .sidebar { display: flex; grid-column: span 1 / span 1; } }
 
         .card {
             padding: 1rem;
@@ -138,23 +110,8 @@
             gap: 0.5rem;
         }
 
-        .man-title {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 1rem;
-            color: var(--teal-500);
-            border-bottom: 1px solid var(--slate-800);
-            padding-bottom: 0.5rem;
-        }
-
-        ul.man-list {
-            list-style: none;
-            font-size: 0.7rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+        .man-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1rem; color: var(--teal-500); border-bottom: 1px solid var(--slate-800); padding-bottom: 0.5rem; }
+        ul.man-list { list-style: none; font-size: 0.7rem; display: flex; flex-direction: column; gap: 0.75rem; }
         ul.man-list li span:first-child { color: var(--teal-300); font-weight: bold; }
         ul.man-list li span:last-child { color: var(--slate-500); margin-left: 0.5rem; }
 
@@ -179,77 +136,27 @@
             scroll-behavior: smooth;
         }
 
-        .input-bar {
-            display: flex;
-            background-color: #050914;
-            border-top: 1px solid rgba(51, 65, 85, 0.5);
-        }
-        .input-bar:focus-within {
-            border-color: rgba(20, 184, 166, 0.5);
-        }
+        .input-bar { display: flex; background-color: #050914; border-top: 1px solid rgba(51, 65, 85, 0.5); }
+        .input-bar:focus-within { border-color: rgba(20, 184, 166, 0.5); }
 
-        .prompt-prefix {
-            padding: 1rem;
-            color: var(--teal-500);
-            font-weight: bold;
-            font-size: 0.875rem;
-            background-color: #000;
-            user-select: none;
-        }
-
-        #input {
-            flex: 1;
-            background-color: #000;
-            padding: 1rem;
-            color: var(--slate-200);
-            font-size: 0.8125rem;
-            border: none;
-            outline: none;
-            font-family: 'JetBrains Mono', monospace;
-        }
+        .prompt-prefix { padding: 1rem; color: var(--teal-500); font-weight: bold; font-size: 0.875rem; background-color: #000; user-select: none; }
+        #input { flex: 1; background-color: #000; padding: 1rem; color: var(--slate-200); font-size: 0.8125rem; border: none; outline: none; font-family: 'JetBrains Mono', monospace; }
         #input:disabled { opacity: 0.5; }
 
-        #exec-btn {
-            background-color: rgba(4, 47, 46, 0.3);
-            color: var(--teal-400);
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 0 1.5rem;
-            border: none;
-            border-left: 1px solid rgba(51, 65, 85, 0.5);
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-family: 'JetBrains Mono', monospace;
-        }
+        #exec-btn { background-color: rgba(4, 47, 46, 0.3); color: var(--teal-400); font-size: 0.75rem; font-weight: bold; padding: 0 1.5rem; border: none; border-left: 1px solid rgba(51, 65, 85, 0.5); cursor: pointer; transition: background-color 0.2s; font-family: 'JetBrains Mono', monospace; }
         #exec-btn:hover:not(:disabled) { background-color: rgba(19, 78, 74, 0.6); }
         #exec-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #374151; }
 
-        /* Markdown Styles */
         .markdown-body { color: #cbd5e1; font-size: 13px; line-height: 1.6; }
         .markdown-body p { margin-bottom: 0.75rem; }
         .markdown-body ul { list-style-type: square; margin-left: 1.5rem; margin-bottom: 0.75rem; color: #94a3b8; }
-        .markdown-body pre {
-            background-color: #0d1117; 
-            border: 1px solid #1f2937; 
-            border-left: 3px solid #0d9488;
-            padding: 12px;
-            border-radius: 4px; 
-            margin: 10px 0; 
-            overflow-x: auto;
-        }
-        .markdown-body code:not(pre code) { 
-            background-color: #1e293b; 
-            color: #5eead4; 
-            padding: 2px 5px; 
-            border-radius: 4px; 
-            font-size: 0.9em;
-        }
+        .markdown-body pre { background-color: #0d1117; border: 1px solid #1f2937; border-left: 3px solid #0d9488; padding: 12px; border-radius: 4px; margin: 10px 0; overflow-x: auto; }
+        .markdown-body code:not(pre code) { background-color: #1e293b; color: #5eead4; padding: 2px 5px; border-radius: 4px; font-size: 0.9em; }
         .markdown-body strong { color: #fff; font-weight: 700; }
         .cursor-blink { animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -264,9 +171,9 @@
                   <span class="ping-dot-ping"></span>
                   <span class="ping-dot-base"></span>
                 </span>
-                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v5.7 STABLE]</span>
+                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v6.0 NEURAL]</span>
             </h1>
-            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Updated Endpoints // Zero Warnings</p>
+            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Groq LPU Engine // Independence Mode</p>
         </div>
         <div class="badge">
             SYS: <span id="conn-status" style="color: var(--amber-400);">PENDING_HANDSHAKE</span>
@@ -278,14 +185,14 @@
             <div class="card" style="position: relative; overflow: hidden;">
                 <h2 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 0.75rem; color: var(--slate-400);">Environment Core</h2>
                 <div id="ai-status" class="status-box">
-                    <span style="font-size: 1rem; line-height: 1;">⟳</span> Validating Token...
+                    <span style="font-size: 1rem; line-height: 1;">⟳</span> Awaiting Token...
                 </div>
             </div>
             
             <div class="card" style="flex: 1;">
                 <div class="man-title">Man Pages</div>
                 <ul class="man-list">
-                    <li><span>set-key [key]</span> <span>Inject & Raw Test Token</span></li>
+                    <li><span>set-key [key]</span> <span>Inject Groq API Token</span></li>
                     <li><span>ping-core</span> <span>Inspect API Raw Error</span></li>
                     <li><span>clear-key</span> <span>Destroy Auth Token</span></li>
                     <li><span>reset-core</span> <span>Wipe AI Context</span></li>
@@ -298,9 +205,10 @@
             <div id="terminal">
                 <div style="color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v5.7 // ACTIVE ENDPOINT ENGINE             ║</span>
+                    <span>║ AEGIS_CORE SHELL v6.0 // DECENTRALIZED LPU ENGINE           ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
-                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Use: set-key [TU_API_KEY] para inicializar conexión</span>
+                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Use: set-key [GROQ_API_KEY] para inicializar conexión</span>
+                    <span style="color: var(--slate-500); font-weight: normal;">> Obtén tu key en: console.groq.com</span>
                 </div>
             </div>
             
@@ -313,7 +221,7 @@
     </main>
 
     <script type="module">
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+        // Se ha eliminado Google SDK. Solo mantenemos procesadores de texto (Markdown/Sanitizador)
         import { marked } from "https://esm.run/marked";
         import DOMPurify from "https://esm.run/dompurify";
         import hljs from "https://esm.run/highlight.js";
@@ -329,10 +237,14 @@
 
         class AegisCore {
             constructor() {
-                this.apiKey = localStorage.getItem('AEGIS_API_KEY') || '';
-                this.activeModelName = localStorage.getItem('AEGIS_MODEL') || 'gemini-3.7-flash';
-                this.genAI = null;
-                this.chatSession = null;
+                this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
+                this.activeModelName = localStorage.getItem('AEGIS_MODEL') || 'llama3-8b-8192';
+                
+                // Endpoint compatible con estándar OpenAI (usado por Groq, Ollama, LM Studio, etc.)
+                this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+                
+                this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde conciso, de forma técnica y siempre en Markdown estricto.";
+                this.messages = []; 
                 
                 this.history = [];
                 this.historyPos = -1;
@@ -346,9 +258,9 @@
                     btn: document.getElementById('exec-btn')
                 };
 
-                this.systemInstruction = `Eres AEGIS_CORE, un SO avanzado de seguridad. Responde conciso, en Markdown estricto.`;
-
                 this.bindEvents();
+                this.initContext();
+
                 if (this.apiKey) {
                     this.testConnection();
                 } else {
@@ -356,22 +268,10 @@
                 }
             }
 
-            initializeCore(modelName) {
-                try {
-                    this.genAI = new GoogleGenerativeAI(this.apiKey);
-                    this.activeModelName = modelName;
-                    localStorage.setItem('AEGIS_MODEL', modelName);
-
-                    const model = this.genAI.getGenerativeModel({ 
-                        model: modelName,
-                        systemInstruction: this.systemInstruction 
-                    });
-                    this.chatSession = model.startChat({ history: [] });
-                    this.updateStatus('ONLINE', `Armed [${modelName}]`, 'teal');
-                } catch (error) {
-                    this.updateStatus('FAULT', 'Initialization Failed', 'red');
-                    this.printLog(`CRITICAL FATAL: ${error.message}`, 'error');
-                }
+            initContext() {
+                this.messages = [
+                    { role: "system", content: this.systemInstruction }
+                ];
             }
 
             updateStatus(badgeText, descText, color) {
@@ -442,28 +342,39 @@
                 }
                 
                 this.setProcessing(true);
-                this.printLog("Ejecutando escaneo con modelos actuales (Gemini 3.7 / 3.6 / 2.5 Flash)...", 'system');
+                this.printLog("Ejecutando escaneo con modelos LPU en Groq...", 'system');
                 
                 const candidateModels = [
-                    "gemini-3.7-flash",
-                    "gemini-3.6-flash",
-                    "gemini-2.5-flash",
-                    "gemini-1.5-flash",
-                    "gemini-3.1-pro-preview"
+                    "llama3-8b-8192",
+                    "llama3-70b-8192",
+                    "mixtral-8x7b-32768"
                 ];
 
                 let successfulModel = null;
                 let lastErrorDetails = "";
-                const tempClient = new GoogleGenerativeAI(this.apiKey);
 
                 for (const modelName of candidateModels) {
                     try {
-                        this.printLog(`Probando endpoint: ${modelName}`, 'system');
-                        const testModel = tempClient.getGenerativeModel({ model: modelName });
-                        const response = await testModel.generateContent("Test");
-                        if (response && response.response) {
+                        this.printLog(`Probando endpoint LPU: ${modelName}`, 'system');
+                        const response = await fetch(this.apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${this.apiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: modelName,
+                                messages: [{ role: "user", content: "ping" }],
+                                max_tokens: 10
+                            })
+                        });
+
+                        if (response.ok) {
                             successfulModel = modelName;
                             break;
+                        } else {
+                            const errData = await response.json();
+                            throw new Error(errData.error?.message || `HTTP ${response.status}`);
                         }
                     } catch (err) {
                         lastErrorDetails = `[${modelName}] -> ${err.message}`;
@@ -472,38 +383,91 @@
                 }
 
                 if (successfulModel) {
-                    this.initializeCore(successfulModel);
-                    this.printLog(`CONEXIÓN ESTABLECIDA con éxito mediante [${successfulModel}]. Núcleo armado.`, 'system');
+                    this.activeModelName = successfulModel;
+                    localStorage.setItem('AEGIS_MODEL', successfulModel);
+                    this.updateStatus('ONLINE', `Armed [${successfulModel}]`, 'teal');
+                    this.printLog(`CONEXIÓN ESTABLECIDA. Latencia ultra-baja confirmada. Núcleo armado con ${successfulModel}.`, 'system');
                 } else {
                     this.updateStatus('FAULT', 'Diagnostic Failed', 'red');
-                    this.printLog(`DIAGNOSTICO CRITICO: Todos los modelos devolvieron 404. Es probable que tu API Key sea antigua, esté restringida a un proyecto específico o no tenga acceso a los endpoints estándar de Google AI Studio.\nÚltimo error:\n${lastErrorDetails}`, 'error');
+                    this.printLog(`DIAGNOSTICO CRITICO: Token inválido o red inaccesible.\nÚltimo error:\n${lastErrorDetails}`, 'error');
                 }
                 
                 this.setProcessing(false);
             }
 
             async processStreamCommand(cmd) {
-                if (!this.chatSession) {
-                    return this.printLog("NETWORK_ERROR: Token no verificado. Ejecute 'ping-core' o 'set-key [token]'", 'error');
+                if (!this.apiKey) {
+                    return this.printLog("NETWORK_ERROR: Token no verificado. Ejecute 'set-key [token]'", 'error');
                 }
 
                 this.setProcessing(true);
                 const responseEntry = this.printLog('<span class="cursor-blink" style="color: var(--teal-500); font-weight: bold;">_</span>', 'system', true);
                 const contentDiv = responseEntry.querySelector('.markdown-body');
                 
+                // Añadir el input del usuario al contexto
+                this.messages.push({ role: "user", content: cmd });
+                
                 try {
-                    const result = await this.chatSession.sendMessageStream(cmd);
-                    let fullText = '';
+                    const response = await fetch(this.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: this.activeModelName,
+                            messages: this.messages,
+                            stream: true // Habilitamos Server-Sent Events
+                        })
+                    });
 
-                    for await (const chunk of result.stream) {
-                        fullText += chunk.text();
-                        contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText)) + '<span class="cursor-blink" style="font-weight: bold; margin-left: 4px;">_</span>';
-                        this.scrollToBottom();
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error?.message || "Stream connection failed.");
+                    }
+
+                    // Lectura del stream nativo (Fetch API + ReadableStream)
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder("utf-8");
+                    let fullText = '';
+                    let buffer = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop(); // Guardamos el fragmento incompleto para la próxima iteración
+
+                        for (const line of lines) {
+                            if (line.trim() === '') continue;
+                            if (line.startsWith('data: ')) {
+                                const dataStr = line.slice(6);
+                                if (dataStr === '[DONE]') continue;
+                                
+                                try {
+                                    const parsed = JSON.parse(dataStr);
+                                    const content = parsed.choices[0]?.delta?.content || '';
+                                    fullText += content;
+                                    
+                                    // Actualizar UI en tiempo real
+                                    contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText)) + '<span class="cursor-blink" style="font-weight: bold; margin-left: 4px;">_</span>';
+                                    this.scrollToBottom();
+                                } catch(e) { 
+                                    // Ignorar pequeños errores de parseo en chunks incompletos
+                                }
+                            }
+                        }
                     }
                     
+                    // Render final limpio y guardar en el historial de la IA
                     contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText));
+                    this.messages.push({ role: "assistant", content: fullText });
                     
                 } catch (error) {
+                    // Si falla, sacamos el mensaje del usuario para no corromper el contexto
+                    this.messages.pop(); 
                     contentDiv.innerHTML = `<span style="color: var(--red-400);">CONNECTION TERMINATED.</span>`;
                     this.printLog(`CORE_PANIC: ${error.message}`, 'error');
                 } finally {
@@ -534,22 +498,21 @@
                         await this.testConnection();
                         return;
                     case 'clear-key':
-                        localStorage.removeItem('AEGIS_API_KEY');
+                        localStorage.removeItem('AEGIS_GROQ_KEY');
                         localStorage.removeItem('AEGIS_MODEL');
                         this.apiKey = '';
-                        this.chatSession = null;
+                        this.initContext();
                         this.updateStatus('NO_TOKEN', 'Token Destroyed', 'amber');
                         return this.printLog("Token purgado del almacenamiento local. Desconexión forzada.", 'system');
                     case 'set-key':
                         if(!args[1]) return this.printLog("Sintaxis inválida. Uso: set-key [token]", 'error');
                         this.apiKey = args[1];
-                        localStorage.setItem('AEGIS_API_KEY', this.apiKey);
+                        localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
                         await this.testConnection();
                         return;
                     case 'reset-core':
-                        if(!this.apiKey) return this.printLog("No hay token para reiniciar.", 'error');
-                        await this.testConnection();
-                        return this.printLog("Memoria de sesión limpiada.", 'system');
+                        this.initContext();
+                        return this.printLog("Memoria de sesión limpiada. Contexto reiniciado a parámetros de fábrica.", 'system');
                 }
 
                 await this.processStreamCommand(cmd);
