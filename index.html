@@ -192,7 +192,7 @@
                 <div class="man-title">Man Pages (Commands)</div>
                 <ul class="man-list">
                     <li><span>set-key [key]</span> <span>Inyectar Groq API Key</span></li>
-                    <li><span>set-model [id]</span> <span>Cambiar motor (ej. mixtral-8x7b-32768)</span></li>
+                    <li><span>set-model [id]</span> <span>Cambiar motor (ej. llama-3.1-8b-instant)</span></li>
                     <li><span>ping-core</span> <span>Probar conexión de red</span></li>
                     <li><span>reset-core</span> <span>Wipe AI Context</span></li>
                     <li><span>clear / Ctrl+L</span> <span>Limpiar terminal</span></li>
@@ -236,10 +236,10 @@
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
-            // EL FIX: Se usa llama3-8b-8192 por defecto porque NUNCA tira error 404.
+            // FIX 404: Usamos un modelo actual y activo por defecto en Groq
             let savedModel = localStorage.getItem('AEGIS_MODEL');
             if (!savedModel) {
-                savedModel = 'llama3-8b-8192';
+                savedModel = 'llama-3.1-8b-instant';
                 localStorage.setItem('AEGIS_MODEL', savedModel);
             }
             this.activeModelName = savedModel;
@@ -306,7 +306,6 @@
             
             this.printLog(text, 'user');
             
-            // Router de Comandos
             if (text.startsWith('set-key ')) {
                 this.apiKey = text.split(' ')[1];
                 localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
@@ -465,7 +464,7 @@
                 } else {
                     const errText = await response.text();
                     this.updateStatus('ERR_404', 'Model Not Found', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado probablemente no existe en tu cuenta. Usa <code>set-model llama3-8b-8192</code>. Detalles: ${this.sanitizeHTML(errText)}`, 'system', true);
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no existe o fue cambiado por Groq. Usa <code>set-model llama-3.1-8b-instant</code>. Detalles: ${this.sanitizeHTML(errText)}`, 'system', true);
                 }
             } catch (error) {
                 this.updateStatus('NET_ERR', 'Offline', 'red');
@@ -499,16 +498,15 @@
                     const err = await response.json();
                     let errMsg = err.error?.message || "Error desconocido";
                     
-                    // EL SEGURO ANTI-404: Si escribes mal un modelo, te devuelve automáticamente a uno funcional.
                     if (response.status === 404) {
-                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Error 404. El modelo que solicitaste no existe o fue apagado por Groq. Reiniciando núcleo a <code>llama3-8b-8192</code>...";
-                        this.activeModelName = 'llama3-8b-8192';
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Error 404. El modelo que solicitaste no existe. Reiniciando núcleo a <code>llama-3.1-8b-instant</code>...";
+                        this.activeModelName = 'llama-3.1-8b-instant';
                         localStorage.setItem('AEGIS_MODEL', this.activeModelName);
-                        this.testConnection(); // Re-test
+                        this.testConnection();
                     }
                     
                     this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
-                    this.messages.pop(); // Revertimos tu input para que no se arruine el historial
+                    this.messages.pop();
                     return;
                 }
 
