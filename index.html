@@ -238,10 +238,12 @@
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
-            // Autocorrección: Si el modelo guardado es obsoleto, se fuerza el actual por defecto
+            // AUTO-FIX: Validación estricta para evitar el Error 404
+            const validModels = ['llama-3.3-70b-versatile', 'llama-3.3-70b-specdec', 'llama3-8b-8192'];
             let savedModel = localStorage.getItem('AEGIS_MODEL');
-            if (!savedModel || savedModel.includes('mixtral')) {
-                savedModel = 'llama-3.3-70b-versatile';
+            
+            if (!savedModel || !validModels.includes(savedModel)) {
+                savedModel = 'llama-3.3-70b-versatile'; // Fallback a modelo soportado
                 localStorage.setItem('AEGIS_MODEL', savedModel);
             }
             this.activeModelName = savedModel;
@@ -272,6 +274,98 @@
             }
         }
 
+        bindEvents() {
+            this.ui.btn.addEventListener('click', () => this.handleInput());
+            this.ui.input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') this.handleInput();
+                if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); this.clearTerminal(); }
+                
+                // Flechas para historial de comandos (Estilo bash)
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (this.history.length > 0) {
+                        this.historyPos = Math.min(this.historyPos + 1, this.history.length - 1);
+                        this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
+                    }
+                }
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (this.historyPos > 0) {
+                        this.historyPos--;
+                        this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
+                    } else if (this.historyPos === 0) {
+                        this.historyPos = -1;
+                        this.ui.input.value = '';
+                    }
+                }
+            });
+        }
+
+        async handleInput() {
+            if (this.isProcessing) return;
+            const text = this.ui.input.value.trim();
+            if (!text) return;
+
+            this.ui.input.value = '';
+            this.history.push(text);
+            this.historyPos = -1;
+            
+            this.printLog(text, 'user');
+            
+            // Router de Comandos
+            if (text.startsWith('set-key ')) {
+                this.apiKey = text.split(' ')[1];
+                localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
+                this.printLog("Token criptográfico inyectado en local storage.", 'system');
+                this.testConnection(true);
+                return;
+            }
+            if (text === 'clear-key') {
+                this.apiKey = '';
+                localStorage.removeItem('AEGIS_GROQ_KEY');
+                this.updateStatus('OFFLINE', 'Auth Token Destroyed', 'red');
+                this.printLog("Token purgado del sistema. Conexión cerrada.", 'system');
+                return;
+            }
+            if (text === 'clear') {
+                this.clearTerminal();
+                return;
+            }
+            if (text === 'reset-core') {
+                this.messages = [{ role: "system", content: this.systemInstruction }];
+                this.saveHistory();
+                this.printLog("Contexto purgado. Sesión limpia inicializada.", 'system');
+                return;
+            }
+            if (text === 'ping-core') {
+                this.printLog(`Diagnóstico de red hacia Groq LPU API [${this.activeModelName}]...`, 'system');
+                this.testConnection(true);
+                return;
+            }
+
+            if (!this.apiKey) {
+                this.printLog("SYS_ERR: Requiere autenticación. Usa <code>set-key [GROQ_API_KEY]</code>", 'system', true);
+                return;
+            }
+
+            this.messages.push({ role: "user", content: text });
+            this.saveHistory();
+            await this.fetchAIResponse();
+        }
+
+        clearTerminal() {
+            this.ui.terminal.innerHTML = '';
+            const banner = document.createElement('div');
+            banner.style.cssText = "color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;";
+            banner.innerHTML = `
+                <span>╔═════════════════════════════════════════════════════════════╗</span>
+                <span>║ AEGIS_CORE SHELL v6.0 // DECENTRALIZED LPU ENGINE           ║</span>
+                <span>╚═════════════════════════════════════════════════════════════╝</span>
+                <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Buffer de pantalla purgado</span>
+            `;
+            this.ui.terminal.appendChild(banner);
+        }
+
         saveHistory() {
             localStorage.setItem('AEGIS_CHAT_HISTORY', JSON.stringify(this.messages));
         }
@@ -281,7 +375,14 @@
             this.ui.terminal.innerHTML = '';
             this.messages.forEach(msg => {
                 if (msg.role === 'system') return;
-                this.printLog(msg.content, msg.role === 'user' ? 'user' : 'system');
+                
+                if(msg.role === 'user') {
+                    this.printLog(msg.content, 'user');
+                } else {
+                    const htmlContent = marked.parse(msg.content);
+                    const safeHTML = this.sanitizeHTML(htmlContent);
+                    this.printLog(safeHTML, 'system', true);
+                }
             });
         }
 
@@ -334,236 +435,112 @@
             if (type === 'user') {
                 entry.innerHTML = `
                     <div style="color: var(--slate-500); white-space: nowrap;">root@aegis:~#</div> 
-                    <div style="color: #fff; width: 100%; word-break: break-word;">${DOMPurify.sanitize(msg)}</div>
-                `;
-            } else if (type === 'error') {
-                entry.innerHTML = `
-                    <div style="color: var(--red-400); font-weight: bold; white-space: nowrap;">[!] EXCEPTION:</div> 
-                    <div style="color: #fca5a5; width: 100%; word-break: break-word; font-family: monospace; background: rgba(127, 29, 29, 0.2); padding: 8px; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.3);">${DOMPurify.sanitize(msg)}</div>
+                    <div style="color: #cbd5e1; word-break: break-word; font-family: 'JetBrains Mono', monospace;">${this.sanitizeHTML(msg)}</div>
                 `;
             } else {
-                const content = isHTML ? msg : this.sanitizeHTML(marked.parse(msg));
                 entry.innerHTML = `
-                    <div style="color: var(--teal-600); font-weight: bold; white-space: nowrap; margin-top: 2px;">>></div> 
-                    <div class="markdown-body" style="width: 100%; overflow: hidden;">${content}</div>
+                    <div style="color: var(--teal-500); white-space: nowrap;">[SYS]</div> 
+                    <div class="markdown-body" style="word-break: break-word; font-family: 'JetBrains Mono', monospace; flex: 1;">
+                        ${isHTML ? msg : this.sanitizeHTML(msg)}
+                    </div>
                 `;
             }
-
-            if (this.ui.terminal) {
-                this.ui.terminal.appendChild(entry);
-                this.scrollToBottom();
-            }
-            return entry;
-        }
-
-        scrollToBottom() {
-            if (this.ui.terminal) {
-                this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
-            }
-        }
-
-        setProcessing(state) {
-            this.isProcessing = state;
-            if (this.ui.input) this.ui.input.disabled = state;
-            if (this.ui.btn) this.ui.btn.disabled = state;
-            if (!state && this.ui.input) setTimeout(() => this.ui.input.focus(), 50);
-        }
-
-        async testConnection() {
-            if (!this.apiKey) {
-                this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
-                return this.printLog("ERROR: No hay token inyectado. Usa set-key [token].", 'error');
-            }
             
-            this.setProcessing(true);
-            const candidateModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
-            let connected = false;
-            let lastErrorDetails = "";
+            this.ui.terminal.appendChild(entry);
+            this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
+        }
 
-            for (const model of candidateModels) {
-                try {
-                    const response = await fetch(this.apiUrl, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ model, messages: [{ role: "user", content: "ping" }], max_tokens: 5 })
-                    });
-                    
-                    if (response.ok) {
-                        this.activeModelName = model;
-                        localStorage.setItem('AEGIS_MODEL', model);
-                        this.updateStatus('ONLINE', `Armed [${model}]`, 'teal');
-                        connected = true;
-                        break;
-                    } else {
-                        const errData = await response.json();
-                        throw new Error(errData.error?.message || `HTTP ${response.status}`);
-                    }
-                } catch (e) {
-                    lastErrorDetails = `[${model}] -> ${e.message}`;
+        async testConnection(verbose = false) {
+            this.updateStatus('CONNECTING', 'Handshake request...', 'amber');
+            try {
+                const response = await fetch(this.apiUrl, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: this.activeModelName, messages: [{ role: "user", content: "ping" }], max_tokens: 5 })
+                });
+
+                if (response.ok) {
+                    this.updateStatus('SECURE', `Link Active [${this.activeModelName}]`, 'teal');
+                    if (verbose) this.printLog(`Handshake exitoso. Status 200 OK.`, 'system');
+                } else {
+                    const errText = await response.text();
+                    this.updateStatus('ERR_404', 'API Link Failed', 'red');
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: <code>${this.sanitizeHTML(errText)}</code>`, 'system', true);
                 }
+            } catch (error) {
+                this.updateStatus('NET_ERR', 'Offline', 'red');
+                if (verbose) this.printLog(`Fallo crítico de red: ${error.message}`, 'system');
             }
-
-            if (!connected) {
-                this.updateStatus('FAULT', 'Diagnostic Failed', 'red');
-                this.printLog(`DIAGNOSTICO CRITICO: Token inválido o red inaccesible.\nÚltimo error:\n${lastErrorDetails}`, 'error');
-            }
-            this.setProcessing(false);
         }
 
-        async processStreamCommand(cmd) {
-            if (!this.apiKey) {
-                return this.printLog("NETWORK_ERROR: Token no verificado. Ejecute 'set-key [token]'", 'error');
-            }
-
-            this.setProcessing(true);
-            this.messages.push({ role: "user", content: cmd });
-            this.saveHistory();
+        async fetchAIResponse() {
+            this.isProcessing = true;
+            this.ui.input.disabled = true;
+            this.ui.btn.disabled = true;
             
-            const responseEntry = this.printLog('<span class="cursor-blink" style="color: var(--teal-500); font-weight: bold;">_</span>', 'system', true);
-            const contentDiv = responseEntry.querySelector('.markdown-body');
+            const typingId = 'typing-' + Date.now();
+            this.printLog(`<span class="cursor-blink" id="${typingId}">Procesando carga neuronal...</span>`, 'system', true);
             
             try {
                 const response = await fetch(this.apiUrl, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: this.activeModelName, messages: this.messages, stream: true })
+                    body: JSON.stringify({ 
+                        model: this.activeModelName, 
+                        messages: this.messages,
+                        temperature: 0.7
+                    })
                 });
+
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.parentNode.parentNode.remove(); 
 
                 if (!response.ok) {
                     const err = await response.json();
-                    throw new Error(err.error?.message || "Stream connection failed.");
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder("utf-8");
-                let fullText = '';
-                let buffer = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
+                    let errMsg = err.error?.message || "Error desconocido";
                     
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop();
-
-                    for (const line of lines) {
-                        if (line.trim() === '' || !line.startsWith('data: ')) continue;
-                        const dataStr = line.slice(6);
-                        if (dataStr === '[DONE]') continue;
-                        
-                        try {
-                            const parsed = JSON.parse(dataStr);
-                            const content = parsed.choices[0]?.delta?.content || '';
-                            fullText += content;
-                            contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText)) + '<span class="cursor-blink" style="font-weight: bold; margin-left: 4px;">_</span>';
-                            this.scrollToBottom();
-                        } catch(e) {}
+                    // Auto-Corrector si de casualidad tira 404 por otro modelo
+                    if (response.status === 404 && errMsg.includes("does not exist")) {
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Se detectó una llamada a un modelo extinto. Restableciendo al más reciente...";
+                        localStorage.setItem('AEGIS_MODEL', 'llama-3.3-70b-versatile');
+                        this.activeModelName = 'llama-3.3-70b-versatile';
                     }
+                    
+                    this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
+                    this.messages.pop(); // Revertimos tu input
+                    return;
                 }
-                contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText));
-                this.messages.push({ role: "assistant", content: fullText });
+
+                const data = await response.json();
+                const aiResponse = data.choices[0].message.content;
+                
+                this.messages.push({ role: "assistant", content: aiResponse });
                 this.saveHistory();
+                
+                const htmlContent = marked.parse(aiResponse);
+                const safeHTML = this.sanitizeHTML(htmlContent);
+                this.printLog(safeHTML, 'system', true);
+
             } catch (error) {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.parentNode.parentNode.remove();
+                
+                this.printLog(`Fallo de conexión LPU: ${error.message}`, 'system');
                 this.messages.pop();
-                contentDiv.innerHTML = `<span style="color: var(--red-400);">CONNECTION TERMINATED.</span>`;
-                this.printLog(`CORE_PANIC: ${error.message}`, 'error');
             } finally {
-                this.setProcessing(false);
+                this.isProcessing = false;
+                this.ui.input.disabled = false;
+                this.ui.btn.disabled = false;
+                this.ui.input.focus();
+                this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
             }
-        }
-
-        async execute() {
-            if (!this.ui.input) return;
-            const cmd = this.ui.input.value.trim();
-            if (!cmd || this.isProcessing) return;
-
-            if (this.history[this.history.length - 1] !== cmd) this.history.push(cmd);
-            this.historyPos = this.history.length;
-            
-            this.printLog(cmd, 'user');
-            this.ui.input.value = '';
-
-            const args = cmd.split(' ');
-            const baseCmd = args[0].toLowerCase();
-
-            if (baseCmd === 'clear') { this.ui.terminal.innerHTML = ''; return; }
-            if (baseCmd === 'ping-core') { await this.testConnection(); return; }
-            if (baseCmd === 'clear-key') {
-                localStorage.removeItem('AEGIS_GROQ_KEY');
-                localStorage.removeItem('AEGIS_MODEL');
-                this.apiKey = '';
-                this.activeModelName = 'llama-3.3-70b-versatile';
-                this.initContext();
-                this.updateStatus('NO_TOKEN', 'Token Destroyed', 'amber');
-                return this.printLog("Token purgado del almacenamiento local. Desconexión forzada.", 'system');
-            }
-            if (baseCmd === 'set-key') {
-                if(!args[1]) return this.printLog("Sintaxis inválida. Uso: set-key [token]", 'error');
-                this.apiKey = args[1];
-                localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
-                await this.testConnection();
-                return;
-            }
-            if (baseCmd === 'reset-core') { 
-                this.initContext(); 
-                localStorage.removeItem('AEGIS_CHAT_HISTORY');
-                this.messages = [{ role: "system", content: this.systemInstruction }];
-                this.saveHistory();
-                this.renderHistory();
-                return this.printLog("Memoria de sesión limpiada. Contexto reiniciado.", 'system'); 
-            }
-
-            await this.processStreamCommand(cmd);
-        }
-
-        bindEvents() {
-            if (this.ui.btn) {
-                this.ui.btn.addEventListener('click', () => this.execute());
-            }
-            
-            if (this.ui.input) {
-                this.ui.input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') { 
-                        e.preventDefault(); 
-                        this.execute(); 
-                    } else if (e.key === 'ArrowUp') { 
-                        e.preventDefault(); 
-                        if (this.historyPos > 0) { 
-                            this.historyPos--; 
-                            this.ui.input.value = this.history[this.historyPos]; 
-                        } 
-                    } else if (e.key === 'ArrowDown') { 
-                        e.preventDefault(); 
-                        if (this.historyPos < this.history.length - 1) { 
-                            this.historyPos++; 
-                            this.ui.input.value = this.history[this.historyPos]; 
-                        } else { 
-                            this.historyPos = this.history.length; 
-                            this.ui.input.value = ''; 
-                        } 
-                    }
-                });
-            }
-
-            document.addEventListener('keydown', (e) => { 
-                if (e.ctrlKey && e.key.toLowerCase() === 'l') { 
-                    e.preventDefault(); 
-                    if (this.ui.terminal) this.ui.terminal.innerHTML = ''; 
-                } 
-            });
-
-            document.addEventListener('click', () => { 
-                if (window.getSelection().toString().length === 0 && !this.isProcessing && this.ui.input) {
-                    this.ui.input.focus();
-                } 
-            });
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => { 
-        window.Aegis = new AegisCore(); 
+    // Arrancar el OS
+    window.addEventListener('DOMContentLoaded', () => {
+        window.aegis = new AegisCore();
     });
-</script>
+ </script>
 </body>
 </html>
