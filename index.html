@@ -345,10 +345,11 @@
                 this.printLog("Ejecutando escaneo con modelos LPU en Groq...", 'system');
                 
 const candidateModels = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "openai/gpt-oss-20b"
-];
+                    "llama-3.3-70b-versatile",
+                    "llama-3.3-70b-specdec",
+                    "llama-3.1-8b-instant",
+                    "mixtral-8x7b-32768"
+                ];
 
                 let successfulModel = null;
                 let lastErrorDetails = "";
@@ -394,7 +395,6 @@ const candidateModels = [
                 
                 this.setProcessing(false);
             }
-
             async processStreamCommand(cmd) {
                 if (!this.apiKey) {
                     return this.printLog("NETWORK_ERROR: Token no verificado. Ejecute 'set-key [token]'", 'error');
