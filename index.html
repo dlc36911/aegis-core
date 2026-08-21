@@ -264,8 +264,34 @@
             }
         }
 
+        saveHistory() {
+            localStorage.setItem('AEGIS_CHAT_HISTORY', JSON.stringify(this.messages));
+        }
+
+        renderHistory() {
+            if (!this.ui.terminal) return;
+            this.ui.terminal.innerHTML = '';
+            // Ignoramos el mensaje del sistema al renderizar el historial visual
+            this.messages.forEach(msg => {
+                if (msg.role === 'system') return;
+                this.printLog(msg.content, msg.role === 'user' ? 'user' : 'system');
+            });
+        }
+
         initContext() {
-            this.messages = [{ role: "system", content: this.systemInstruction }];
+            const savedHistory = localStorage.getItem('AEGIS_CHAT_HISTORY');
+            if (savedHistory) {
+                try {
+                    this.messages = JSON.parse(savedHistory);
+                    // Damos un pequeño delay para asegurar que el DOM esté listo
+                    setTimeout(() => this.renderHistory(), 100);
+                } catch (e) {
+                    this.messages = [{ role: "system", content: this.systemInstruction }];
+                }
+            } else {
+                this.messages = [{ role: "system", content: this.systemInstruction }];
+                this.saveHistory();
+            }
         }
 
         updateStatus(badgeText, descText, color) {
@@ -385,6 +411,8 @@
 
             this.setProcessing(true);
             this.messages.push({ role: "user", content: cmd });
+            this.saveHistory(); // Guardar mensaje usuario
+            
             const responseEntry = this.printLog('<span class="cursor-blink" style="color: var(--teal-500); font-weight: bold;">_</span>', 'system', true);
             const contentDiv = responseEntry.querySelector('.markdown-body');
             
@@ -429,6 +457,7 @@
                 }
                 contentDiv.innerHTML = this.sanitizeHTML(marked.parse(fullText));
                 this.messages.push({ role: "assistant", content: fullText });
+                this.saveHistory(); // Guardar mensaje IA
             } catch (error) {
                 this.messages.pop();
                 contentDiv.innerHTML = `<span style="color: var(--red-400);">CONNECTION TERMINATED.</span>`;
@@ -471,7 +500,11 @@
             }
             if (baseCmd === 'reset-core') { 
                 this.initContext(); 
-                return this.printLog("Memoria de sesión limpiada. Contexto reiniciado a parámetros de fábrica.", 'system'); 
+                localStorage.removeItem('AEGIS_CHAT_HISTORY');
+                this.messages = [{ role: "system", content: this.systemInstruction }];
+                this.saveHistory();
+                this.renderHistory();
+                return this.printLog("Memoria de sesión limpiada. Contexto reiniciado.", 'system'); 
             }
 
             await this.processStreamCommand(cmd);
