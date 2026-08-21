@@ -344,11 +344,10 @@
                 this.setProcessing(true);
                 this.printLog("Ejecutando escaneo con modelos LPU en Groq...", 'system');
                 
-                const candidateModels = [
-                    "llama3-8b-8192",
-                    "llama3-70b-8192",
-                    "mixtral-8x7b-32768"
-                ];
+           const candidateModels = [
+    "llama-3.1-8b-instant",
+    "llama-3.3-70b-versatile"
+];
 
                 let successfulModel = null;
                 let lastErrorDetails = "";
