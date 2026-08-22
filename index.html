@@ -170,9 +170,9 @@
                   <span class="ping-dot-ping"></span>
                   <span class="ping-dot-base"></span>
                 </span>
-                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v6.5 NEURAL]</span>
+                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v6.6 LPU STABLE]</span>
             </h1>
-            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Groq LPU Engine // Independence Mode</p>
+            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Groq Cloud Engine // Production Ready</p>
         </div>
         <div class="badge">
             SYS: <span id="conn-status" style="color: var(--amber-400);">PENDING_HANDSHAKE</span>
@@ -192,8 +192,7 @@
                 <div class="man-title">Man Pages (Commands)</div>
                 <ul class="man-list">
                     <li><span>set-key [key]</span> <span>Inyectar Groq API Key</span></li>
-                    <!-- FIX: Se actualiza la información en pantalla al modelo correcto -->
-                    <li><span>set-model [id]</span> <span>Cambiar motor (ej. llama3-8b-8192)</span></li>
+                    <li><span>set-model [id]</span> <span>Cambiar motor (ej. llama-3.1-8b-instant)</span></li>
                     <li><span>ping-core</span> <span>Probar conexión de red</span></li>
                     <li><span>reset-core</span> <span>Wipe AI Context</span></li>
                     <li><span>clear / Ctrl+L</span> <span>Limpiar terminal</span></li>
@@ -205,7 +204,7 @@
             <div id="terminal">
                 <div style="color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v6.5 // LPU ENGINE (FIXED)                 ║</span>
+                    <span>║ AEGIS_CORE SHELL v6.6 // STABLE BUILD                       ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
                     <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Comando inicial recomendado: set-key [TU_API_KEY_AQUI]</span>
                 </div>
@@ -237,10 +236,10 @@
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
+            // Modelo por defecto estrictamente verificado y activo en la API de Groq
             let savedModel = localStorage.getItem('AEGIS_MODEL');
-            // FIX 1: Detectar si hay un modelo roto guardado y forzar actualización
-            if (!savedModel || savedModel === 'llama-3.1-8b-instant') {
-                savedModel = 'llama3-8b-8192';
+            if (!savedModel || savedModel.includes('llama-3.1-8b-instant') === false && savedModel.includes('llama-3.3-70b-versatile') === false) {
+                savedModel = 'llama-3.1-8b-instant';
                 localStorage.setItem('AEGIS_MODEL', savedModel);
             }
             this.activeModelName = savedModel;
@@ -315,7 +314,7 @@
                 return;
             }
             if (text.startsWith('set-model ')) {
-                this.activeModelName = text.split(' ')[1];
+                this.activeModelName = text.split(' ')[1].trim();
                 localStorage.setItem('AEGIS_MODEL', this.activeModelName);
                 this.printLog(`Modelo actualizado en memoria a: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
                 this.testConnection(true);
@@ -360,7 +359,7 @@
             banner.style.cssText = "color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;";
             banner.innerHTML = `
                 <span>╔═════════════════════════════════════════════════════════════╗</span>
-                <span>║ AEGIS_CORE SHELL v6.5 // BUFFER LIMPIO                      ║</span>
+                <span>║ AEGIS_CORE SHELL v6.6 // BUFFER LIMPIO                      ║</span>
                 <span>╚═════════════════════════════════════════════════════════════╝</span>
             `;
             this.ui.terminal.appendChild(banner);
@@ -465,7 +464,7 @@
                 } else {
                     const errText = await response.text();
                     this.updateStatus('ERR_404', 'Model Not Found', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no existe o fue cambiado. Usa <code>set-model llama3-8b-8192</code>. Detalles: ${this.sanitizeHTML(errText)}`, 'system', true);
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no responde. Usa <code>set-model llama-3.1-8b-instant</code>.`, 'system', true);
                 }
             } catch (error) {
                 this.updateStatus('NET_ERR', 'Offline', 'red');
@@ -496,13 +495,18 @@
                 if (typingEl) typingEl.parentNode.parentNode.remove(); 
 
                 if (!response.ok) {
-                    const err = await response.json();
-                    let errMsg = err.error?.message || "Error desconocido";
+                    let errData;
+                    try {
+                        errData = await response.json();
+                    } catch (e) {
+                        errData = { error: { message: await response.text() } };
+                    }
+                    
+                    let errMsg = errData.error?.message || "Error desconocido en API";
                     
                     if (response.status === 404) {
-                        // FIX 2: El auto-fix ahora apunta a llama3-8b-8192 en vez del modelo que falló
-                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Error 404. El modelo que solicitaste no existe. Reiniciando núcleo a <code>llama3-8b-8192</code>...";
-                        this.activeModelName = 'llama3-8b-8192';
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> El modelo actual no está disponible. Cambiando automáticamente a <code>llama-3.1-8b-instant</code>...";
+                        this.activeModelName = 'llama-3.1-8b-instant';
                         localStorage.setItem('AEGIS_MODEL', this.activeModelName);
                         this.testConnection();
                     }
