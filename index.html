@@ -236,13 +236,9 @@
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
-            // Modelo por defecto dinámico y tolerante a cambios
-            let savedModel = localStorage.getItem('AEGIS_MODEL');
-            if (!savedModel) {
-                savedModel = 'llama-3.3-70b-versatile';
-                localStorage.setItem('AEGIS_MODEL', savedModel);
-            }
-            this.activeModelName = savedModel;
+            // 1. ELIMINADA la memoria local para el modelo. 
+            // Arrancamos con un valor por defecto seguro, pero se sobrescribirá dinámicamente.
+            this.activeModelName = 'llama-3.3-70b-versatile'; 
 
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde conciso, técnico y en Markdown estricto.";
@@ -262,11 +258,48 @@
 
             this.bindEvents();
             this.initContext();
+            
+            // Iniciar el sistema de forma asíncrona para sincronizar el modelo primero
+            this.initSystem();
+        }
 
+        // Nueva función de inicio para sincronizar antes de hacer PING
+        async initSystem() {
             if (this.apiKey) {
-                this.testConnection();
+                await this.fetchDynamicModel(); // Pide el modelo actual a Groq
+                this.testConnection();          // Prueba conexión ya con el modelo correcto
             } else {
                 this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
+            }
+        }
+
+        // 2. NUEVA FUNCIÓN: Consulta a la API de Groq los modelos disponibles en tiempo real
+        async fetchDynamicModel() {
+            if (!this.apiKey) return;
+
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/models', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${this.apiKey}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Filtramos buscando las familias Llama más recientes o estables
+                    const validModels = data.data.filter(m => 
+                        m.id.includes('llama-3.3') || 
+                        m.id.includes('llama-3.1') || 
+                        m.id.includes('llama-3')
+                    );
+
+                    if (validModels.length > 0) {
+                        this.activeModelName = validModels[0].id;
+                        console.log(`[AUTO-SYNC] Modelo alineado dinámicamente a: ${this.activeModelName}`);
+                    }
+                }
+            } catch (error) {
+                console.warn("Fallo al sincronizar modelo dinámico, se usará fallback.", error);
             }
         }
 
@@ -306,25 +339,25 @@
             this.ui.input.value = '';
             this.historyPos = -1;
 
-            // Procesar comandos internos antes de imprimir para evitar fugas de seguridad
             if (text.startsWith('set-key ')) {
                 this.history.push('set-key [HIDDEN]');
                 this.printLog('set-key ********************************', 'user');
                 this.apiKey = text.split(' ')[1];
                 localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
                 this.printLog("Token criptográfico inyectado en local storage.", 'system');
+                
+                await this.fetchDynamicModel(); // Sincroniza al poner llave nueva
                 this.testConnection(true);
                 return;
             }
 
-            // Flujo normal de comandos
             this.history.push(text);
             this.printLog(text, 'user');
 
             if (text.startsWith('set-model ')) {
                 this.activeModelName = text.split(' ')[1].trim();
-                localStorage.setItem('AEGIS_MODEL', this.activeModelName);
-                this.printLog(`Modelo actualizado en memoria a: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
+                // 3. ELIMINADO el setItem. El modelo modificado por el usuario solo dura esta sesión
+                this.printLog(`Modelo actualizado para esta sesión a: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
                 this.testConnection(true);
                 return;
             }
@@ -368,7 +401,7 @@
             banner.style.cssText = "color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;";
             banner.innerHTML = `
                 <span>╔═════════════════════════════════════════════════════════════╗</span>
-                <span>║ AEGIS_CORE SHELL v6.6 // BUFFER LIMPIO                     ║</span>
+                <span>║ AEGIS_CORE SHELL v7.0 // CLOUD-SYNC ACTIVO                  ║</span>
                 <span>╚═════════════════════════════════════════════════════════════╝</span>
             `;
             this.ui.terminal.appendChild(banner);
@@ -477,7 +510,7 @@
                     if (verbose) this.printLog(`Handshake exitoso. Motor ${this.activeModelName} operativo.`, 'system');
                 } else {
                     this.updateStatus('ERR_404', 'Model Not Found', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no responde. Usa <code>set-model llama-3.3-70b-versatile</code>.`, 'system', true);
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no responde. Verificando API de modelos...`, 'system', true);
                 }
             } catch (error) {
                 this.updateStatus('NET_ERR', 'Offline', 'red');
@@ -490,7 +523,6 @@
             if (this.ui.input) this.ui.input.disabled = true;
             if (this.ui.btn) this.ui.btn.disabled = true;
 
-            // Retenemos la referencia exacta al contenedor del log para borrarlo luego
             const typingEntry = this.printLog(`<span class="cursor-blink">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
 
             try {
@@ -504,7 +536,6 @@
                     })
                 });
 
-                // Eliminar indicador de escritura de forma segura destruyendo todo el entry
                 if (typingEntry) typingEntry.remove();
 
                 if (!response.ok) {
@@ -517,14 +548,14 @@
 
                     let errMsg = errData.error?.message || "Error desconocido en API";
 
+                    // 4. AUTO-FIX ACTUALIZADO: Si el modelo da 404, fuerza la búsqueda en los servidores de Groq.
                     if (response.status === 404 && !this.isRetrying) {
                         this.isRetrying = true;
-                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Modelo no disponible. Cambiando automáticamente a <code>llama-3.3-70b-versatile</code> y reintentando...";
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Enlace de modelo caducado. Sincronizando catálogo en tiempo real con Groq y reintentando...";
                         this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
                         
-                        this.activeModelName = 'llama-3.3-70b-versatile';
-                        localStorage.setItem('AEGIS_MODEL', this.activeModelName);
-                        this.testConnection();
+                        await this.fetchDynamicModel(); // Buscamos el modelo fresco directo de la API
+                        this.testConnection(); // Refrescamos estatus UI
                         
                         return await this.fetchAIResponse(); // Reintento automático
                     }
