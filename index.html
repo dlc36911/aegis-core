@@ -192,7 +192,8 @@
                 <div class="man-title">Man Pages (Commands)</div>
                 <ul class="man-list">
                     <li><span>set-key [key]</span> <span>Inyectar Groq API Key</span></li>
-                    <li><span>set-model [id]</span> <span>Cambiar motor (ej. llama-3.1-8b-instant)</span></li>
+                    <!-- FIX: Se actualiza la información en pantalla al modelo correcto -->
+                    <li><span>set-model [id]</span> <span>Cambiar motor (ej. llama3-8b-8192)</span></li>
                     <li><span>ping-core</span> <span>Probar conexión de red</span></li>
                     <li><span>reset-core</span> <span>Wipe AI Context</span></li>
                     <li><span>clear / Ctrl+L</span> <span>Limpiar terminal</span></li>
@@ -219,14 +220,12 @@
     </main>
 
 <script type="module">
-    // FIX: Importando versiones fijas estables para evitar rupturas por actualizaciones
     import { marked } from "https://esm.run/marked@4.3.0";
     import DOMPurify from "https://esm.run/dompurify@3.0.6";
     import hljs from "https://esm.run/highlight.js@11.9.0";
 
     marked.setOptions({
         highlight: function(code, lang) {
-            // FIX: Prevenir crasheos si el lenguaje no está definido o no es soportado
             const language = (lang && hljs.getLanguage(lang)) ? lang : 'plaintext';
             return hljs.highlight(code, { language }).value;
         },
@@ -239,8 +238,9 @@
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
             let savedModel = localStorage.getItem('AEGIS_MODEL');
-            if (!savedModel) {
-                savedModel = 'llama-3.1-8b-instant';
+            // FIX 1: Detectar si hay un modelo roto guardado y forzar actualización
+            if (!savedModel || savedModel === 'llama-3.1-8b-instant') {
+                savedModel = 'llama3-8b-8192';
                 localStorage.setItem('AEGIS_MODEL', savedModel);
             }
             this.activeModelName = savedModel;
@@ -465,7 +465,7 @@
                 } else {
                     const errText = await response.text();
                     this.updateStatus('ERR_404', 'Model Not Found', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no existe o fue cambiado. Usa <code>set-model llama-3.1-8b-instant</code>. Detalles: ${this.sanitizeHTML(errText)}`, 'system', true);
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no existe o fue cambiado. Usa <code>set-model llama3-8b-8192</code>. Detalles: ${this.sanitizeHTML(errText)}`, 'system', true);
                 }
             } catch (error) {
                 this.updateStatus('NET_ERR', 'Offline', 'red');
@@ -500,8 +500,9 @@
                     let errMsg = err.error?.message || "Error desconocido";
                     
                     if (response.status === 404) {
-                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Error 404. El modelo que solicitaste no existe. Reiniciando núcleo a <code>llama-3.1-8b-instant</code>...";
-                        this.activeModelName = 'llama-3.1-8b-instant';
+                        // FIX 2: El auto-fix ahora apunta a llama3-8b-8192 en vez del modelo que falló
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Error 404. El modelo que solicitaste no existe. Reiniciando núcleo a <code>llama3-8b-8192</code>...";
+                        this.activeModelName = 'llama3-8b-8192';
                         localStorage.setItem('AEGIS_MODEL', this.activeModelName);
                         this.testConnection();
                     }
