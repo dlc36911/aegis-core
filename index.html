@@ -218,14 +218,16 @@
         </section>
     </main>
 
- <script type="module">
-    import { marked } from "https://esm.run/marked";
-    import DOMPurify from "https://esm.run/dompurify";
-    import hljs from "https://esm.run/highlight.js";
+<script type="module">
+    // FIX: Importando versiones fijas estables para evitar rupturas por actualizaciones
+    import { marked } from "https://esm.run/marked@4.3.0";
+    import DOMPurify from "https://esm.run/dompurify@3.0.6";
+    import hljs from "https://esm.run/highlight.js@11.9.0";
 
     marked.setOptions({
         highlight: function(code, lang) {
-            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+            // FIX: Prevenir crasheos si el lenguaje no está definido o no es soportado
+            const language = (lang && hljs.getLanguage(lang)) ? lang : 'plaintext';
             return hljs.highlight(code, { language }).value;
         },
         gfm: true,
@@ -236,7 +238,6 @@
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
-            // FIX 404: Usamos un modelo actual y activo por defecto en Groq
             let savedModel = localStorage.getItem('AEGIS_MODEL');
             if (!savedModel) {
                 savedModel = 'llama-3.1-8b-instant';
@@ -464,7 +465,7 @@
                 } else {
                     const errText = await response.text();
                     this.updateStatus('ERR_404', 'Model Not Found', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no existe o fue cambiado por Groq. Usa <code>set-model llama-3.1-8b-instant</code>. Detalles: ${this.sanitizeHTML(errText)}`, 'system', true);
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no existe o fue cambiado. Usa <code>set-model llama-3.1-8b-instant</code>. Detalles: ${this.sanitizeHTML(errText)}`, 'system', true);
                 }
             } catch (error) {
                 this.updateStatus('NET_ERR', 'Offline', 'red');
@@ -539,6 +540,6 @@
     window.addEventListener('DOMContentLoaded', () => {
         window.aegis = new AegisCore();
     });
- </script>
+</script>
 </body>
 </html>
