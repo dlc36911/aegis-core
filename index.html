@@ -250,6 +250,7 @@
             this.history = [];
             this.historyPos = -1;
             this.isProcessing = false;
+            this.isRetrying = false; // Bandera para evitar bucles infinitos en el auto-fix
 
             this.ui = {
                 terminal: document.getElementById('terminal'),
@@ -303,18 +304,23 @@
             if (!text) return;
 
             this.ui.input.value = '';
-            this.history.push(text);
             this.historyPos = -1;
 
-            this.printLog(text, 'user');
-
+            // Procesar comandos internos antes de imprimir para evitar fugas de seguridad
             if (text.startsWith('set-key ')) {
+                this.history.push('set-key [HIDDEN]');
+                this.printLog('set-key ********************************', 'user');
                 this.apiKey = text.split(' ')[1];
                 localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
                 this.printLog("Token criptográfico inyectado en local storage.", 'system');
                 this.testConnection(true);
                 return;
             }
+
+            // Flujo normal de comandos
+            this.history.push(text);
+            this.printLog(text, 'user');
+
             if (text.startsWith('set-model ')) {
                 this.activeModelName = text.split(' ')[1].trim();
                 localStorage.setItem('AEGIS_MODEL', this.activeModelName);
@@ -393,9 +399,8 @@
             if (savedHistory) {
                 try {
                     this.messages = JSON.parse(savedHistory);
-                    // Asegurar que el system prompt exista al inicio
-                    if (!this.messages.some(m => m.role === 'system')) {
-                        this.messages.unshift({ role: "system", content: this.systemInstruction });
+                    if (!Array.isArray(this.messages) || !this.messages.some(m => m.role === 'system')) {
+                        this.messages = [{ role: "system", content: this.systemInstruction }];
                     }
                     setTimeout(() => this.renderHistory(), 100);
                 } catch (e) {
@@ -429,13 +434,13 @@
 
         sanitizeHTML(html) {
             return DOMPurify.sanitize(html, { 
-                ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote'],
-                ALLOWED_ATTR: ['href', 'class', 'style'] 
+                ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'hr', 'del', 'details', 'summary'],
+                ALLOWED_ATTR: ['href', 'class', 'style', 'target', 'rel'] 
             });
         }
 
         printLog(msg, type = 'system', isHTML = false) {
-            if (!this.ui.terminal) return;
+            if (!this.ui.terminal) return null;
             const entry = document.createElement('div');
             entry.style.cssText = "margin-bottom: 1.25rem; font-size: 13px; line-height: 1.6; display: flex; gap: 0.75rem;";
 
@@ -455,6 +460,7 @@
 
             this.ui.terminal.appendChild(entry);
             this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
+            return entry;
         }
 
         async testConnection(verbose = false) {
@@ -484,8 +490,8 @@
             if (this.ui.input) this.ui.input.disabled = true;
             if (this.ui.btn) this.ui.btn.disabled = true;
 
-            const typingId = 'typing-' + Date.now();
-            this.printLog(`<span class="cursor-blink" id="${typingId}">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
+            // Retenemos la referencia exacta al contenedor del log para borrarlo luego
+            const typingEntry = this.printLog(`<span class="cursor-blink">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
 
             try {
                 const response = await fetch(this.apiUrl, {
@@ -498,11 +504,8 @@
                     })
                 });
 
-                // Remover indicador de escritura de forma segura
-                const typingEl = document.getElementById(typingId);
-                if (typingEl && typingEl.closest('div')) {
-                    typingEl.closest('div').remove();
-                }
+                // Eliminar indicador de escritura de forma segura destruyendo todo el entry
+                if (typingEntry) typingEntry.remove();
 
                 if (!response.ok) {
                     let errData;
@@ -514,18 +517,25 @@
 
                     let errMsg = errData.error?.message || "Error desconocido en API";
 
-                    if (response.status === 404) {
-                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> El modelo actual no está disponible. Cambiando automáticamente a <code>llama-3.3-70b-versatile</code>...";
+                    if (response.status === 404 && !this.isRetrying) {
+                        this.isRetrying = true;
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Modelo no disponible. Cambiando automáticamente a <code>llama-3.3-70b-versatile</code> y reintentando...";
+                        this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
+                        
                         this.activeModelName = 'llama-3.3-70b-versatile';
                         localStorage.setItem('AEGIS_MODEL', this.activeModelName);
                         this.testConnection();
+                        
+                        return await this.fetchAIResponse(); // Reintento automático
                     }
 
+                    this.isRetrying = false;
                     this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
-                    this.messages.pop();
+                    this.messages.pop(); // Sacar el mensaje fallido para no contaminar contexto
                     return;
                 }
 
+                this.isRetrying = false;
                 const data = await response.json();
                 const aiResponse = data.choices[0].message.content;
 
@@ -537,11 +547,7 @@
                 this.printLog(safeHTML, 'system', true);
 
             } catch (error) {
-                const typingEl = document.getElementById(typingId);
-                if (typingEl && typingEl.closest('div')) {
-                    typingEl.closest('div').remove();
-                }
-
+                if (typingEntry) typingEntry.remove();
                 this.printLog(`Fallo crítico de conexión LPU: ${error.message}`, 'system');
                 this.messages.pop();
             } finally {
