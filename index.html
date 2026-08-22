@@ -236,21 +236,21 @@
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
-            // Modelo por defecto estrictamente verificado y activo en la API de Groq
+            // Modelo por defecto dinámico y tolerante a cambios
             let savedModel = localStorage.getItem('AEGIS_MODEL');
-            if (!savedModel || savedModel.includes('llama-3.1-8b-instant') === false && savedModel.includes('llama-3.3-70b-versatile') === false) {
-                savedModel = 'llama-3.1-8b-instant';
+            if (!savedModel) {
+                savedModel = 'llama-3.3-70b-versatile';
                 localStorage.setItem('AEGIS_MODEL', savedModel);
             }
             this.activeModelName = savedModel;
-            
+
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde conciso, técnico y en Markdown estricto.";
             this.messages = []; 
             this.history = [];
             this.historyPos = -1;
             this.isProcessing = false;
-            
+
             this.ui = {
                 terminal: document.getElementById('terminal'),
                 input: document.getElementById('input'),
@@ -270,42 +270,44 @@
         }
 
         bindEvents() {
-            this.ui.btn.addEventListener('click', () => this.handleInput());
-            this.ui.input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') this.handleInput();
-                if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); this.clearTerminal(); }
-                
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (this.history.length > 0) {
-                        this.historyPos = Math.min(this.historyPos + 1, this.history.length - 1);
-                        this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
+            if (this.ui.btn) this.ui.btn.addEventListener('click', () => this.handleInput());
+            if (this.ui.input) {
+                this.ui.input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') this.handleInput();
+                    if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); this.clearTerminal(); }
+
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (this.history.length > 0) {
+                            this.historyPos = Math.min(this.historyPos + 1, this.history.length - 1);
+                            this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
+                        }
                     }
-                }
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (this.historyPos > 0) {
-                        this.historyPos--;
-                        this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
-                    } else if (this.historyPos === 0) {
-                        this.historyPos = -1;
-                        this.ui.input.value = '';
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (this.historyPos > 0) {
+                            this.historyPos--;
+                            this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
+                        } else if (this.historyPos === 0) {
+                            this.historyPos = -1;
+                            this.ui.input.value = '';
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         async handleInput() {
-            if (this.isProcessing) return;
+            if (this.isProcessing || !this.ui.input) return;
             const text = this.ui.input.value.trim();
             if (!text) return;
 
             this.ui.input.value = '';
             this.history.push(text);
             this.historyPos = -1;
-            
+
             this.printLog(text, 'user');
-            
+
             if (text.startsWith('set-key ')) {
                 this.apiKey = text.split(' ')[1];
                 localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
@@ -354,12 +356,13 @@
         }
 
         clearTerminal() {
+            if (!this.ui.terminal) return;
             this.ui.terminal.innerHTML = '';
             const banner = document.createElement('div');
             banner.style.cssText = "color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;";
             banner.innerHTML = `
                 <span>╔═════════════════════════════════════════════════════════════╗</span>
-                <span>║ AEGIS_CORE SHELL v6.6 // BUFFER LIMPIO                      ║</span>
+                <span>║ AEGIS_CORE SHELL v6.6 // BUFFER LIMPIO                     ║</span>
                 <span>╚═════════════════════════════════════════════════════════════╝</span>
             `;
             this.ui.terminal.appendChild(banner);
@@ -374,8 +377,8 @@
             this.ui.terminal.innerHTML = '';
             this.messages.forEach(msg => {
                 if (msg.role === 'system') return;
-                
-                if(msg.role === 'user') {
+
+                if (msg.role === 'user') {
                     this.printLog(msg.content, 'user');
                 } else {
                     const htmlContent = marked.parse(msg.content);
@@ -390,6 +393,10 @@
             if (savedHistory) {
                 try {
                     this.messages = JSON.parse(savedHistory);
+                    // Asegurar que el system prompt exista al inicio
+                    if (!this.messages.some(m => m.role === 'system')) {
+                        this.messages.unshift({ role: "system", content: this.systemInstruction });
+                    }
                     setTimeout(() => this.renderHistory(), 100);
                 } catch (e) {
                     this.messages = [{ role: "system", content: this.systemInstruction }];
@@ -406,16 +413,16 @@
                 'amber': { text: 'var(--amber-400)', bg: 'var(--amber-400)' },
                 'red': { text: 'var(--red-400)', bg: 'var(--red-400)' }
             };
-            
+
             if (this.ui.connBadge) {
                 this.ui.connBadge.textContent = badgeText;
-                this.ui.connBadge.style.color = colorMap[color].text;
+                this.ui.connBadge.style.color = colorMap[color]?.text || '#fff';
             }
-            
+
             if (this.ui.status) {
                 this.ui.status.innerHTML = `
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${colorMap[color].bg}; display: inline-block;"></span> 
-                    <span style="color: ${colorMap[color].text};">${descText}</span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${colorMap[color]?.bg || '#fff'}; display: inline-block;"></span> 
+                    <span style="color: ${colorMap[color]?.text || '#fff'};">${descText}</span>
                 `;
             }
         }
@@ -428,9 +435,10 @@
         }
 
         printLog(msg, type = 'system', isHTML = false) {
+            if (!this.ui.terminal) return;
             const entry = document.createElement('div');
             entry.style.cssText = "margin-bottom: 1.25rem; font-size: 13px; line-height: 1.6; display: flex; gap: 0.75rem;";
-            
+
             if (type === 'user') {
                 entry.innerHTML = `
                     <div style="color: var(--slate-500); white-space: nowrap;">root@aegis:~#</div> 
@@ -444,7 +452,7 @@
                     </div>
                 `;
             }
-            
+
             this.ui.terminal.appendChild(entry);
             this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
         }
@@ -462,9 +470,8 @@
                     this.updateStatus('SECURE', `Link Active [${this.activeModelName}]`, 'teal');
                     if (verbose) this.printLog(`Handshake exitoso. Motor ${this.activeModelName} operativo.`, 'system');
                 } else {
-                    const errText = await response.text();
                     this.updateStatus('ERR_404', 'Model Not Found', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no responde. Usa <code>set-model llama-3.1-8b-instant</code>.`, 'system', true);
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no responde. Usa <code>set-model llama-3.3-70b-versatile</code>.`, 'system', true);
                 }
             } catch (error) {
                 this.updateStatus('NET_ERR', 'Offline', 'red');
@@ -474,12 +481,12 @@
 
         async fetchAIResponse() {
             this.isProcessing = true;
-            this.ui.input.disabled = true;
-            this.ui.btn.disabled = true;
-            
+            if (this.ui.input) this.ui.input.disabled = true;
+            if (this.ui.btn) this.ui.btn.disabled = true;
+
             const typingId = 'typing-' + Date.now();
             this.printLog(`<span class="cursor-blink" id="${typingId}">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
-            
+
             try {
                 const response = await fetch(this.apiUrl, {
                     method: 'POST',
@@ -491,8 +498,11 @@
                     })
                 });
 
+                // Remover indicador de escritura de forma segura
                 const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.parentNode.parentNode.remove(); 
+                if (typingEl && typingEl.closest('div')) {
+                    typingEl.closest('div').remove();
+                }
 
                 if (!response.ok) {
                     let errData;
@@ -501,16 +511,16 @@
                     } catch (e) {
                         errData = { error: { message: await response.text() } };
                     }
-                    
+
                     let errMsg = errData.error?.message || "Error desconocido en API";
-                    
+
                     if (response.status === 404) {
-                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> El modelo actual no está disponible. Cambiando automáticamente a <code>llama-3.1-8b-instant</code>...";
-                        this.activeModelName = 'llama-3.1-8b-instant';
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> El modelo actual no está disponible. Cambiando automáticamente a <code>llama-3.3-70b-versatile</code>...";
+                        this.activeModelName = 'llama-3.3-70b-versatile';
                         localStorage.setItem('AEGIS_MODEL', this.activeModelName);
                         this.testConnection();
                     }
-                    
+
                     this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
                     this.messages.pop();
                     return;
@@ -518,26 +528,32 @@
 
                 const data = await response.json();
                 const aiResponse = data.choices[0].message.content;
-                
+
                 this.messages.push({ role: "assistant", content: aiResponse });
                 this.saveHistory();
-                
+
                 const htmlContent = marked.parse(aiResponse);
                 const safeHTML = this.sanitizeHTML(htmlContent);
                 this.printLog(safeHTML, 'system', true);
 
             } catch (error) {
                 const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.parentNode.parentNode.remove();
-                
+                if (typingEl && typingEl.closest('div')) {
+                    typingEl.closest('div').remove();
+                }
+
                 this.printLog(`Fallo crítico de conexión LPU: ${error.message}`, 'system');
                 this.messages.pop();
             } finally {
                 this.isProcessing = false;
-                this.ui.input.disabled = false;
-                this.ui.btn.disabled = false;
-                this.ui.input.focus();
-                this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
+                if (this.ui.input) {
+                    this.ui.input.disabled = false;
+                    this.ui.input.focus();
+                }
+                if (this.ui.btn) this.ui.btn.disabled = false;
+                if (this.ui.terminal) {
+                    this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
+                }
             }
         }
     }
