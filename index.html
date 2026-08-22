@@ -146,17 +146,19 @@
         #exec-btn:hover:not(:disabled) { background-color: rgba(19, 78, 74, 0.6); }
         #exec-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #374151; }
 
         .markdown-body { color: #cbd5e1; font-size: 13px; line-height: 1.6; }
         .markdown-body p { margin-bottom: 0.75rem; }
-        .markdown-body ul { list-style-type: square; margin-left: 1.5rem; margin-bottom: 0.75rem; color: #94a3b8; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 0.75rem; color: #94a3b8; }
         .markdown-body pre { background-color: #0d1117; border: 1px solid #1f2937; border-left: 3px solid #0d9488; padding: 12px; border-radius: 4px; margin: 10px 0; overflow-x: auto; }
         .markdown-body code:not(pre code) { background-color: #1e293b; color: #5eead4; padding: 2px 5px; border-radius: 4px; font-size: 0.9em; }
         .markdown-body strong { color: #fff; font-weight: 700; }
+        .markdown-body a { color: var(--teal-400); text-decoration: none; }
+        .markdown-body a:hover { text-decoration: underline; }
         .cursor-blink { animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
@@ -170,7 +172,7 @@
                   <span class="ping-dot-ping"></span>
                   <span class="ping-dot-base"></span>
                 </span>
-                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v6.6 LPU STABLE]</span>
+                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v7.0 LPU STABLE]</span>
             </h1>
             <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Groq Cloud Engine // Production Ready</p>
         </div>
@@ -192,10 +194,11 @@
                 <div class="man-title">Man Pages (Commands)</div>
                 <ul class="man-list">
                     <li><span>set-key [key]</span> <span>Inyectar Groq API Key</span></li>
-                    <li><span>set-model [id]</span> <span>Cambiar motor (ej. llama-3.1-8b-instant)</span></li>
-                    <li><span>ping-core</span> <span>Probar conexión de red</span></li>
-                    <li><span>reset-core</span> <span>Wipe AI Context</span></li>
-                    <li><span>clear / Ctrl+L</span> <span>Limpiar terminal</span></li>
+                    <li><span>set-model [id]</span> <span>Forzar modelo específico</span></li>
+                    <li><span>ping-core</span> <span>Probar conexión LPU</span></li>
+                    <li><span>reset-core</span> <span>Wipe AI Context (Memoria)</span></li>
+                    <li><span>clear / Ctrl+L</span> <span>Limpiar terminal visual</span></li>
+                    <li><span>clear-key</span> <span>Destruir API Key local</span></li>
                 </ul>
             </div>
         </section>
@@ -204,15 +207,15 @@
             <div id="terminal">
                 <div style="color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;">
                     <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v6.6 // STABLE BUILD                       ║</span>
+                    <span>║ AEGIS_CORE SHELL v7.0 // SECURE CONNECTION ESTABLISHED      ║</span>
                     <span>╚═════════════════════════════════════════════════════════════╝</span>
-                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Comando inicial recomendado: set-key [TU_API_KEY_AQUI]</span>
+                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Escribe <strong style="color:var(--slate-300)">set-key [TU_API_KEY]</strong> para inicializar.</span>
                 </div>
             </div>
             
             <div class="input-bar">
                 <span class="prompt-prefix">root@aegis:~#</span>
-                <input id="input" type="text" autocomplete="off" spellcheck="false" placeholder="Escribe un comando...">
+                <input id="input" type="text" autocomplete="off" spellcheck="false" placeholder="Escribe un comando..." autofocus>
                 <button id="exec-btn">EXECUTE</button>
             </div>
         </section>
@@ -236,17 +239,20 @@
         constructor() {
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
-            // 1. ELIMINADA la memoria local para el modelo. 
-            // Arrancamos con un valor por defecto seguro, pero se sobrescribirá dinámicamente.
+            // Modelo de respaldo, será sobrescrito dinámicamente si hay conexión
             this.activeModelName = 'llama-3.3-70b-versatile'; 
 
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-            this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde conciso, técnico y en Markdown estricto.";
+            this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde de forma concisa, técnica, y usa Markdown estricto. Mantén tu identidad de IA/Sistema Operativo en todo momento.";
+            
             this.messages = []; 
-            this.history = [];
+            this.history = []; // Historial de comandos ingresados (flecha arriba/abajo)
             this.historyPos = -1;
             this.isProcessing = false;
-            this.isRetrying = false; // Bandera para evitar bucles infinitos en el auto-fix
+            this.isRetrying = false; 
+
+            // Máximo de mensajes en el array (previene errores de context window overflow)
+            this.MAX_CONTEXT_MESSAGES = 15;
 
             this.ui = {
                 terminal: document.getElementById('terminal'),
@@ -258,22 +264,18 @@
 
             this.bindEvents();
             this.initContext();
-            
-            // Iniciar el sistema de forma asíncrona para sincronizar el modelo primero
             this.initSystem();
         }
 
-        // Nueva función de inicio para sincronizar antes de hacer PING
         async initSystem() {
             if (this.apiKey) {
-                await this.fetchDynamicModel(); // Pide el modelo actual a Groq
-                this.testConnection();          // Prueba conexión ya con el modelo correcto
+                await this.fetchDynamicModel(); 
+                this.testConnection();          
             } else {
                 this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
             }
         }
 
-        // 2. NUEVA FUNCIÓN: Consulta a la API de Groq los modelos disponibles en tiempo real
         async fetchDynamicModel() {
             if (!this.apiKey) return;
 
@@ -286,20 +288,22 @@
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Filtramos buscando las familias Llama más recientes o estables
-                    const validModels = data.data.filter(m => 
-                        m.id.includes('llama-3.3') || 
-                        m.id.includes('llama-3.1') || 
-                        m.id.includes('llama-3')
-                    );
+                    // Filtrar modelos Llama relevantes y ordenarlos (Prioriza 70b sobre 8b)
+                    const validModels = data.data
+                        .filter(m => m.id.includes('llama-3.3') || m.id.includes('llama-3.1'))
+                        .sort((a, b) => {
+                            if (a.id.includes('70b') && !b.id.includes('70b')) return -1;
+                            if (!a.id.includes('70b') && b.id.includes('70b')) return 1;
+                            return 0;
+                        });
 
                     if (validModels.length > 0) {
                         this.activeModelName = validModels[0].id;
-                        console.log(`[AUTO-SYNC] Modelo alineado dinámicamente a: ${this.activeModelName}`);
+                        console.log(`[AUTO-SYNC] Modelo óptimo seleccionado: ${this.activeModelName}`);
                     }
                 }
             } catch (error) {
-                console.warn("Fallo al sincronizar modelo dinámico, se usará fallback.", error);
+                console.warn("Fallo al sincronizar catálogo, se usará el modelo fallback.", error);
             }
         }
 
@@ -310,6 +314,7 @@
                     if (e.key === 'Enter') this.handleInput();
                     if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); this.clearTerminal(); }
 
+                    // Navegación en historial
                     if (e.key === 'ArrowUp') {
                         e.preventDefault();
                         if (this.history.length > 0) {
@@ -339,14 +344,15 @@
             this.ui.input.value = '';
             this.historyPos = -1;
 
+            // Manejo de comandos internos del sistema
             if (text.startsWith('set-key ')) {
                 this.history.push('set-key [HIDDEN]');
                 this.printLog('set-key ********************************', 'user');
-                this.apiKey = text.split(' ')[1];
+                this.apiKey = text.split(' ')[1].trim();
                 localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
-                this.printLog("Token criptográfico inyectado en local storage.", 'system');
+                this.printLog("Token criptográfico inyectado en almacenamiento local.", 'system');
                 
-                await this.fetchDynamicModel(); // Sincroniza al poner llave nueva
+                await this.fetchDynamicModel();
                 this.testConnection(true);
                 return;
             }
@@ -356,8 +362,7 @@
 
             if (text.startsWith('set-model ')) {
                 this.activeModelName = text.split(' ')[1].trim();
-                // 3. ELIMINADO el setItem. El modelo modificado por el usuario solo dura esta sesión
-                this.printLog(`Modelo actualizado para esta sesión a: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
+                this.printLog(`Modelo sobrescrito manualmente para esta sesión: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
                 this.testConnection(true);
                 return;
             }
@@ -375,7 +380,7 @@
             if (text === 'reset-core') {
                 this.messages = [{ role: "system", content: this.systemInstruction }];
                 this.saveHistory();
-                this.printLog("Contexto purgado. Sesión limpia inicializada.", 'system');
+                this.printLog("Memoria de contexto purgada. Sesión limpia inicializada.", 'system');
                 return;
             }
             if (text === 'ping-core') {
@@ -390,8 +395,18 @@
             }
 
             this.messages.push({ role: "user", content: text });
+            this.manageContextWindow();
             this.saveHistory();
             await this.fetchAIResponse();
+        }
+
+        // Evita el desbordamiento de Tokens truncando los mensajes viejos
+        manageContextWindow() {
+            if (this.messages.length > this.MAX_CONTEXT_MESSAGES) {
+                const systemPrompt = this.messages[0];
+                const recentMessages = this.messages.slice(-(this.MAX_CONTEXT_MESSAGES - 1));
+                this.messages = [systemPrompt, ...recentMessages];
+            }
         }
 
         clearTerminal() {
@@ -413,10 +428,9 @@
 
         renderHistory() {
             if (!this.ui.terminal) return;
-            this.ui.terminal.innerHTML = '';
+            this.clearTerminal(); // Evitar duplicar el banner original
             this.messages.forEach(msg => {
                 if (msg.role === 'system') return;
-
                 if (msg.role === 'user') {
                     this.printLog(msg.content, 'user');
                 } else {
@@ -465,6 +479,7 @@
             }
         }
 
+        // Sanitización con reglas explícitas para permitir highlight.js
         sanitizeHTML(html) {
             return DOMPurify.sanitize(html, { 
                 ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'hr', 'del', 'details', 'summary'],
@@ -484,7 +499,7 @@
                 `;
             } else {
                 entry.innerHTML = `
-                    <div style="color: var(--teal-500); white-space: nowrap;">[SYS]</div> 
+                    <div style="color: var(--teal-500); white-space: nowrap; margin-top: 2px;">[SYS]</div> 
                     <div class="markdown-body" style="word-break: break-word; font-family: 'JetBrains Mono', monospace; flex: 1;">
                         ${isHTML ? msg : this.sanitizeHTML(msg)}
                     </div>
@@ -509,8 +524,8 @@
                     this.updateStatus('SECURE', `Link Active [${this.activeModelName}]`, 'teal');
                     if (verbose) this.printLog(`Handshake exitoso. Motor ${this.activeModelName} operativo.`, 'system');
                 } else {
-                    this.updateStatus('ERR_404', 'Model Not Found', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no responde. Verificando API de modelos...`, 'system', true);
+                    this.updateStatus('ERR_404', 'Model Error', 'red');
+                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El motor de IA solicitado no responde. Verifica el modelo o tu API Key.`, 'system', true);
                 }
             } catch (error) {
                 this.updateStatus('NET_ERR', 'Offline', 'red');
@@ -532,7 +547,7 @@
                     body: JSON.stringify({ 
                         model: this.activeModelName, 
                         messages: this.messages,
-                        temperature: 0.7
+                        temperature: 0.6
                     })
                 });
 
@@ -540,29 +555,25 @@
 
                 if (!response.ok) {
                     let errData;
-                    try {
-                        errData = await response.json();
-                    } catch (e) {
-                        errData = { error: { message: await response.text() } };
-                    }
-
+                    try { errData = await response.json(); } 
+                    catch (e) { errData = { error: { message: await response.text() } }; }
+                    
                     let errMsg = errData.error?.message || "Error desconocido en API";
 
-                    // 4. AUTO-FIX ACTUALIZADO: Si el modelo da 404, fuerza la búsqueda en los servidores de Groq.
+                    // Auto-fix robusto si el modelo expira o no existe
                     if (response.status === 404 && !this.isRetrying) {
                         this.isRetrying = true;
                         errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Enlace de modelo caducado. Sincronizando catálogo en tiempo real con Groq y reintentando...";
                         this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
                         
-                        await this.fetchDynamicModel(); // Buscamos el modelo fresco directo de la API
-                        this.testConnection(); // Refrescamos estatus UI
-                        
-                        return await this.fetchAIResponse(); // Reintento automático
+                        await this.fetchDynamicModel(); 
+                        this.testConnection();
+                        return await this.fetchAIResponse();
                     }
 
                     this.isRetrying = false;
                     this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
-                    this.messages.pop(); // Sacar el mensaje fallido para no contaminar contexto
+                    this.messages.pop(); // Sacar el mensaje fallido para no atascar el historial
                     return;
                 }
 
@@ -571,6 +582,7 @@
                 const aiResponse = data.choices[0].message.content;
 
                 this.messages.push({ role: "assistant", content: aiResponse });
+                this.manageContextWindow();
                 this.saveHistory();
 
                 const htmlContent = marked.parse(aiResponse);
@@ -585,11 +597,12 @@
                 this.isProcessing = false;
                 if (this.ui.input) {
                     this.ui.input.disabled = false;
-                    this.ui.input.focus();
+                    // Forzar delay corto para asegurar que el renderizado de DOM ocurrió antes de enfocar
+                    setTimeout(() => this.ui.input.focus(), 10);
                 }
                 if (this.ui.btn) this.ui.btn.disabled = false;
                 if (this.ui.terminal) {
-                    this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
+                    setTimeout(() => this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight, 10);
                 }
             }
         }
