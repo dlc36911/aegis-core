@@ -251,6 +251,13 @@
             this.isProcessing = false;
             this.isRetrying = false; 
 
+            // Variables de estado para los límites de red de Groq (Rate Limits)
+            this.rateLimits = {
+                remainingRequests: 'N/A',
+                remainingTokens: 'N/A',
+                resetTokens: 'N/A'
+            };
+
             // Máximo de mensajes en el array (previene errores de context window overflow)
             this.MAX_CONTEXT_MESSAGES = 15;
 
@@ -265,6 +272,13 @@
             this.bindEvents();
             this.initContext();
             this.initSystem();
+        }
+
+        // --- NUEVO: Captura de cabeceras de Rate Limit de Groq ---
+        updateRateLimits(response) {
+            this.rateLimits.remainingRequests = response.headers.get('x-ratelimit-remaining-requests') || this.rateLimits.remainingRequests;
+            this.rateLimits.remainingTokens = response.headers.get('x-ratelimit-remaining-tokens') || this.rateLimits.remainingTokens;
+            this.rateLimits.resetTokens = response.headers.get('x-ratelimit-reset-tokens') || this.rateLimits.resetTokens;
         }
 
         async initSystem() {
@@ -386,6 +400,18 @@
             if (text === 'ping-core') {
                 this.printLog(`Diagnóstico de red hacia Groq LPU API [Modelo: ${this.activeModelName}]...`, 'system');
                 this.testConnection(true);
+                return;
+            }
+
+            // --- NUEVO: Comando limits ---
+            if (text === 'limits') {
+                this.printLog(
+                    `[SYS_LIMITS] TPM Cuota de Red:<br>` +
+                    `├─ Peticiones Restantes: <span style="color: var(--amber-400)">${this.rateLimits.remainingRequests}</span><br>` +
+                    `├─ Tokens Disponibles: <span style="color: var(--teal-400)">${this.rateLimits.remainingTokens}</span><br>` +
+                    `└─ Reset en: <span style="color: var(--slate-300)">${this.rateLimits.resetTokens}s</span>`,
+                    'system', true
+                );
                 return;
             }
 
@@ -521,6 +547,7 @@
                 });
 
                 if (response.ok) {
+                    this.updateRateLimits(response); // Actualizar límites en ping
                     this.updateStatus('SECURE', `Link Active [${this.activeModelName}]`, 'teal');
                     if (verbose) this.printLog(`Handshake exitoso. Motor ${this.activeModelName} operativo.`, 'system');
                 } else {
@@ -552,6 +579,9 @@
                 });
 
                 if (typingEntry) typingEntry.remove();
+
+                // Actualizar siempre los límites, incluso si hay un error HTTP 429
+                this.updateRateLimits(response); 
 
                 if (!response.ok) {
                     let errData;
