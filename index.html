@@ -240,7 +240,7 @@
             this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
             
             // Modelo de respaldo, será sobrescrito dinámicamente si hay conexión
-            this.activeModelName = 'llama-3.3-70b-versatile'; 
+            this.activeModelName = 'openai/gpt-oss-120b';
 
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde de forma concisa, técnica, y usa Markdown estricto. Mantén tu identidad de IA/Sistema Operativo en todo momento.";
