@@ -186,7 +186,7 @@
             <div class="card" style="position: relative; overflow: hidden;">
                 <h2 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 0.75rem; color: var(--slate-400);">Environment Core</h2>
                 <div id="ai-status" class="status-box">
-                    <span style="font-size: 1rem; line-height: 1;">⟳</span> Awaiting Token...
+                    <span style="font-size: 1rem; line-height: 1;">⟳</span> INICIALIZANDO DB...
                 </div>
             </div>
             
@@ -199,6 +199,7 @@
                     <li><span>reset-core</span> <span>Wipe AI Context (Memoria)</span></li>
                     <li><span>clear / Ctrl+L</span> <span>Limpiar terminal visual</span></li>
                     <li><span>clear-key</span> <span>Destruir API Key local</span></li>
+                    <li><span>limits</span> <span>Ver estado cuota LPU</span></li>
                 </ul>
             </div>
         </section>
@@ -215,8 +216,8 @@
             
             <div class="input-bar">
                 <span class="prompt-prefix">root@aegis:~#</span>
-                <input id="input" type="text" autocomplete="off" spellcheck="false" placeholder="Escribe un comando..." autofocus>
-                <button id="exec-btn">EXECUTE</button>
+                <input id="input" type="text" autocomplete="off" spellcheck="false" placeholder="Escribe un comando..." autofocus disabled>
+                <button id="exec-btn" disabled>EXECUTE</button>
             </div>
         </section>
     </main>
@@ -235,31 +236,96 @@
         breaks: true
     });
 
+    // --- WRAPPER PARA INDEXED DB ---
+    class AegisDB {
+        constructor() {
+            this.dbName = 'AegisCoreDB';
+            this.dbVersion = 1;
+            this.db = null;
+        }
+
+        async init() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(this.dbName, this.dbVersion);
+
+                request.onupgradeneeded = (event) => {
+                    this.db = event.target.result;
+                    // Almacén para configuraciones (api key, modelo activo)
+                    if (!this.db.objectStoreNames.contains('settings')) {
+                        this.db.createObjectStore('settings');
+                    }
+                    // Almacén para memoria (chat history, command history)
+                    if (!this.db.objectStoreNames.contains('memory')) {
+                        this.db.createObjectStore('memory');
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    this.db = event.target.result;
+                    resolve(true);
+                };
+
+                request.onerror = (event) => {
+                    console.error("[SYS_ERR] Fallo al iniciar IndexedDB:", event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        async get(storeName, key) {
+            return new Promise((resolve, reject) => {
+                const transaction = this.db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.get(key);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async set(storeName, key, value) {
+            return new Promise((resolve, reject) => {
+                const transaction = this.db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.put(value, key);
+                request.onsuccess = () => resolve(true);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async remove(storeName, key) {
+            return new Promise((resolve, reject) => {
+                const transaction = this.db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.delete(key);
+                request.onsuccess = () => resolve(true);
+                request.onerror = () => reject(request.error);
+            });
+        }
+    }
+
     class AegisCore {
         constructor() {
-            this.apiKey = localStorage.getItem('AEGIS_GROQ_KEY') || '';
+            // Instancia de base de datos local
+            this.db = new AegisDB();
             
-            // Modelo de respaldo, será sobrescrito dinámicamente si hay conexión
+            // Estado por defecto (se sobreescribirá vía IndexedDB si existe)
+            this.apiKey = '';
             this.activeModelName = 'openai/gpt-oss-120b';
-
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde de forma concisa, técnica, y usa Markdown estricto. Mantén tu identidad de IA/Sistema Operativo en todo momento.";
             
             this.messages = []; 
-            this.history = []; // Historial de comandos ingresados (flecha arriba/abajo)
+            this.history = []; 
             this.historyPos = -1;
             this.isProcessing = false;
             this.isRetrying = false; 
+            this.MAX_CONTEXT_MESSAGES = 15;
 
-            // Variables de estado para los límites de red de Groq (Rate Limits)
             this.rateLimits = {
                 remainingRequests: 'N/A',
                 remainingTokens: 'N/A',
                 resetTokens: 'N/A'
             };
-
-            // Máximo de mensajes en el array (previene errores de context window overflow)
-            this.MAX_CONTEXT_MESSAGES = 15;
 
             this.ui = {
                 terminal: document.getElementById('terminal'),
@@ -268,13 +334,41 @@
                 connBadge: document.getElementById('conn-status'),
                 btn: document.getElementById('exec-btn')
             };
-
-            this.bindEvents();
-            this.initContext();
-            this.initSystem();
         }
 
-        // --- NUEVO: Captura de cabeceras de Rate Limit de Groq ---
+        // --- SISTEMA DE ARRANQUE ASÍNCRONO ---
+        async boot() {
+            try {
+                // 1. Iniciar IndexedDB
+                await this.db.init();
+
+                // 2. Recuperar Configuración
+                this.apiKey = (await this.db.get('settings', 'apiKey')) || '';
+                const savedModel = await this.db.get('settings', 'activeModelName');
+                if (savedModel) this.activeModelName = savedModel;
+
+                // 3. Recuperar Historial de Comandos
+                const savedCmdHistory = await this.db.get('memory', 'cmd_history');
+                if (savedCmdHistory) this.history = savedCmdHistory;
+
+                // 4. Iniciar Interfaz y Eventos
+                this.bindEvents();
+                this.ui.input.disabled = false;
+                this.ui.btn.disabled = false;
+                this.ui.input.focus();
+
+                // 5. Cargar Memoria AI
+                await this.initContext();
+                
+                // 6. Probar Red
+                await this.initSystem();
+
+            } catch (error) {
+                this.updateStatus('SYS_ERR', 'Error Fatal en BD', 'red');
+                this.printLog(`Fallo al inicializar base de datos de memoria: ${error.message}`, 'system');
+            }
+        }
+
         updateRateLimits(response) {
             this.rateLimits.remainingRequests = response.headers.get('x-ratelimit-remaining-requests') || this.rateLimits.remainingRequests;
             this.rateLimits.remainingTokens = response.headers.get('x-ratelimit-remaining-tokens') || this.rateLimits.remainingTokens;
@@ -292,7 +386,6 @@
 
         async fetchDynamicModel() {
             if (!this.apiKey) return;
-
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/models', {
                     method: 'GET',
@@ -301,8 +394,6 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    
-                    // Filtrar modelos Llama relevantes y ordenarlos (Prioriza 70b sobre 8b)
                     const validModels = data.data
                         .filter(m => m.id.includes('llama-3.3') || m.id.includes('llama-3.1'))
                         .sort((a, b) => {
@@ -313,11 +404,10 @@
 
                     if (validModels.length > 0) {
                         this.activeModelName = validModels[0].id;
-                        console.log(`[AUTO-SYNC] Modelo óptimo seleccionado: ${this.activeModelName}`);
                     }
                 }
             } catch (error) {
-                console.warn("Fallo al sincronizar catálogo, se usará el modelo fallback.", error);
+                console.warn("Fallo al sincronizar catálogo", error);
             }
         }
 
@@ -358,13 +448,12 @@
             this.ui.input.value = '';
             this.historyPos = -1;
 
-            // Manejo de comandos internos del sistema
             if (text.startsWith('set-key ')) {
                 this.history.push('set-key [HIDDEN]');
                 this.printLog('set-key ********************************', 'user');
                 this.apiKey = text.split(' ')[1].trim();
-                localStorage.setItem('AEGIS_GROQ_KEY', this.apiKey);
-                this.printLog("Token criptográfico inyectado en almacenamiento local.", 'system');
+                await this.db.set('settings', 'apiKey', this.apiKey);
+                this.printLog("Token criptográfico inyectado en IndexedDB (Memoria Persistente).", 'system');
                 
                 await this.fetchDynamicModel();
                 this.testConnection(true);
@@ -376,15 +465,16 @@
 
             if (text.startsWith('set-model ')) {
                 this.activeModelName = text.split(' ')[1].trim();
-                this.printLog(`Modelo sobrescrito manualmente para esta sesión: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
+                await this.db.set('settings', 'activeModelName', this.activeModelName);
+                this.printLog(`Modelo sobrescrito manualmente en BD: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
                 this.testConnection(true);
                 return;
             }
             if (text === 'clear-key') {
                 this.apiKey = '';
-                localStorage.removeItem('AEGIS_GROQ_KEY');
+                await this.db.remove('settings', 'apiKey');
                 this.updateStatus('OFFLINE', 'Auth Token Destroyed', 'red');
-                this.printLog("Token purgado del sistema. Conexión cerrada.", 'system');
+                this.printLog("Token purgado del sistema IndexedDB. Conexión cerrada.", 'system');
                 return;
             }
             if (text === 'clear') {
@@ -393,8 +483,8 @@
             }
             if (text === 'reset-core') {
                 this.messages = [{ role: "system", content: this.systemInstruction }];
-                this.saveHistory();
-                this.printLog("Memoria de contexto purgada. Sesión limpia inicializada.", 'system');
+                await this.saveHistory();
+                this.printLog("Memoria de contexto purgada. Sesión limpia inicializada en BD.", 'system');
                 return;
             }
             if (text === 'ping-core') {
@@ -402,8 +492,6 @@
                 this.testConnection(true);
                 return;
             }
-
-            // --- NUEVO: Comando limits ---
             if (text === 'limits') {
                 this.printLog(
                     `[SYS_LIMITS] TPM Cuota de Red:<br>` +
@@ -422,11 +510,10 @@
 
             this.messages.push({ role: "user", content: text });
             this.manageContextWindow();
-            this.saveHistory();
+            await this.saveHistory();
             await this.fetchAIResponse();
         }
 
-        // Evita el desbordamiento de Tokens truncando los mensajes viejos
         manageContextWindow() {
             if (this.messages.length > this.MAX_CONTEXT_MESSAGES) {
                 const systemPrompt = this.messages[0];
@@ -448,13 +535,15 @@
             this.ui.terminal.appendChild(banner);
         }
 
-        saveHistory() {
-            localStorage.setItem('AEGIS_CHAT_HISTORY', JSON.stringify(this.messages));
+        async saveHistory() {
+            // Guardar contexto IA y el historial de teclas en IndexedDB nativamente (no requiere JSON.stringify)
+            await this.db.set('memory', 'chat_history', this.messages);
+            await this.db.set('memory', 'cmd_history', this.history);
         }
 
         renderHistory() {
             if (!this.ui.terminal) return;
-            this.clearTerminal(); // Evitar duplicar el banner original
+            this.clearTerminal(); 
             this.messages.forEach(msg => {
                 if (msg.role === 'system') return;
                 if (msg.role === 'user') {
@@ -467,21 +556,15 @@
             });
         }
 
-        initContext() {
-            const savedHistory = localStorage.getItem('AEGIS_CHAT_HISTORY');
-            if (savedHistory) {
-                try {
-                    this.messages = JSON.parse(savedHistory);
-                    if (!Array.isArray(this.messages) || !this.messages.some(m => m.role === 'system')) {
-                        this.messages = [{ role: "system", content: this.systemInstruction }];
-                    }
-                    setTimeout(() => this.renderHistory(), 100);
-                } catch (e) {
-                    this.messages = [{ role: "system", content: this.systemInstruction }];
-                }
+        async initContext() {
+            const savedHistory = await this.db.get('memory', 'chat_history');
+            
+            if (savedHistory && Array.isArray(savedHistory) && savedHistory.some(m => m.role === 'system')) {
+                this.messages = savedHistory;
+                setTimeout(() => this.renderHistory(), 100);
             } else {
                 this.messages = [{ role: "system", content: this.systemInstruction }];
-                this.saveHistory();
+                await this.saveHistory();
             }
         }
 
@@ -505,7 +588,6 @@
             }
         }
 
-        // Sanitización con reglas explícitas para permitir highlight.js
         sanitizeHTML(html) {
             return DOMPurify.sanitize(html, { 
                 ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'hr', 'del', 'details', 'summary'],
@@ -547,7 +629,7 @@
                 });
 
                 if (response.ok) {
-                    this.updateRateLimits(response); // Actualizar límites en ping
+                    this.updateRateLimits(response); 
                     this.updateStatus('SECURE', `Link Active [${this.activeModelName}]`, 'teal');
                     if (verbose) this.printLog(`Handshake exitoso. Motor ${this.activeModelName} operativo.`, 'system');
                 } else {
@@ -579,8 +661,6 @@
                 });
 
                 if (typingEntry) typingEntry.remove();
-
-                // Actualizar siempre los límites, incluso si hay un error HTTP 429
                 this.updateRateLimits(response); 
 
                 if (!response.ok) {
@@ -590,7 +670,6 @@
                     
                     let errMsg = errData.error?.message || "Error desconocido en API";
 
-                    // Auto-fix robusto si el modelo expira o no existe
                     if (response.status === 404 && !this.isRetrying) {
                         this.isRetrying = true;
                         errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Enlace de modelo caducado. Sincronizando catálogo en tiempo real con Groq y reintentando...";
@@ -603,7 +682,7 @@
 
                     this.isRetrying = false;
                     this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
-                    this.messages.pop(); // Sacar el mensaje fallido para no atascar el historial
+                    this.messages.pop(); 
                     return;
                 }
 
@@ -613,7 +692,7 @@
 
                 this.messages.push({ role: "assistant", content: aiResponse });
                 this.manageContextWindow();
-                this.saveHistory();
+                await this.saveHistory();
 
                 const htmlContent = marked.parse(aiResponse);
                 const safeHTML = this.sanitizeHTML(htmlContent);
@@ -627,7 +706,6 @@
                 this.isProcessing = false;
                 if (this.ui.input) {
                     this.ui.input.disabled = false;
-                    // Forzar delay corto para asegurar que el renderizado de DOM ocurrió antes de enfocar
                     setTimeout(() => this.ui.input.focus(), 10);
                 }
                 if (this.ui.btn) this.ui.btn.disabled = false;
@@ -638,8 +716,10 @@
         }
     }
 
+    // Inicializar todo una vez que el DOM esté listo
     window.addEventListener('DOMContentLoaded', () => {
         window.aegis = new AegisCore();
+        window.aegis.boot(); // Llama al arranque asíncrono
     });
 </script>
 </body>
