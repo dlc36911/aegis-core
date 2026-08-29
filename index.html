@@ -227,7 +227,6 @@
     import DOMPurify from "https://esm.run/dompurify@3.0.6";
     import hljs from "https://esm.run/highlight.js@11.9.0";
 
-    // Configuración de Marked con Highlight.js
     marked.setOptions({
         highlight: function(code, lang) {
             const language = (lang && hljs.getLanguage(lang)) ? lang : 'plaintext';
@@ -235,14 +234,6 @@
         },
         gfm: true,
         breaks: true
-    });
-
-    // Hook de DOMPurify para seguridad en enlaces (Abrir en nueva pestaña)
-    DOMPurify.addHook('afterSanitizeAttributes', function(node) {
-        if ('target' in node) {
-            node.setAttribute('target', '_blank');
-            node.setAttribute('rel', 'noopener noreferrer');
-        }
     });
 
     // --- WRAPPER PARA INDEXED DB CON SISTEMA DE RESPALDO (ANTI-CRASH) ---
@@ -342,13 +333,12 @@
         }
     }
 
-    // --- NÚCLEO DEL SISTEMA AEGIS ---
     class AegisCore {
         constructor() {
             this.db = new AegisDB();
             
             this.apiKey = '';
-            this.activeModelName = 'llama3-70b-8192'; // Fallback model más seguro
+            this.activeModelName = 'openai/gpt-oss-120b';
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde de forma concisa, técnica, y usa Markdown estricto. Mantén tu identidad de IA/Sistema Operativo en todo momento.";
             
@@ -372,21 +362,6 @@
                 connBadge: document.getElementById('conn-status'),
                 btn: document.getElementById('exec-btn')
             };
-
-            // Inyectar estilo de cursor parpadeante si no existe
-            this.injectStyles();
-        }
-
-        injectStyles() {
-            if (!document.getElementById('aegis-styles')) {
-                const style = document.createElement('style');
-                style.id = 'aegis-styles';
-                style.innerHTML = `
-                    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-                    .aegis-cursor { display: inline-block; width: 8px; height: 16px; background: var(--teal-400, #2dd4bf); animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 4px; }
-                `;
-                document.head.appendChild(style);
-            }
         }
 
         async boot() {
@@ -401,7 +376,11 @@
                 if (savedCmdHistory) this.history = savedCmdHistory;
 
                 this.bindEvents();
-                this.toggleInputState(true);
+                if (this.ui.input) {
+                    this.ui.input.disabled = false;
+                    this.ui.input.focus();
+                }
+                if (this.ui.btn) this.ui.btn.disabled = false;
 
                 await this.initContext();
                 await this.initSystem();
@@ -412,19 +391,10 @@
             }
         }
 
-        toggleInputState(enabled) {
-            if (this.ui.input) {
-                this.ui.input.disabled = !enabled;
-                if (enabled) setTimeout(() => this.ui.input.focus(), 10);
-            }
-            if (this.ui.btn) this.ui.btn.disabled = !enabled;
-        }
-
-        updateRateLimits(headers) {
-            if (!headers) return;
-            this.rateLimits.remainingRequests = headers.get('x-ratelimit-remaining-requests') || this.rateLimits.remainingRequests;
-            this.rateLimits.remainingTokens = headers.get('x-ratelimit-remaining-tokens') || this.rateLimits.remainingTokens;
-            this.rateLimits.resetTokens = headers.get('x-ratelimit-reset-tokens') || this.rateLimits.resetTokens;
+        updateRateLimits(response) {
+            this.rateLimits.remainingRequests = response.headers.get('x-ratelimit-remaining-requests') || this.rateLimits.remainingRequests;
+            this.rateLimits.remainingTokens = response.headers.get('x-ratelimit-remaining-tokens') || this.rateLimits.remainingTokens;
+            this.rateLimits.resetTokens = response.headers.get('x-ratelimit-reset-tokens') || this.rateLimits.resetTokens;
         }
 
         async initSystem() {
@@ -459,7 +429,7 @@
                     }
                 }
             } catch (error) {
-                console.warn("[SYS_WARN] Fallo al sincronizar catálogo, usando modelo por defecto", error);
+                console.warn("Fallo al sincronizar catálogo", error);
             }
         }
 
@@ -467,10 +437,7 @@
             if (this.ui.btn) this.ui.btn.addEventListener('click', () => this.handleInput());
             if (this.ui.input) {
                 this.ui.input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault(); 
-                        this.handleInput();
-                    }
+                    if (e.key === 'Enter') this.handleInput();
                     if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); this.clearTerminal(); }
 
                     if (e.key === 'ArrowUp') {
@@ -502,97 +469,70 @@
             this.ui.input.value = '';
             this.historyPos = -1;
 
-            // Procesar Comandos Locales
-            if (await this.processLocalCommands(text)) return;
+            if (text.startsWith('set-key ')) {
+                this.history.push('set-key [HIDDEN]');
+                this.printLog('set-key ********************************', 'user');
+                this.apiKey = text.split(' ')[1].trim();
+                await this.db.set('settings', 'apiKey', this.apiKey);
+                this.printLog("Token criptográfico inyectado en almacenamiento local.", 'system');
+                
+                await this.fetchDynamicModel();
+                this.testConnection(true);
+                return;
+            }
 
-            // Validar Token antes de petición a IA
+            this.history.push(text);
+            this.printLog(text, 'user');
+
+            if (text.startsWith('set-model ')) {
+                this.activeModelName = text.split(' ')[1].trim();
+                await this.db.set('settings', 'activeModelName', this.activeModelName);
+                this.printLog(`Modelo sobrescrito manualmente en BD: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
+                this.testConnection(true);
+                return;
+            }
+            if (text === 'clear-key') {
+                this.apiKey = '';
+                await this.db.remove('settings', 'apiKey');
+                this.updateStatus('OFFLINE', 'Auth Token Destroyed', 'red');
+                this.printLog("Token purgado del sistema. Conexión cerrada.", 'system');
+                return;
+            }
+            if (text === 'clear') {
+                this.clearTerminal();
+                return;
+            }
+            if (text === 'reset-core') {
+                this.messages = [{ role: "system", content: this.systemInstruction }];
+                await this.saveHistory();
+                this.printLog("Memoria de contexto purgada. Sesión limpia inicializada en BD.", 'system');
+                return;
+            }
+            if (text === 'ping-core') {
+                this.printLog(`Diagnóstico de red hacia Groq LPU API [Modelo: ${this.activeModelName}]...`, 'system');
+                this.testConnection(true);
+                return;
+            }
+            if (text === 'limits') {
+                this.printLog(
+                    `[SYS_LIMITS] TPM Cuota de Red:<br>` +
+                    `├─ Peticiones Restantes: <span style="color: var(--amber-400)">${this.rateLimits.remainingRequests}</span><br>` +
+                    `├─ Tokens Disponibles: <span style="color: var(--teal-400)">${this.rateLimits.remainingTokens}</span><br>` +
+                    `└─ Reset en: <span style="color: var(--slate-300)">${this.rateLimits.resetTokens}s</span>`,
+                    'system', true
+                );
+                return;
+            }
+
             if (!this.apiKey) {
                 this.printLog("SYS_ERR: Requiere autenticación. Usa <code>set-key [GROQ_API_KEY]</code>", 'system', true);
                 return;
             }
 
-            // Procesar petición a IA
-            this.history.push(text);
-            this.printLog(text, 'user');
-            
             this.messages.push({ role: "user", content: text });
             this.manageContextWindow();
             await this.saveHistory();
-            
-            // Usamos streaming en lugar de fetch estático (Modo PRO)
-            await this.streamAIResponse();
-        }
-
-        async processLocalCommands(text) {
-            const cmd = text.split(' ')[0];
-
-            switch(cmd) {
-                case 'set-key':
-                    this.history.push('set-key [HIDDEN]');
-                    this.printLog('set-key ********************************', 'user');
-                    this.apiKey = text.split(' ')[1]?.trim() || '';
-                    if(!this.apiKey) {
-                        this.printLog("Error: Formato inválido. Usa: set-key [API_KEY]", 'system');
-                        return true;
-                    }
-                    await this.db.set('settings', 'apiKey', this.apiKey);
-                    this.printLog("Token criptográfico inyectado en almacenamiento local.", 'system');
-                    await this.fetchDynamicModel();
-                    this.testConnection(true);
-                    return true;
-
-                case 'set-model':
-                    this.history.push(text);
-                    this.printLog(text, 'user');
-                    this.activeModelName = text.split(' ')[1]?.trim() || this.activeModelName;
-                    await this.db.set('settings', 'activeModelName', this.activeModelName);
-                    this.printLog(`Modelo sobrescrito manualmente en BD: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
-                    this.testConnection(true);
-                    return true;
-
-                case 'clear-key':
-                    this.history.push(text);
-                    this.printLog(text, 'user');
-                    this.apiKey = '';
-                    await this.db.remove('settings', 'apiKey');
-                    this.updateStatus('OFFLINE', 'Auth Token Destroyed', 'red');
-                    this.printLog("Token purgado del sistema. Conexión cerrada.", 'system');
-                    return true;
-
-                case 'clear':
-                    this.clearTerminal();
-                    return true;
-
-                case 'reset-core':
-                    this.history.push(text);
-                    this.printLog(text, 'user');
-                    this.messages = [{ role: "system", content: this.systemInstruction }];
-                    await this.saveHistory();
-                    this.printLog("Memoria de contexto purgada. Sesión limpia inicializada en BD.", 'system');
-                    return true;
-
-                case 'ping-core':
-                    this.history.push(text);
-                    this.printLog(text, 'user');
-                    this.printLog(`Diagnóstico de red hacia Groq LPU API [Modelo: ${this.activeModelName}]...`, 'system');
-                    this.testConnection(true);
-                    return true;
-
-                case 'limits':
-                    this.history.push(text);
-                    this.printLog(text, 'user');
-                    this.printLog(
-                        `[SYS_LIMITS] TPM Cuota de Red:<br>` +
-                        `├─ Peticiones Restantes: <span style="color: var(--amber-400)">${this.rateLimits.remainingRequests}</span><br>` +
-                        `├─ Tokens Disponibles: <span style="color: var(--teal-400)">${this.rateLimits.remainingTokens}</span><br>` +
-                        `└─ Reset en: <span style="color: var(--slate-300)">${this.rateLimits.resetTokens}s</span>`,
-                        'system', true
-                    );
-                    return true;
-
-                default:
-                    return false; // No es comando local
-            }
+            await this.fetchAIResponse();
         }
 
         manageContextWindow() {
@@ -610,7 +550,7 @@
             banner.style.cssText = "color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;";
             banner.innerHTML = `
                 <span>╔═════════════════════════════════════════════════════════════╗</span>
-                <span>║ AEGIS_CORE SHELL v8.0 // CLOUD-SYNC ACTIVO // STREAMING ON  ║</span>
+                <span>║ AEGIS_CORE SHELL v7.0 // CLOUD-SYNC ACTIVO                  ║</span>
                 <span>╚═════════════════════════════════════════════════════════════╝</span>
             `;
             this.ui.terminal.appendChild(banner);
@@ -650,9 +590,9 @@
 
         updateStatus(badgeText, descText, color) {
             const colorMap = {
-                'teal': { text: 'var(--teal-400, #2dd4bf)', bg: 'var(--teal-500, #14b8a6)' },
-                'amber': { text: 'var(--amber-400, #fbbf24)', bg: 'var(--amber-400, #fbbf24)' },
-                'red': { text: 'var(--red-400, #f87171)', bg: 'var(--red-400, #f87171)' }
+                'teal': { text: 'var(--teal-400)', bg: 'var(--teal-500)' },
+                'amber': { text: 'var(--amber-400)', bg: 'var(--amber-400)' },
+                'red': { text: 'var(--red-400)', bg: 'var(--red-400)' }
             };
 
             if (this.ui.connBadge) {
@@ -682,13 +622,13 @@
 
             if (type === 'user') {
                 entry.innerHTML = `
-                    <div style="color: var(--slate-500, #64748b); white-space: nowrap;">root@aegis:~#</div> 
+                    <div style="color: var(--slate-500); white-space: nowrap;">root@aegis:~#</div> 
                     <div style="color: #cbd5e1; word-break: break-word; font-family: 'JetBrains Mono', monospace;">${this.sanitizeHTML(msg)}</div>
                 `;
             } else {
                 entry.innerHTML = `
-                    <div style="color: var(--teal-500, #14b8a6); white-space: nowrap; margin-top: 2px;">[SYS]</div> 
-                    <div class="markdown-body" style="word-break: break-word; font-family: 'JetBrains Mono', monospace; flex: 1; width: 100%; overflow-x: auto;">
+                    <div style="color: var(--teal-500); white-space: nowrap; margin-top: 2px;">[SYS]</div> 
+                    <div class="markdown-body" style="word-break: break-word; font-family: 'JetBrains Mono', monospace; flex: 1;">
                         ${isHTML ? msg : this.sanitizeHTML(msg)}
                     </div>
                 `;
@@ -701,14 +641,8 @@
                 this.ui.terminal.removeChild(this.ui.terminal.firstChild);
             }
 
-            this.scrollToBottom();
+            this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
             return entry;
-        }
-
-        scrollToBottom() {
-            if (this.ui.terminal) {
-                this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
-            }
         }
 
         async testConnection(verbose = false) {
@@ -721,7 +655,7 @@
                 });
 
                 if (response.ok) {
-                    this.updateRateLimits(response.headers); 
+                    this.updateRateLimits(response); 
                     this.updateStatus('SECURE', `Link Active [${this.activeModelName}]`, 'teal');
                     if (verbose) this.printLog(`Handshake exitoso. Motor ${this.activeModelName} operativo.`, 'system');
                 } else {
@@ -734,87 +668,85 @@
             }
         }
 
-        // --- VERSIÓN STREAMING (MÁS RÁPIDA Y PRO) ---
-        async streamAIResponse() {
+        async fetchAIResponse() {
             this.isProcessing = true;
-            this.toggleInputState(false);
+            if (this.ui.input) this.ui.input.disabled = true;
+            if (this.ui.btn) this.ui.btn.disabled = true;
 
-            // Crear el contenedor de respuesta vacío con el cursor
-            const responseContainer = this.printLog("<span class='aegis-cursor'></span>", 'system', true);
-            const markdownContainer = responseContainer.querySelector('.markdown-body');
-            
-            let fullContent = "";
+            const typingEntry = this.printLog(`<span style="animation: pulse 1.5s infinite;">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
 
             try {
                 const response = await fetch(this.apiUrl, {
                     method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${this.apiKey}`, 
-                        'Content-Type': 'application/json' 
-                    },
+                    headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         model: this.activeModelName, 
                         messages: this.messages,
-                        temperature: 0.6,
-                        stream: true // ¡Activa el Streaming!
+                        temperature: 0.6
                     })
                 });
 
-                this.updateRateLimits(response.headers);
+                if (typingEntry) typingEntry.remove();
+                this.updateRateLimits(response); 
 
                 if (!response.ok) {
-                    throw new Error(`API HTTP Error: ${response.status}`);
-                }
+                    let errData;
+                    try { errData = await response.json(); } 
+                    catch (e) { errData = { error: { message: await response.text() } }; }
+                    
+                    let errMsg = errData.error?.message || "Error desconocido en API";
 
-                // Lógica de lectura de Streams SSE
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder("utf-8");
-                let done = false;
-
-                while (!done) {
-                    const { value, done: readerDone } = await reader.read();
-                    done = readerDone;
-                    if (value) {
-                        const chunkStr = decoder.decode(value, { stream: true });
-                        const lines = chunkStr.split('\n');
+                    if (response.status === 404 && !this.isRetrying) {
+                        this.isRetrying = true;
+                        errMsg += "<br><br><span style='color: var(--amber-400)'>[AUTO-FIX]:</span> Enlace de modelo caducado. Sincronizando catálogo en tiempo real con Groq y reintentando...";
+                        this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
                         
-                        for (const line of lines) {
-                            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                                try {
-                                    const parsed = JSON.parse(line.slice(6));
-                                    const delta = parsed.choices[0]?.delta?.content || "";
-                                    fullContent += delta;
-                                    
-                                    // Parseamos Markdown sobre la marcha
-                                    const htmlContent = marked.parse(fullContent);
-                                    markdownContainer.innerHTML = this.sanitizeHTML(htmlContent) + "<span class='aegis-cursor'></span>";
-                                    this.scrollToBottom();
-                                } catch (e) {
-                                    // Ignorar pequeños errores de parseo en fragmentos incompletos
-                                }
-                            }
-                        }
+                        await this.fetchDynamicModel(); 
+                        this.testConnection();
+                        return await this.fetchAIResponse();
                     }
+
+                    this.isRetrying = false;
+                    this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
+                    this.messages.pop(); 
+                    return;
                 }
 
-                // Terminado el stream, quitar cursor y guardar
-                markdownContainer.innerHTML = this.sanitizeHTML(marked.parse(fullContent));
-                this.messages.push({ role: "assistant", content: fullContent });
+                this.isRetrying = false;
+                const data = await response.json();
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error("Estructura de respuesta inválida desde la API.");
+                }
+
+                const aiResponse = data.choices[0].message.content;
+
+                this.messages.push({ role: "assistant", content: aiResponse });
                 this.manageContextWindow();
                 await this.saveHistory();
 
+                const htmlContent = marked.parse(aiResponse);
+                const safeHTML = this.sanitizeHTML(htmlContent);
+                this.printLog(safeHTML, 'system', true);
+
             } catch (error) {
-                markdownContainer.innerHTML = `<span style="color: var(--red-400)">Fallo crítico de conexión LPU: ${error.message}</span>`;
-                this.messages.pop(); // Quitar la petición fallida
+                if (typingEntry) typingEntry.remove();
+                this.printLog(`Fallo crítico de conexión LPU: ${error.message}`, 'system');
+                this.messages.pop();
             } finally {
                 this.isProcessing = false;
-                this.toggleInputState(true);
-                this.scrollToBottom();
+                if (this.ui.input) {
+                    this.ui.input.disabled = false;
+                    setTimeout(() => this.ui.input.focus(), 10);
+                }
+                if (this.ui.btn) this.ui.btn.disabled = false;
+                if (this.ui.terminal) {
+                    setTimeout(() => this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight, 10);
+                }
             }
         }
     }
 
-    // Inicializador
     window.addEventListener('DOMContentLoaded', () => {
         if (!document.getElementById('terminal')) {
             console.warn("[SYS_WARN] No se encontró el contenedor #terminal en el DOM.");
