@@ -236,79 +236,107 @@
         breaks: true
     });
 
-    // --- WRAPPER PARA INDEXED DB ---
+    // --- WRAPPER PARA INDEXED DB CON SISTEMA DE RESPALDO (ANTI-CRASH) ---
     class AegisDB {
         constructor() {
             this.dbName = 'AegisCoreDB';
             this.dbVersion = 1;
             this.db = null;
+            this.memoryFallback = new Map();
+            this.isDbActive = true;
         }
 
         async init() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(this.dbName, this.dbVersion);
+            return new Promise((resolve) => {
+                try {
+                    const request = indexedDB.open(this.dbName, this.dbVersion);
 
-                request.onupgradeneeded = (event) => {
-                    this.db = event.target.result;
-                    // Almacén para configuraciones (api key, modelo activo)
-                    if (!this.db.objectStoreNames.contains('settings')) {
-                        this.db.createObjectStore('settings');
-                    }
-                    // Almacén para memoria (chat history, command history)
-                    if (!this.db.objectStoreNames.contains('memory')) {
-                        this.db.createObjectStore('memory');
-                    }
-                };
+                    request.onupgradeneeded = (event) => {
+                        this.db = event.target.result;
+                        if (!this.db.objectStoreNames.contains('settings')) {
+                            this.db.createObjectStore('settings');
+                        }
+                        if (!this.db.objectStoreNames.contains('memory')) {
+                            this.db.createObjectStore('memory');
+                        }
+                    };
 
-                request.onsuccess = (event) => {
-                    this.db = event.target.result;
-                    resolve(true);
-                };
+                    request.onsuccess = (event) => {
+                        this.db = event.target.result;
+                        resolve(true);
+                    };
 
-                request.onerror = (event) => {
-                    console.error("[SYS_ERR] Fallo al iniciar IndexedDB:", event.target.error);
-                    reject(event.target.error);
-                };
+                    request.onerror = (event) => {
+                        console.warn("[SYS_WARN] IndexedDB restringido. Activando memoria volátil en RAM.");
+                        this.isDbActive = false;
+                        resolve(false);
+                    };
+                } catch (error) {
+                    console.warn("[SYS_WARN] Entorno sin soporte de DB. Activando RAM temporal.");
+                    this.isDbActive = false;
+                    resolve(false);
+                }
             });
         }
 
         async get(storeName, key) {
+            if (!this.isDbActive || !this.db) return this.memoryFallback.get(`${storeName}_${key}`);
             return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction(storeName, 'readonly');
-                const store = transaction.objectStore(storeName);
-                const request = store.get(key);
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                try {
+                    const transaction = this.db.transaction(storeName, 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                } catch (e) {
+                    resolve(this.memoryFallback.get(`${storeName}_${key}`));
+                }
             });
         }
 
         async set(storeName, key, value) {
+            if (!this.isDbActive || !this.db) {
+                this.memoryFallback.set(`${storeName}_${key}`, value);
+                return true;
+            }
             return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction(storeName, 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const request = store.put(value, key);
-                request.onsuccess = () => resolve(true);
-                request.onerror = () => reject(request.error);
+                try {
+                    const transaction = this.db.transaction(storeName, 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.put(value, key);
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => reject(request.error);
+                } catch (e) {
+                    this.memoryFallback.set(`${storeName}_${key}`, value);
+                    resolve(true);
+                }
             });
         }
 
         async remove(storeName, key) {
+            if (!this.isDbActive || !this.db) {
+                this.memoryFallback.delete(`${storeName}_${key}`);
+                return true;
+            }
             return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction(storeName, 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const request = store.delete(key);
-                request.onsuccess = () => resolve(true);
-                request.onerror = () => reject(request.error);
+                try {
+                    const transaction = this.db.transaction(storeName, 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.delete(key);
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => reject(request.error);
+                } catch (e) {
+                    this.memoryFallback.delete(`${storeName}_${key}`);
+                    resolve(true);
+                }
             });
         }
     }
 
     class AegisCore {
         constructor() {
-            // Instancia de base de datos local
             this.db = new AegisDB();
             
-            // Estado por defecto (se sobreescribirá vía IndexedDB si existe)
             this.apiKey = '';
             this.activeModelName = 'openai/gpt-oss-120b';
             this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
@@ -336,31 +364,25 @@
             };
         }
 
-        // --- SISTEMA DE ARRANQUE ASÍNCRONO ---
         async boot() {
             try {
-                // 1. Iniciar IndexedDB
                 await this.db.init();
 
-                // 2. Recuperar Configuración
                 this.apiKey = (await this.db.get('settings', 'apiKey')) || '';
                 const savedModel = await this.db.get('settings', 'activeModelName');
                 if (savedModel) this.activeModelName = savedModel;
 
-                // 3. Recuperar Historial de Comandos
                 const savedCmdHistory = await this.db.get('memory', 'cmd_history');
                 if (savedCmdHistory) this.history = savedCmdHistory;
 
-                // 4. Iniciar Interfaz y Eventos
                 this.bindEvents();
-                this.ui.input.disabled = false;
-                this.ui.btn.disabled = false;
-                this.ui.input.focus();
+                if (this.ui.input) {
+                    this.ui.input.disabled = false;
+                    this.ui.input.focus();
+                }
+                if (this.ui.btn) this.ui.btn.disabled = false;
 
-                // 5. Cargar Memoria AI
                 await this.initContext();
-                
-                // 6. Probar Red
                 await this.initSystem();
 
             } catch (error) {
@@ -418,7 +440,6 @@
                     if (e.key === 'Enter') this.handleInput();
                     if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); this.clearTerminal(); }
 
-                    // Navegación en historial
                     if (e.key === 'ArrowUp') {
                         e.preventDefault();
                         if (this.history.length > 0) {
@@ -453,7 +474,7 @@
                 this.printLog('set-key ********************************', 'user');
                 this.apiKey = text.split(' ')[1].trim();
                 await this.db.set('settings', 'apiKey', this.apiKey);
-                this.printLog("Token criptográfico inyectado en IndexedDB (Memoria Persistente).", 'system');
+                this.printLog("Token criptográfico inyectado en almacenamiento local.", 'system');
                 
                 await this.fetchDynamicModel();
                 this.testConnection(true);
@@ -474,7 +495,7 @@
                 this.apiKey = '';
                 await this.db.remove('settings', 'apiKey');
                 this.updateStatus('OFFLINE', 'Auth Token Destroyed', 'red');
-                this.printLog("Token purgado del sistema IndexedDB. Conexión cerrada.", 'system');
+                this.printLog("Token purgado del sistema. Conexión cerrada.", 'system');
                 return;
             }
             if (text === 'clear') {
@@ -536,7 +557,6 @@
         }
 
         async saveHistory() {
-            // Guardar contexto IA y el historial de teclas en IndexedDB nativamente (no requiere JSON.stringify)
             await this.db.set('memory', 'chat_history', this.messages);
             await this.db.set('memory', 'cmd_history', this.history);
         }
@@ -615,6 +635,12 @@
             }
 
             this.ui.terminal.appendChild(entry);
+            
+            // Límite seguro de nodos en DOM
+            while (this.ui.terminal.childElementCount > 350) {
+                this.ui.terminal.removeChild(this.ui.terminal.firstChild);
+            }
+
             this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
             return entry;
         }
@@ -647,7 +673,7 @@
             if (this.ui.input) this.ui.input.disabled = true;
             if (this.ui.btn) this.ui.btn.disabled = true;
 
-            const typingEntry = this.printLog(`<span class="cursor-blink">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
+            const typingEntry = this.printLog(`<span style="animation: pulse 1.5s infinite;">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
 
             try {
                 const response = await fetch(this.apiUrl, {
@@ -688,6 +714,11 @@
 
                 this.isRetrying = false;
                 const data = await response.json();
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error("Estructura de respuesta inválida desde la API.");
+                }
+
                 const aiResponse = data.choices[0].message.content;
 
                 this.messages.push({ role: "assistant", content: aiResponse });
@@ -716,10 +747,12 @@
         }
     }
 
-    // Inicializar todo una vez que el DOM esté listo
     window.addEventListener('DOMContentLoaded', () => {
+        if (!document.getElementById('terminal')) {
+            console.warn("[SYS_WARN] No se encontró el contenedor #terminal en el DOM.");
+        }
         window.aegis = new AegisCore();
-        window.aegis.boot(); // Llama al arranque asíncrono
+        window.aegis.boot(); 
     });
 </script>
 </body>
