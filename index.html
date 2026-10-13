@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060b14">
   <meta name="description" content="AEGIS CORE: consola IA con Ollama local y Groq Cloud.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-6LcU12ARN0gSMekdeDBHDSiQ3K/eJ7DuBFI32OY1qiM='; connect-src 'self' https://api.groq.com http://localhost:11434 http://127.0.0.1:11434 http://[::1]:11434; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-3+cUWttgtOIbO9cnvbC6rYPD6EdxYnplOmoEusdK+jg='; connect-src 'self' https://api.groq.com http://localhost:11434 http://127.0.0.1:11434; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23060b14%22%2F%3E%3Ctext x=%2232%22 y=%2245%22 font-size=%2242%22 text-anchor=%22middle%22 fill=%22%2336e0c0%22%3E%C3%86%3C%2Ftext%3E%3C%2Fsvg%3E">
   <title>AEGIS CORE — Ollama + Groq</title>
   <style>
     :root{color-scheme:dark;--bg:#060b14;--panel:#0b1524;--line:#203148;--muted:#899ab0;--text:#dce7f5;--teal:#36e0c0;--amber:#f6c453;--red:#fb7185;--blue:#7cb7ff;--radius:13px;--shadow:0 15px 45px #0005}
@@ -74,7 +75,7 @@
     const GROQ_BASE = 'https://api.groq.com/openai/v1';
     const SYSTEM_PROMPT = 'Eres AEGIS_CORE, un asistente técnico claro y útil. Responde en el idioma del usuario. Usa Markdown cuando ayude a la lectura. No afirmes capacidades, accesos ni acciones que no hayas realizado.';
     const PROVIDERS = {
-      ollama: { name:'Ollama local', endpoint:'http://localhost:11434', defaultModel:'llama3.2', hint:'Ollama debe estar ejecutándose. En GitHub Pages puede que debas añadir https://TU-USUARIO.github.io a OLLAMA_ORIGINS; no abras el servicio a Internet.' },
+      ollama: { name:'Ollama local', endpoint:'http://localhost:11434', defaultModel:'llama3.2', hint:'Ollama debe estar ejecutándose. Para probar localmente, sirve esta página en http://localhost:8000. Si aparece CORS, autoriza ese origen exacto mediante OLLAMA_ORIGINS y reinicia Ollama. En GitHub Pages autoriza solo el origen exacto de tu sitio; nunca expongas Ollama a Internet.' },
       groq: { name:'Groq Cloud', endpoint:GROQ_BASE, defaultModel:'openai/gpt-oss-120b', hint:'Introduce una API Key válida de Groq. Los modelos y las cuotas dependen de tu cuenta y pueden cambiar.' }
     };
 
@@ -160,13 +161,13 @@
         $('forgetBtn').addEventListener('click',()=>{this.groqKey='';$('groqKey').value='';this.feedback('Clave borrada de la memoria de esta página.');if(this.active==='groq')this.setStatus('Clave eliminada','idle');});
         $('resetBtn').addEventListener('click',()=>this.resetChat());$('clearViewBtn').addEventListener('click',()=>this.clearView());$('helpBtn').addEventListener('click',()=>this.showHelp());
         $('customModel').addEventListener('input',()=>this.updateModelMeta());$('modelSelect').addEventListener('change',()=>this.updateModelMeta());
-        $('ollamaEndpoint').addEventListener('change',async()=>{if(!this.validLoopbackEndpoint($('ollamaEndpoint').value)){this.feedback('URL rechazada: usa únicamente localhost, 127.0.0.1 o [::1].','error');$('ollamaEndpoint').value='http://localhost:11434';return;}this.settings.ollamaEndpoint=$('ollamaEndpoint').value.trim().replace(/\/$/,'');await this.persistSettings();});
+        $('ollamaEndpoint').addEventListener('change',async()=>{if(!this.validLoopbackEndpoint($('ollamaEndpoint').value)){this.feedback('URL rechazada: usa únicamente localhost o 127.0.0.1.','error');$('ollamaEndpoint').value='http://localhost:11434';return;}this.settings.ollamaEndpoint=$('ollamaEndpoint').value.trim().replace(/\/$/,'');await this.persistSettings();});
         $('promptInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.send();}});
         window.addEventListener('online',()=>this.toast('Conexión de red restaurada.','success'));
       }
       validLoopbackEndpoint(raw){
         try{const u=new URL(String(raw).trim());if(u.protocol!=='http:'||u.username||u.password||u.search||u.hash)return false;
-          const h=u.hostname.toLowerCase();if(!['localhost','127.0.0.1','[::1]','::1'].includes(h))return false;
+          const h=u.hostname.toLowerCase();if(!['localhost','127.0.0.1'].includes(h))return false;
           if(u.port!=='11434')return false;
           return u.pathname===''||u.pathname==='/';
         }catch{return false;}
