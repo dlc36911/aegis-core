@@ -1,78 +1,825 @@
+
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060b14">
-  <meta name="description" content="AEGIS CORE: consola de IA conectada a Ollama Cloud.">
+  <meta name="description" content="AEGIS CORE: consola de IA conectada a Ollama Cloud mediante un proxy seguro.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://aegis-core.lucasnem23.workers.dev; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23060b14%22/%3E%3Ctext x=%2232%22 y=%2245%22 font-size=%2242%22 text-anchor=%22middle%22 fill=%22%2336e0c0%22%3E%C3%86%3C/text%3E%3C/svg%3E">
   <title>AEGIS CORE — Ollama Cloud</title>
   <style>
     :root{color-scheme:dark;--bg:#060b14;--panel:#0b1524;--line:#203148;--muted:#899ab0;--text:#dce7f5;--teal:#36e0c0;--amber:#f6c453;--red:#fb7185;--blue:#7cb7ff;--radius:13px;--shadow:0 15px 45px #0005}
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}body{background-image:radial-gradient(ellipse at top,#13233a 0,transparent 48%);font-size:13px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled,input:disabled,select:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}a{color:var(--teal)}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:17px 22px;border-bottom:1px solid var(--line);background:#060b14ed;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}.brand{display:flex;align-items:center;gap:12px}.logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid #36e0c066;border-radius:11px;background:#36e0c012;color:var(--teal);font-weight:700;font-size:20px}.brand h1{font-size:15px;letter-spacing:.11em;margin:0;color:var(--teal)}.brand p{font-size:9px;letter-spacing:.06em;color:var(--muted);margin:4px 0 0}.status-pill{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:10px}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px currentColor;flex:none}.dot.ok{background:var(--teal)}.dot.error{background:var(--red)}
-    .shell{display:grid;grid-template-columns:294px minmax(0,1fr);gap:16px;padding:17px;max-width:1760px;min-height:calc(100vh - 73px);margin:auto}.sidebar{display:flex;flex-direction:column;gap:13px;min-width:0}.panel{border:1px solid var(--line);background:linear-gradient(150deg,#0d192af2,#08111df2);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}.panel-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:0 0 13px}.field{display:grid;gap:6px;margin:11px 0}.field label{font-size:9px;letter-spacing:.04em;color:#a8b8ca}.field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);padding:10px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px #36e0c014}.inline{display:flex;gap:7px}.inline>*{min-width:0}.inline input{flex:1}.btn{border:1px solid #2b435b;background:#102034;color:var(--text);border-radius:8px;padding:9px 10px;font-size:10px;font-weight:700}.btn:hover:not(:disabled){border-color:var(--teal);background:#103039}.btn.primary{background:var(--teal);color:#041310;border-color:var(--teal)}.btn.danger{color:var(--red);border-color:#fb718550;background:#2a111c}.btn.small{padding:7px 8px}.btn-row{display:flex;gap:7px;flex-wrap:wrap}.hint{font-size:10px;line-height:1.65;color:var(--muted);margin:10px 0 0}.warning{padding:10px;border:1px solid #a97c2e66;background:#33281255;color:#eacb83;border-radius:8px;font-size:10px;line-height:1.65;margin-top:11px}.feedback{font-size:10px;color:var(--teal);line-height:1.6;min-height:14px;margin-top:9px}.divider{height:1px;background:var(--line);margin:13px 0}
-    .workspace{display:flex;flex-direction:column;min-width:0;min-height:690px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#050a12ed;box-shadow:var(--shadow)}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 17px;border-bottom:1px solid var(--line);background:#0c1625}.workspace-heading{display:flex;align-items:center;gap:10px;min-width:0}.workspace-heading h2{font-size:11px;margin:0;letter-spacing:.04em}.workspace-heading p{font-size:9px;color:var(--muted);margin:5px 0 0}.workspace-actions{display:flex;gap:7px;flex-wrap:wrap}.transcript{flex:1;min-height:370px;max-height:calc(100vh - 290px);overflow:auto;padding:22px clamp(14px,3vw,38px);scroll-behavior:smooth}.welcome{max-width:760px;margin:27px auto;color:var(--muted);line-height:1.8}.welcome h3{font-size:17px;color:var(--teal)}.welcome-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.welcome-card{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0a1422}.welcome-card b{display:block;color:var(--text);font-size:10px;margin-bottom:6px}.welcome-card span{font-size:10px}.message{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;max-width:900px;margin:0 auto 22px;overflow-wrap:anywhere}.message+.message{padding-top:17px;border-top:1px solid #182638}.avatar{width:31px;height:31px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;background:#101b2b;font-size:9px;font-weight:700;color:var(--muted)}.message.assistant .avatar{color:var(--teal);border-color:#36e0c04d;background:#0d292b}.message.user .avatar{color:var(--blue)}.meta{font-size:9px;color:var(--muted);margin:2px 0 8px}.content{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.7;color:#d4deeb;overflow-wrap:anywhere}.content p{margin:0 0 11px}.content h1,.content h2,.content h3{color:#ecf6ff;line-height:1.3;margin:18px 0 9px}.content h1{font-size:21px}.content h2{font-size:18px}.content h3{font-size:15px}.content ul,.content ol{padding-left:23px}.content blockquote{border-left:3px solid var(--teal);margin:12px 0;padding:3px 12px;color:#a9b8c9;background:#0b1724}.content code{font-family:ui-monospace,monospace;font-size:.88em;background:#132033;color:#85eddb;padding:2px 5px;border-radius:4px}.content pre{background:#070d15;border:1px solid #25364b;border-radius:9px;overflow:auto;padding:13px;margin:12px 0}.content pre code{padding:0;background:none}.content a{color:#71dccc}.content hr{border:0;border-top:1px solid var(--line);margin:18px 0}.pending{color:var(--muted);font-size:11px;display:flex;align-items:center;gap:9px}.spinner{width:13px;height:13px;border:2px solid #33465b;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
-    .composer-area{padding:13px 17px 14px;border-top:1px solid var(--line);background:#09121f}.composer{display:flex;align-items:flex-end;gap:9px;max-width:1000px;margin:auto}.prompt{font-size:10px;color:var(--teal);padding:13px 0;white-space:nowrap}.composer textarea{flex:1;resize:vertical;min-width:0;min-height:48px;max-height:180px;line-height:1.5;padding:11px;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);outline:none}.composer textarea:focus{border-color:var(--teal)}.compose-foot{display:flex;justify-content:space-between;gap:10px;max-width:1000px;margin:8px auto 0;color:var(--muted);font-size:9px}.footer{text-align:center;color:#53677f;font-size:9px;padding:11px}.toast{position:fixed;right:18px;bottom:18px;z-index:20;max-width:min(430px,calc(100vw - 36px));border:1px solid var(--line);background:#0c1828;padding:12px 14px;border-radius:10px;box-shadow:var(--shadow);line-height:1.5}.toast.error{border-color:#fb718570}.toast.success{border-color:#36e0c070}.hidden{display:none!important}@keyframes spin{to{transform:rotate(360deg)}}
-    @media(max-width:900px){.shell{grid-template-columns:1fr;padding:10px}.sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.workspace{min-height:70vh}.transcript{max-height:none}.topbar{padding:13px}.side-config{grid-column:span 2}}@media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.sidebar{grid-template-columns:1fr}.side-config{grid-column:auto}.shell{gap:10px}.workspace-head{padding:12px}.transcript{padding:15px;min-height:340px}.welcome-grid{grid-template-columns:1fr}.composer{flex-wrap:wrap}.prompt{display:none}.composer textarea{flex-basis:100%}.compose-foot{flex-direction:column}}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    body{background-image:radial-gradient(ellipse at top,#13233a 0,transparent 48%);font-size:13px}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    button:disabled,input:disabled,select:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}
+    a{color:var(--teal)}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:17px 22px;border-bottom:1px solid var(--line);background:#060b14ed;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid #36e0c066;border-radius:11px;background:#36e0c012;color:var(--teal);font-weight:700;font-size:20px}
+    .brand h1{font-size:15px;letter-spacing:.11em;margin:0;color:var(--teal)}
+    .brand p{font-size:9px;letter-spacing:.06em;color:var(--muted);margin:4px 0 0}
+    .status-pill{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:10px}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px currentColor;flex:none}
+    .dot.ok{background:var(--teal)}
+    .dot.error{background:var(--red)}
+    .shell{display:grid;grid-template-columns:294px minmax(0,1fr);gap:16px;padding:17px;max-width:1760px;min-height:calc(100vh - 73px);margin:auto}
+    .sidebar{display:flex;flex-direction:column;gap:13px;min-width:0}
+    .panel{border:1px solid var(--line);background:linear-gradient(150deg,#0d192af2,#08111df2);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+    .panel-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:0 0 13px}
+    .field{display:grid;gap:6px;margin:11px 0}
+    .field label{font-size:9px;letter-spacing:.04em;color:#a8b8ca}
+    .field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);padding:10px;outline:none}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px #36e0c014}
+    .btn{border:1px solid #2b435b;background:#102034;color:var(--text);border-radius:8px;padding:9px 10px;font-size:10px;font-weight:700}
+    .btn:hover:not(:disabled){border-color:var(--teal);background:#103039}
+    .btn.primary{background:var(--teal);color:#041310;border-color:var(--teal)}
+    .btn.danger{color:var(--red);border-color:#fb718550;background:#2a111c}
+    .btn.small{padding:7px 8px}
+    .btn-row{display:flex;gap:7px;flex-wrap:wrap}
+    .hint{font-size:10px;line-height:1.65;color:var(--muted);margin:10px 0 0}
+    .warning{padding:10px;border:1px solid #a97c2e66;background:#33281255;color:#eacb83;border-radius:8px;font-size:10px;line-height:1.65;margin-top:11px}
+    .feedback{font-size:10px;color:var(--teal);line-height:1.6;min-height:14px;margin-top:9px}
+    .divider{height:1px;background:var(--line);margin:13px 0}
+    .workspace{display:flex;flex-direction:column;min-width:0;min-height:690px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#050a12ed;box-shadow:var(--shadow)}
+    .workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 17px;border-bottom:1px solid var(--line);background:#0c1625}
+    .workspace-heading{display:flex;align-items:center;gap:10px;min-width:0}
+    .workspace-heading h2{font-size:11px;margin:0;letter-spacing:.04em}
+    .workspace-heading p{font-size:9px;color:var(--muted);margin:5px 0 0}
+    .workspace-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .transcript{flex:1;min-height:370px;max-height:calc(100vh - 290px);overflow:auto;padding:22px clamp(14px,3vw,38px);scroll-behavior:smooth}
+    .welcome{max-width:760px;margin:27px auto;color:var(--muted);line-height:1.8}
+    .welcome h3{font-size:17px;color:var(--teal)}
+    .welcome-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}
+    .welcome-card{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0a1422}
+    .welcome-card b{display:block;color:var(--text);font-size:10px;margin-bottom:6px}
+    .welcome-card span{font-size:10px}
+    .message{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;max-width:900px;margin:0 auto 22px;overflow-wrap:anywhere}
+    .message+.message{padding-top:17px;border-top:1px solid #182638}
+    .avatar{width:31px;height:31px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;background:#101b2b;font-size:9px;font-weight:700;color:var(--muted)}
+    .message.assistant .avatar{color:var(--teal);border-color:#36e0c04d;background:#0d292b}
+    .message.user .avatar{color:var(--blue)}
+    .meta{font-size:9px;color:var(--muted);margin:2px 0 8px}
+    .content{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.7;color:#d4deeb;overflow-wrap:anywhere}
+    .content p{margin:0 0 11px}
+    .content h1,.content h2,.content h3{color:#ecf6ff;line-height:1.3;margin:18px 0 9px}
+    .content h1{font-size:21px}
+    .content h2{font-size:18px}
+    .content h3{font-size:15px}
+    .content ul,.content ol{padding-left:23px}
+    .content blockquote{border-left:3px solid var(--teal);margin:12px 0;padding:3px 12px;color:#a9b8c9;background:#0b1724}
+    .content code{font-family:ui-monospace,monospace;font-size:.88em;background:#132033;color:#85eddb;padding:2px 5px;border-radius:4px}
+    .content pre{background:#070d15;border:1px solid #25364b;border-radius:9px;overflow:auto;padding:13px;margin:12px 0}
+    .content pre code{padding:0;background:none}
+    .content a{color:#71dccc}
+    .content hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+    .pending{color:var(--muted);font-size:11px;display:flex;align-items:center;gap:9px}
+    .spinner{width:13px;height:13px;border:2px solid #33465b;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
+    .composer-area{padding:13px 17px 14px;border-top:1px solid var(--line);background:#09121f}
+    .composer{display:flex;align-items:flex-end;gap:9px;max-width:1000px;margin:auto}
+    .prompt{font-size:10px;color:var(--teal);padding:13px 0;white-space:nowrap}
+    .composer textarea{flex:1;resize:vertical;min-width:0;min-height:48px;max-height:180px;line-height:1.5;padding:11px;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);outline:none}
+    .composer textarea:focus{border-color:var(--teal)}
+    .compose-foot{display:flex;justify-content:space-between;gap:10px;max-width:1000px;margin:8px auto 0;color:var(--muted);font-size:9px}
+    .footer{text-align:center;color:#53677f;font-size:9px;padding:11px}
+    .toast{position:fixed;right:18px;bottom:18px;z-index:20;max-width:min(430px,calc(100vw - 36px));border:1px solid var(--line);background:#0c1828;padding:12px 14px;border-radius:10px;box-shadow:var(--shadow);line-height:1.5}
+    .toast.error{border-color:#fb718570}
+    .toast.success{border-color:#36e0c070}
+    .hidden{display:none!important}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:900px){.shell{grid-template-columns:1fr;padding:10px}.sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.workspace{min-height:70vh}.transcript{max-height:none}.topbar{padding:13px}.side-config{grid-column:span 2}}
+    @media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.sidebar{grid-template-columns:1fr}.side-config{grid-column:auto}.shell{gap:10px}.workspace-head{padding:12px}.transcript{padding:15px;min-height:340px}.welcome-grid{grid-template-columns:1fr}.composer{flex-wrap:wrap}.prompt{display:none}.composer textarea{flex-basis:100%}.compose-foot{flex-direction:column}}
   </style>
 </head>
 <body>
-  <header class="topbar"><div class="brand"><div class="logo">Æ</div><div><h1>AEGIS_CORE <span style="color:var(--muted);font-weight:400">[v9.1]</span></h1><p>OLLAMA CLOUD API · HTTPS · SINGLE PROVIDER</p></div></div><div class="status-pill"><span id="statusDot" class="dot"></span><span id="headerStatus" aria-live="polite">INICIALIZANDO</span></div></header>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">Æ</div>
+      <div>
+        <h1>AEGIS_CORE <span style="color:var(--muted);font-weight:400">[v9.1]</span></h1>
+        <p>OLLAMA CLOUD API · HTTPS · CLOUDFLARE WORKER</p>
+      </div>
+    </div>
+    <div class="status-pill">
+      <span id="statusDot" class="dot"></span>
+      <span id="headerStatus" aria-live="polite">INICIALIZANDO</span>
+    </div>
+  </header>
+
   <main class="shell">
     <aside class="sidebar" aria-label="Configuración de Ollama Cloud">
-      <section class="panel"><h2 class="panel-title">01 / Proveedor</h2><div class="provider-mark" style="width:42px;height:42px">OL</div><p style="font-size:12px;font-weight:700;margin:10px 0 4px">Ollama Cloud</p><p class="hint">Modelos alojados en la nube de Ollama. No se conecta a localhost ni requiere que tu ordenador ejecute modelos locales.</p></section>
-      <section class="panel side-config"><h2 class="panel-title">02 / Configuración API</h2>
-        <div class="field"><label for="apiKey">OLLAMA CLOUD API KEY</label><div class="inline"><input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Pega tu clave de Ollama" maxlength="500"><button class="btn small" id="toggleKey" type="button">Ver</button></div><p class="hint">La clave solo se mantiene en la memoria de esta pestaña. No se guarda en IndexedDB ni en localStorage. Se pierde al recargar.</p></div>
-        <div class="field"><label for="modelSelect">MODELO</label><select id="modelSelect" aria-label="Modelo"><option value="gpt-oss:120b-cloud">gpt-oss:120b-cloud</option></select></div>
-        <div class="field"><label for="customModel">ID DE MODELO PERSONALIZADO (OPCIONAL)</label><input id="customModel" type="text" spellcheck="false" placeholder="Usar modelo del selector" maxlength="200"></div>
-        <div class="btn-row"><button class="btn primary" type="button" id="testBtn">Probar conexión</button><button class="btn" type="button" id="refreshBtn">Actualizar modelos</button></div><div id="configFeedback" class="feedback" role="status" aria-live="polite"></div>
-        <div class="warning">No publiques una clave en el código. En GitHub Pages, cualquier visitante puede inspeccionar las peticiones del navegador. Para compartir una sola clave de forma segura, necesitas un backend.</div>
+      <section class="panel">
+        <h2 class="panel-title">01 / Proveedor</h2>
+        <div class="provider-mark" style="width:42px;height:42px">OL</div>
+        <p style="font-size:12px;font-weight:700;margin:10px 0 4px">Ollama Cloud</p>
+        <p class="hint">Modelos alojados en la nube de Ollama. Las peticiones pasan por tu Cloudflare Worker; la clave API se mantiene en el servidor.</p>
       </section>
-      <section class="panel"><h2 class="panel-title">03 / Estado y privacidad</h2><div id="connectionState" style="font-size:10px;color:var(--amber);line-height:1.7">Esperando prueba de conexión</div><div class="divider"></div><div class="btn-row"><button class="btn small" id="resetBtn" type="button">Reiniciar chat</button><button class="btn small danger" id="forgetBtn" type="button">Borrar clave</button></div><p class="hint">Los chats se guardan solo en este navegador. Los mensajes se envían a Ollama Cloud para generar respuestas. Evita enviar secretos o datos sensibles.</p></section>
+
+      <section class="panel side-config">
+        <h2 class="panel-title">02 / Configuración API</h2>
+
+        <div class="field">
+          <label for="modelSelect">MODELO</label>
+          <select id="modelSelect" aria-label="Modelo">
+            <option value="gpt-oss:120b-cloud">gpt-oss:120b-cloud</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="customModel">ID DE MODELO PERSONALIZADO (OPCIONAL)</label>
+          <input id="customModel" type="text" spellcheck="false" placeholder="Usar modelo del selector" maxlength="200">
+          <p class="hint">Usa el identificador exacto de un modelo disponible en tu cuenta de Ollama Cloud.</p>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="testBtn">Probar conexión</button>
+          <button class="btn" type="button" id="refreshBtn">Actualizar modelos</button>
+        </div>
+        <div id="configFeedback" class="feedback" role="status" aria-live="polite"></div>
+
+        <div class="warning">
+          La clave API no se incluye en este HTML. Cloudflare Worker debe añadir el secreto OLLAMA_API_KEY a las peticiones enviadas a Ollama. Protege también el Worker contra uso abusivo.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">03 / Estado y privacidad</h2>
+        <div id="connectionState" style="font-size:10px;color:var(--amber);line-height:1.7">Esperando prueba de conexión</div>
+        <div class="divider"></div>
+        <div class="btn-row">
+          <button class="btn small" id="resetBtn" type="button">Reiniciar chat</button>
+        </div>
+        <p class="hint">El historial se guarda en este navegador. Los mensajes se envían a Ollama Cloud para generar respuestas. Evita enviar secretos o datos sensibles.</p>
+      </section>
     </aside>
-    <section class="workspace" aria-label="Terminal AEGIS"><div class="workspace-head"><div class="workspace-heading"><div class="logo" style="width:32px;height:32px;font-size:17px">⌘</div><div><h2>AEGIS TERMINAL // OLLAMA CLOUD</h2><p id="workspaceSubtitle">Listo para comprobar el servicio remoto.</p></div></div><div class="workspace-actions"><button class="btn small" id="helpBtn" type="button">Ayuda</button><button class="btn small danger" id="cancelBtn" type="button" disabled>Cancelar</button><button class="btn small" id="clearViewBtn" type="button">Limpiar vista</button></div></div>
-      <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions text"><div class="welcome" id="welcome"><h3>▸ AEGIS CORE READY</h3><p>Introduce tu API key de Ollama Cloud, pulsa <strong>Probar conexión</strong> y luego envía un mensaje.</p><div class="welcome-grid"><div class="welcome-card"><b>01 · OLLAMA CLOUD</b><span>La inferencia se ejecuta en la nube de Ollama.</span></div><div class="welcome-card"><b>02 · API HTTPS</b><span>Utiliza la API compatible con OpenAI de Ollama.</span></div><div class="welcome-card"><b>03 · CONTEXTO LOCAL</b><span>Historial guardado en este navegador, separado del proveedor.</span></div><div class="welcome-card"><b>04 · CLAVE EN MEMORIA</b><span>La clave no se persiste en el almacenamiento del navegador.</span></div></div><p style="margin-top:18px;font-size:10px">Escribe <code>/help</code> para ver comandos. No pegues tu clave en GitHub.</p></div></div>
-      <div class="composer-area"><div class="composer"><div class="prompt">root@aegis:~$</div><textarea id="promptInput" rows="2" maxlength="24000" placeholder="Escribe tu mensaje… (Enter enviar · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea><button class="btn primary" type="button" id="sendBtn">Enviar ↗</button></div><div class="compose-foot"><span id="composerModel">Motor activo: Ollama Cloud</span><span>Enter envía · Shift+Enter añade una línea · Cancelar aborta la solicitud</span></div></div><div class="footer">AEGIS_CORE v9.1 · OLLAMA CLOUD API · FRONTEND ESTÁTICO</div>
+
+    <section class="workspace" aria-label="Terminal AEGIS">
+      <div class="workspace-head">
+        <div class="workspace-heading">
+          <div class="logo" style="width:32px;height:32px;font-size:17px">⌘</div>
+          <div>
+            <h2>AEGIS TERMINAL // OLLAMA CLOUD</h2>
+            <p id="workspaceSubtitle">Listo para comprobar el servicio remoto.</p>
+          </div>
+        </div>
+        <div class="workspace-actions">
+          <button class="btn small" id="helpBtn" type="button">Ayuda</button>
+          <button class="btn small danger" id="cancelBtn" type="button" disabled>Cancelar</button>
+          <button class="btn small" id="clearViewBtn" type="button">Limpiar vista</button>
+        </div>
+      </div>
+
+      <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions text">
+        <div class="welcome" id="welcome">
+          <h3>▸ AEGIS CORE READY</h3>
+          <p>Pulsa <strong>Probar conexión</strong> para consultar los modelos disponibles y después envía un mensaje.</p>
+          <div class="welcome-grid">
+            <div class="welcome-card"><b>01 · OLLAMA CLOUD</b><span>La inferencia se ejecuta en la nube de Ollama.</span></div>
+            <div class="welcome-card"><b>02 · CLOUDFLARE WORKER</b><span>El Worker gestiona la conexión con la API.</span></div>
+            <div class="welcome-card"><b>03 · CONTEXTO LOCAL</b><span>Historial guardado en este navegador.</span></div>
+            <div class="welcome-card"><b>04 · CLAVE PROTEGIDA</b><span>La clave API no se coloca en el código frontend.</span></div>
+          </div>
+          <p style="margin-top:18px;font-size:10px">Escribe <code>/help</code> para ver los comandos disponibles.</p>
+        </div>
+      </div>
+
+      <div class="composer-area">
+        <div class="composer">
+          <div class="prompt">root@aegis:~$</div>
+          <textarea id="promptInput" rows="2" maxlength="24000" placeholder="Escribe tu mensaje… (Enter enviar · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea>
+          <button class="btn primary" type="button" id="sendBtn">Enviar ↗</button>
+        </div>
+        <div class="compose-foot">
+          <span id="composerModel">Motor activo: Ollama Cloud</span>
+          <span>Enter envía · Shift+Enter añade una línea · Cancelar aborta la solicitud</span>
+        </div>
+      </div>
+      <div class="footer">AEGIS_CORE v9.1 · OLLAMA CLOUD API · CLOUDFLARE WORKER</div>
     </section>
-  </main><div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
 <script>
 (()=>{
   'use strict';
-  const $=id=>document.getElementById(id);
-  const API='https://aegis-core.lucasnem23.workers.dev/v1';
-  const DB_NAME='AegisCoreCloud_v1';
-  const MAX_MESSAGES=20,MAX_INPUT=24000,TIMEOUT_MS=120000;
-  const SYSTEM='Eres AEGIS_CORE, un asistente técnico claro y útil. Responde en el idioma del usuario. Usa Markdown cuando ayude. No afirmes capacidades, accesos ni acciones que no hayas realizado.';
-  let apiKey='',db=null,chat=[],controller=null,processing=false,timedOut=false,timeoutHandle=null,toastTimer=null,models=[],pendingNode=null;
-  function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-  function markdown(s){let text=String(s??''),blocks=[];const stash=x=>{blocks.push(x);return `\u0000${blocks.length-1}\u0000`};text=text.replace(/```([^\n]*)\n([\s\S]*?)```/g,(_m,_l,c)=>stash(`<pre><code>${escapeHtml(c.replace(/\n$/,''))}</code></pre>`));text=text.replace(/`([^`\n]+)`/g,(_m,c)=>stash(`<code>${escapeHtml(c)}</code>`));const inline=x=>{let o=escapeHtml(x);o=o.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(_m,label,href)=>{try{const u=new URL(href);if(!['https:','http:'].includes(u.protocol))return label;return `<a href="${escapeHtml(u.href)}" target="_blank" rel="noopener noreferrer">${label}</a>`}catch{return label}});o=o.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/~~(.+?)~~/g,'<del>$1</del>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<em>$1</em>');return o.replace(/\u0000(\d+)\u0000/g,(_m,n)=>blocks[+n]||'')};let out=[],para=[],list='';const fp=()=>{if(para.length){out.push('<p>'+para.map(inline).join('<br>')+'</p>');para=[]}};const fl=()=>{if(list){out.push(`</${list}>`);list=''}};for(const line of text.split(/\r?\n/)){const b=line.match(/^\u0000(\d+)\u0000$/);if(b){fp();fl();out.push(blocks[+b[1]]||'');continue}if(!line.trim()){fp();fl();continue}const h=line.match(/^(#{1,6})\s+(.+)$/);if(h){fp();fl();const n=h[1].length;out.push(`<h${n}>${inline(h[2])}</h${n}>`);continue}if(/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)){fp();fl();out.push('<hr>');continue}const q=line.match(/^>\s?(.*)$/);if(q){fp();fl();out.push(`<blockquote><p>${inline(q[1])}</p></blockquote>`);continue}const u=line.match(/^\s*[-*+]\s+(.+)$/),o=line.match(/^\s*\d+[.)]\s+(.+)$/);if(u||o){fp();const want=u?'ul':'ol';if(list&&list!==want)fl();if(!list){list=want;out.push(`<${list}>`)}out.push(`<li>${inline((u||o)[1])}</li>`);continue}fl();para.push(line)}fp();fl();return out.join('\n')}
-  function status(msg,state='idle'){$('headerStatus').textContent=msg;$('connectionState').textContent=msg;$('statusDot').className='dot'+(state==='ok'?' ok':state==='error'?' error':'');$('connectionState').style.color=state==='error'?'var(--red)':state==='ok'?'var(--teal)':'var(--amber)'}
-  function feedback(msg,error=false){$('configFeedback').textContent=msg;$('configFeedback').style.color=error?'var(--red)':'var(--teal)'}
-  function toast(msg,type=''){const n=$('toast');n.textContent=msg;n.className='toast'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.classList.add('hidden'),5500)}
-  function setBusy(b){processing=b;$('sendBtn').disabled=b;$('promptInput').disabled=b;$('testBtn').disabled=b;$('refreshBtn').disabled=b;$('cancelBtn').disabled=!b;$('sendBtn').textContent=b?'Procesando…':'Enviar ↗'}
-  function getModel(){return $('customModel').value.trim()||$('modelSelect').value||'gpt-oss:120b-cloud'}
-  function scrollBottom(){requestAnimationFrame(()=>$('transcript').scrollTop=$('transcript').scrollHeight)}
-  function append(role,text,model=''){ $('welcome')?.remove();const n=document.createElement('article');n.className='message '+role;const a=document.createElement('div');a.className='avatar';a.textContent=role==='user'?'TÚ':role==='error'?'!':'Æ';const b=document.createElement('div'),m=document.createElement('div'),c=document.createElement('div');m.className='meta';m.textContent=role==='user'?'TÚ':role==='error'?'SISTEMA · ERROR':`OLLAMA CLOUD · ${model||getModel()}`;c.className='content';if(role==='user'||role==='error'){const p=document.createElement('p');p.textContent=text;c.append(p)}else c.innerHTML=markdown(text);b.append(m,c);n.append(a,b);$('transcript').append(n);while($('transcript').children.length>450)$('transcript').firstElementChild.remove();scrollBottom();return n}
-  function showPending(){pendingNode=document.createElement('article');pendingNode.className='message assistant';pendingNode.innerHTML='<div class="avatar">Æ</div><div><div class="meta">OLLAMA CLOUD · generando</div><div class="content pending"><span class="spinner"></span>Esperando respuesta del modelo…</div></div>';$('welcome')?.remove();$('transcript').append(pendingNode);scrollBottom()}
-  function removePending(){pendingNode?.remove();pendingNode=null}
-  function saveChat(){try{if(db){const tx=db.transaction('state','readwrite');tx.objectStore('state').put(chat,'chat')}}catch(e){console.warn('No se pudo guardar el chat',e)}}
-  function initDb(){return new Promise(resolve=>{if(!('indexedDB'in window)){resolve();return}try{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('state'))r.result.createObjectStore('state')};r.onsuccess=()=>{db=r.result;const q=db.transaction('state','readonly').objectStore('state').get('chat');q.onsuccess=()=>{if(Array.isArray(q.result)){chat=q.result.slice(-MAX_MESSAGES);renderChat()}resolve()};q.onerror=()=>resolve()};r.onerror=()=>resolve()}catch{resolve()}})}
-  function renderChat(){const t=$('transcript');t.replaceChildren();if(!chat.length){const w=document.createElement('div');w.className='welcome';w.id='welcome';w.innerHTML='<h3>▸ AEGIS CORE READY</h3><p>Introduce tu API key de Ollama Cloud y comprueba la conexión para comenzar.</p>';t.append(w);return}for(const m of chat)append(m.role,m.content,m.model);scrollBottom()}
-  async function request(path,options={},timeout=20000){if(!apiKey)throw new Error('Introduce tu API key de Ollama Cloud.');const ctl=options.signal?null:new AbortController();const signal=options.signal||ctl.signal;const timer=ctl?setTimeout(()=>ctl.abort(),timeout):null;try{const res=await fetch(API+path,{...options,signal,cache:'no-store',redirect:'error',headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})}});const raw=await res.text();let data={};try{data=raw?JSON.parse(raw):{}}catch{data={message:raw.slice(0,500)}}if(!res.ok){const err=new Error(data?.error?.message||data?.error||data?.message||`HTTP ${res.status}`);err.status=res.status;throw err}return data}finally{if(timer)clearTimeout(timer)}}
-  function friendly(e){if(e?.name==='AbortError')return timedOut?'Tiempo máximo de espera superado.':'Solicitud cancelada.';if(e?.status===401||e?.status===403)return 'Ollama rechazó la clave (401/403). Confirma que sea una API key de Ollama Cloud vigente.';if(e?.status===404)return 'Endpoint o modelo no encontrado. Actualiza modelos y elige uno disponible en tu cuenta.';if(e?.status===429)return 'Límite de uso alcanzado (HTTP 429). Revisa tu cuota o espera antes de reintentar.';if(e?.status===400)return 'Solicitud no válida: '+e.message;if(/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(e?.message||''))return 'No se pudo acceder a Ollama Cloud. Comprueba Internet y si el navegador bloqueó la petición por CORS. Si ocurre en GitHub Pages, necesitarás un proxy/backend compatible.';return String(e?.message||'Error desconocido').slice(0,700)}
-  async function loadModels(){if(processing)return;apiKey=$('apiKey').value.trim()||apiKey;if(!apiKey){feedback('Pega primero tu API key de Ollama Cloud.',true);return}setBusy(true);feedback('Consultando modelos de Ollama Cloud…');const c=new AbortController();controller=c;try{const d=await request('/models',{signal:c.signal});const list=Array.isArray(d.data)?d.data.map(x=>x&&x.id).filter(x=>typeof x==='string'&&x):[];models=[...new Set(list)].sort();if(!models.length)throw new Error('La API respondió, pero no devolvió modelos en /models. Puedes probar introduciendo manualmente el ID exacto de un modelo cloud de tu cuenta.');const old=getModel(),sel=$('modelSelect');sel.replaceChildren();for(const id of models){const o=document.createElement('option');o.value=id;o.textContent=id;sel.append(o)}sel.value=models.includes(old)?old:models[0];feedback(`${models.length} modelo(s) listados.`);status(`OLLAMA CLOUD ONLINE · ${models.length} modelos`,'ok');$('workspaceSubtitle').textContent='Conectado a Ollama Cloud.';updateModel()}catch(e){feedback(friendly(e),true);status('Ollama Cloud: error de conexión','error');toast(friendly(e),'error')}finally{controller=null;setBusy(false)}}
-  async function test(){apiKey=$('apiKey').value.trim()||apiKey;if(!apiKey){feedback('Introduce tu API key de Ollama Cloud.',true);$('apiKey').focus();return}await loadModels()}
-  function updateModel(){$('composerModel').textContent='Ollama Cloud · '+getModel()}
-  async function send(){if(processing)return;const text=$('promptInput').value.trim();if(!text)return;if(text.startsWith('/')){const cmd=text.toLowerCase();$('promptInput').value='';if(cmd==='/help'){help();return}if(cmd==='/ping'){await test();return}if(cmd==='/models'){await loadModels();return}if(cmd==='/clear'){clearView();return}if(cmd==='/reset'){resetChat();return}toast('Comando desconocido. Escribe /help.','error');return}if(text.length>MAX_INPUT){toast('El mensaje supera el límite permitido.','error');return}apiKey=$('apiKey').value.trim()||apiKey;if(!apiKey){toast('Introduce tu API key de Ollama Cloud.','error');$('apiKey').focus();return}const model=getModel();if(!model||model.length>200){toast('ID de modelo inválido.','error');return}chat.push({role:'user',content:text});while(chat.length>MAX_MESSAGES)chat.shift();saveChat();append('user',text);$('promptInput').value='';setBusy(true);status('Generando respuesta en Ollama Cloud…');showPending();controller=new AbortController();timedOut=false;timeoutHandle=setTimeout(()=>{timedOut=true;controller?.abort()},TIMEOUT_MS);try{const messages=[{role:'system',content:SYSTEM},...chat.map(m=>({role:m.role,content:m.content}))];const data=await request('/chat/completions',{method:'POST',body:JSON.stringify({model,messages,stream:false,temperature:.7,max_tokens:4096}),signal:controller.signal},TIMEOUT_MS);const answer=data.choices?.[0]?.message?.content;if(typeof answer!=='string'||!answer.trim())throw new Error(data.error?.message||'Respuesta vacía o formato no reconocido.');chat.push({role:'assistant',content:answer,model});while(chat.length>MAX_MESSAGES)chat.shift();saveChat();removePending();append('assistant',answer,model);status('Respuesta recibida · Ollama Cloud','ok')}catch(e){removePending();append('error',friendly(e));status('Error de solicitud','error');if(chat.at(-1)?.role==='user'&&chat.at(-1)?.content===text)chat.pop();saveChat()}finally{clearTimeout(timeoutHandle);timeoutHandle=null;controller=null;setBusy(false)}}
-  function clearView(){ $('transcript').replaceChildren();const w=document.createElement('div');w.className='welcome';w.innerHTML='<h3>▸ VISTA LIMPIA</h3><p>La conversación sigue guardada localmente. Usa Reiniciar chat para borrarla.</p>';$('transcript').append(w)}
-  function resetChat(){if(processing){toast('Cancela la solicitud primero.','error');return}if(!confirm('¿Borrar la conversación guardada en este navegador?'))return;chat=[];saveChat();renderChat();toast('Conversación borrada.','success')}
-  function help(){append('assistant','**Comandos disponibles**\n\n- `/help` — mostrar ayuda.\n- `/ping` — comprobar la API.\n- `/models` — actualizar modelos.\n- `/clear` — limpiar la vista sin borrar el historial.\n- `/reset` — borrar conversación.\n\nLa clave se mantiene en memoria y se pierde al recargar.','')}
-  $('toggleKey').addEventListener('click',()=>{const n=$('apiKey');n.type=n.type==='password'?'text':'password';$('toggleKey').textContent=n.type==='password'?'Ver':'Ocultar'});
-  $('forgetBtn').addEventListener('click',()=>{apiKey='';$('apiKey').value='';feedback('Clave eliminada de la memoria de esta pestaña.');status('API key eliminada');toast('Clave borrada de la memoria.','success')});
-  $('testBtn').addEventListener('click',test);$('refreshBtn').addEventListener('click',loadModels);$('sendBtn').addEventListener('click',send);$('cancelBtn').addEventListener('click',()=>{if(controller){controller.abort();status('Cancelando solicitud…')}});$('resetBtn').addEventListener('click',resetChat);$('clearViewBtn').addEventListener('click',clearView);$('helpBtn').addEventListener('click',help);$('modelSelect').addEventListener('change',updateModel);$('customModel').addEventListener('input',updateModel);$('promptInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});window.addEventListener('online',()=>toast('Conexión de red restaurada.','success'));
-  initDb().then(()=>{status('Aplicación lista · Ollama Cloud');updateModel()});
+
+  const $ = id => document.getElementById(id);
+  const API = 'https://aegis-core.lucasnem23.workers.dev/v1';
+  const DB_NAME = 'AegisCoreCloud_v1';
+  const MAX_MESSAGES = 20;
+  const MAX_INPUT = 24000;
+  const TIMEOUT_MS = 120000;
+  const SYSTEM = 'Eres AEGIS_CORE, un asistente técnico claro y útil. Responde en el idioma del usuario. Usa Markdown cuando ayude. No afirmes capacidades, accesos ni acciones que no hayas realizado.';
+
+  let db = null;
+  let chat = [];
+  let controller = null;
+  let processing = false;
+  let timedOut = false;
+  let timeoutHandle = null;
+  let toastTimer = null;
+  let models = [];
+  let pendingNode = null;
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function markdown(s) {
+    let text = String(s ?? '');
+    const blocks = [];
+    const stash = x => {
+      blocks.push(x);
+      return `\u0000${blocks.length-1}\u0000`;
+    };
+
+    text = text.replace(/```([^\n]*)\n([\s\S]*?)```/g,(_m,_l,c)=>
+      stash(`<pre><code>${escapeHtml(c.replace(/\n$/,''))}</code></pre>`)
+    );
+    text = text.replace(/`([^`\n]+)`/g,(_m,c)=>
+      stash(`<code>${escapeHtml(c)}</code>`)
+    );
+
+    const inline = x => {
+      let o = escapeHtml(x);
+      o = o.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(_m,label,href)=>{
+        try {
+          const u = new URL(href);
+          if (!['https:','http:'].includes(u.protocol)) return label;
+          return `<a href="${escapeHtml(u.href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+        } catch {
+          return label;
+        }
+      });
+      o = o.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+           .replace(/~~(.+?)~~/g,'<del>$1</del>')
+           .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<em>$1</em>');
+      return o.replace(/\u0000(\d+)\u0000/g,(_m,n)=>blocks[+n]||'');
+    };
+
+    const out = [];
+    let para = [];
+    let list = '';
+
+    const fp = () => {
+      if (para.length) {
+        out.push('<p>'+para.map(inline).join('<br>')+'</p>');
+        para = [];
+      }
+    };
+
+    const fl = () => {
+      if (list) {
+        out.push(`</${list}>`);
+        list = '';
+      }
+    };
+
+    for (const line of text.split(/\r?\n/)) {
+      const b = line.match(/^\u0000(\d+)\u0000$/);
+      if (b) {
+        fp();
+        fl();
+        out.push(blocks[+b[1]]||'');
+        continue;
+      }
+
+      if (!line.trim()) {
+        fp();
+        fl();
+        continue;
+      }
+
+      const h = line.match(/^(#{1,6})\s+(.+)$/);
+      if (h) {
+        fp();
+        fl();
+        const n = h[1].length;
+        out.push(`<h${n}>${inline(h[2])}</h${n}>`);
+        continue;
+      }
+
+      if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
+        fp();
+        fl();
+        out.push('<hr>');
+        continue;
+      }
+
+      const q = line.match(/^>\s?(.*)$/);
+      if (q) {
+        fp();
+        fl();
+        out.push(`<blockquote><p>${inline(q[1])}</p></blockquote>`);
+        continue;
+      }
+
+      const u = line.match(/^\s*[-*+]\s+(.+)$/);
+      const o = line.match(/^\s*\d+[.)]\s+(.+)$/);
+
+      if (u || o) {
+        fp();
+        const want = u ? 'ul' : 'ol';
+        if (list && list !== want) fl();
+        if (!list) {
+          list = want;
+          out.push(`<${list}>`);
+        }
+        out.push(`<li>${inline((u||o)[1])}</li>`);
+        continue;
+      }
+
+      fl();
+      para.push(line);
+    }
+
+    fp();
+    fl();
+    return out.join('\n');
+  }
+
+  function status(msg,state='idle') {
+    $('headerStatus').textContent = msg;
+    $('connectionState').textContent = msg;
+    $('statusDot').className = 'dot' +
+      (state==='ok' ? ' ok' : state==='error' ? ' error' : '');
+    $('connectionState').style.color =
+      state==='error' ? 'var(--red)' :
+      state==='ok' ? 'var(--teal)' : 'var(--amber)';
+  }
+
+  function feedback(msg,error=false) {
+    $('configFeedback').textContent = msg;
+    $('configFeedback').style.color = error ? 'var(--red)' : 'var(--teal)';
+  }
+
+  function toast(msg,type='') {
+    const n = $('toast');
+    n.textContent = msg;
+    n.className = 'toast' + (type ? ' '+type : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>n.classList.add('hidden'),5500);
+  }
+
+  function setBusy(b) {
+    processing = b;
+    $('sendBtn').disabled = b;
+    $('promptInput').disabled = b;
+    $('testBtn').disabled = b;
+    $('refreshBtn').disabled = b;
+    $('cancelBtn').disabled = !b;
+    $('sendBtn').textContent = b ? 'Procesando…' : 'Enviar ↗';
+  }
+
+  function getModel() {
+    return $('customModel').value.trim() ||
+      $('modelSelect').value ||
+      'gpt-oss:120b-cloud';
+  }
+
+  function scrollBottom() {
+    requestAnimationFrame(()=>$('transcript').scrollTop=$('transcript').scrollHeight);
+  }
+
+  function append(role,text,model='') {
+    $('welcome')?.remove();
+
+    const n = document.createElement('article');
+    n.className = 'message ' + role;
+
+    const a = document.createElement('div');
+    a.className = 'avatar';
+    a.textContent = role==='user' ? 'TÚ' : role==='error' ? '!' : 'Æ';
+
+    const b = document.createElement('div');
+    const m = document.createElement('div');
+    const c = document.createElement('div');
+
+    m.className = 'meta';
+    m.textContent = role==='user' ? 'TÚ' :
+      role==='error' ? 'SISTEMA · ERROR' :
+      `OLLAMA CLOUD · ${model||getModel()}`;
+
+    c.className = 'content';
+
+    if (role==='user' || role==='error') {
+      const p = document.createElement('p');
+      p.textContent = text;
+      c.append(p);
+    } else {
+      c.innerHTML = markdown(text);
+    }
+
+    b.append(m,c);
+    n.append(a,b);
+    $('transcript').append(n);
+
+    while ($('transcript').children.length > 450) {
+      $('transcript').firstElementChild.remove();
+    }
+
+    scrollBottom();
+    return n;
+  }
+
+  function showPending() {
+    pendingNode = document.createElement('article');
+    pendingNode.className = 'message assistant';
+    pendingNode.innerHTML =
+      '<div class="avatar">Æ</div><div><div class="meta">OLLAMA CLOUD · generando</div><div class="content pending"><span class="spinner"></span>Esperando respuesta del modelo…</div></div>';
+    $('welcome')?.remove();
+    $('transcript').append(pendingNode);
+    scrollBottom();
+  }
+
+  function removePending() {
+    pendingNode?.remove();
+    pendingNode = null;
+  }
+
+  function saveChat() {
+    try {
+      if (db) {
+        const tx = db.transaction('state','readwrite');
+        tx.objectStore('state').put(chat,'chat');
+      }
+    } catch(e) {
+      console.warn('No se pudo guardar el chat',e);
+    }
+  }
+
+  function initDb() {
+    return new Promise(resolve=>{
+      if (!('indexedDB' in window)) {
+        resolve();
+        return;
+      }
+
+      try {
+        const r = indexedDB.open(DB_NAME,1);
+
+        r.onupgradeneeded = () => {
+          if (!r.result.objectStoreNames.contains('state')) {
+            r.result.createObjectStore('state');
+          }
+        };
+
+        r.onsuccess = () => {
+          db = r.result;
+          const q = db.transaction('state','readonly')
+            .objectStore('state').get('chat');
+
+          q.onsuccess = () => {
+            if (Array.isArray(q.result)) {
+              chat = q.result.slice(-MAX_MESSAGES);
+              renderChat();
+            }
+            resolve();
+          };
+
+          q.onerror = () => resolve();
+        };
+
+        r.onerror = () => resolve();
+      } catch {
+        resolve();
+      }
+    });
+  }
+
+  function renderChat() {
+    const t = $('transcript');
+    t.replaceChildren();
+
+    if (!chat.length) {
+      const w = document.createElement('div');
+      w.className = 'welcome';
+      w.id = 'welcome';
+      w.innerHTML =
+        '<h3>▸ AEGIS CORE READY</h3><p>Pulsa Probar conexión para consultar los modelos y comenzar.</p>';
+      t.append(w);
+      return;
+    }
+
+    for (const m of chat) {
+      append(m.role,m.content,m.model);
+    }
+    scrollBottom();
+  }
+
+  // El frontend no envía ninguna clave API.
+  // El secreto OLLAMA_API_KEY debe añadirse dentro del Worker.
+  async function request(path,options={},timeout=20000) {
+    if (!['/models','/chat/completions'].includes(path)) {
+      throw new Error('Ruta API no permitida.');
+    }
+
+    const ctl = options.signal ? null : new AbortController();
+    const signal = options.signal || ctl.signal;
+    const timer = ctl ? setTimeout(()=>ctl.abort(),timeout) : null;
+
+    try {
+      const res = await fetch(API+path,{
+        ...options,
+        signal,
+        cache:'no-store',
+        redirect:'error',
+        headers:{
+          'Accept':'application/json',
+          ...(options.body ? {'Content-Type':'application/json'} : {}),
+          ...(options.headers||{})
+        }
+      });
+
+      const raw = await res.text();
+      let data = {};
+
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = {message:raw.slice(0,500)};
+      }
+
+      if (!res.ok) {
+        const err = new Error(
+          data?.error?.message ||
+          data?.error ||
+          data?.message ||
+          `HTTP ${res.status}`
+        );
+        err.status = res.status;
+        throw err;
+      }
+
+      return data;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  function friendly(e) {
+    if (e?.name==='AbortError') {
+      return timedOut
+        ? 'Tiempo máximo de espera superado.'
+        : 'Solicitud cancelada.';
+    }
+
+    if (e?.status===401 || e?.status===403) {
+      return 'Acceso rechazado (401/403). Comprueba el secreto OLLAMA_API_KEY del Worker y los permisos de acceso.';
+    }
+
+    if (e?.status===404) {
+      return 'Ruta o modelo no encontrado (404). Comprueba la URL del Worker y el ID del modelo.';
+    }
+
+    if (e?.status===429) {
+      return 'Límite de uso alcanzado (HTTP 429). Revisa la cuota de Ollama Cloud o espera antes de reintentar.';
+    }
+
+    if (e?.status===400) {
+      return 'Solicitud no válida: '+e.message;
+    }
+
+    if (/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(e?.message||'')) {
+      return 'No se pudo acceder al Worker. Comprueba su URL, CORS, despliegue y que la política CSP permita el dominio.';
+    }
+
+    return String(e?.message||'Error desconocido').slice(0,700);
+  }
+
+  async function loadModels() {
+    if (processing) return;
+
+    setBusy(true);
+    feedback('Consultando modelos mediante Cloudflare Worker…');
+
+    const c = new AbortController();
+    controller = c;
+
+    try {
+      const d = await request('/models',{signal:c.signal});
+      const list = Array.isArray(d.data)
+        ? d.data.map(x=>x&&x.id).filter(x=>typeof x==='string'&&x)
+        : [];
+
+      models = [...new Set(list)].sort();
+
+      if (!models.length) {
+        throw new Error('La API respondió, pero no devolvió modelos. Comprueba que el Worker reenvíe correctamente la respuesta de Ollama.');
+      }
+
+      const old = getModel();
+      const sel = $('modelSelect');
+      sel.replaceChildren();
+
+      for (const id of models) {
+        const o = document.createElement('option');
+        o.value = id;
+        o.textContent = id;
+        sel.append(o);
+      }
+
+      sel.value = models.includes(old) ? old : models[0];
+
+      feedback(`${models.length} modelo(s) disponibles.`);
+      status(`OLLAMA CLOUD ONLINE · ${models.length} modelos`,'ok');
+      $('workspaceSubtitle').textContent = 'Conectado a Ollama Cloud mediante Cloudflare Worker.';
+      updateModel();
+    } catch(e) {
+      feedback(friendly(e),true);
+      status('Ollama Cloud: error de conexión','error');
+      toast(friendly(e),'error');
+    } finally {
+      controller = null;
+      setBusy(false);
+    }
+  }
+
+  async function test() {
+    await loadModels();
+  }
+
+  function updateModel() {
+    $('composerModel').textContent = 'Ollama Cloud · '+getModel();
+  }
+
+  async function send() {
+    if (processing) return;
+
+    const text = $('promptInput').value.trim();
+    if (!text) return;
+
+    if (text.startsWith('/')) {
+      const cmd = text.toLowerCase();
+      $('promptInput').value = '';
+
+      if (cmd==='/help') { help(); return; }
+      if (cmd==='/ping') { await test(); return; }
+      if (cmd==='/models') { await loadModels(); return; }
+      if (cmd==='/clear') { clearView(); return; }
+      if (cmd==='/reset') { resetChat(); return; }
+
+      toast('Comando desconocido. Escribe /help.','error');
+      return;
+    }
+
+    if (text.length > MAX_INPUT) {
+      toast('El mensaje supera el límite permitido.','error');
+      return;
+    }
+
+    const model = getModel();
+
+    if (!model || model.length > 200) {
+      toast('ID de modelo inválido.','error');
+      return;
+    }
+
+    chat.push({role:'user',content:text});
+    while (chat.length > MAX_MESSAGES) chat.shift();
+
+    saveChat();
+    append('user',text);
+    $('promptInput').value = '';
+
+    setBusy(true);
+    status('Generando respuesta en Ollama Cloud…');
+    showPending();
+
+    controller = new AbortController();
+    timedOut = false;
+
+    timeoutHandle = setTimeout(()=>{
+      timedOut = true;
+      controller?.abort();
+    },TIMEOUT_MS);
+
+    try {
+      const messages = [
+        {role:'system',content:SYSTEM},
+        ...chat.map(m=>({role:m.role,content:m.content}))
+      ];
+
+      const data = await request('/chat/completions',{
+        method:'POST',
+        body:JSON.stringify({
+          model,
+          messages,
+          stream:false,
+          temperature:0.7,
+          max_tokens:4096
+        }),
+        signal:controller.signal
+      },TIMEOUT_MS);
+
+      const answer = data.choices?.[0]?.message?.content;
+
+      if (typeof answer!=='string' || !answer.trim()) {
+        throw new Error(data.error?.message||'Respuesta vacía o formato no reconocido.');
+      }
+
+      chat.push({role:'assistant',content:answer,model});
+      while (chat.length > MAX_MESSAGES) chat.shift();
+
+      saveChat();
+      removePending();
+      append('assistant',answer,model);
+      status('Respuesta recibida · Ollama Cloud','ok');
+    } catch(e) {
+      removePending();
+      append('error',friendly(e));
+      status('Error de solicitud','error');
+
+      if (chat.at(-1)?.role==='user' && chat.at(-1)?.content===text) {
+        chat.pop();
+      }
+      saveChat();
+    } finally {
+      clearTimeout(timeoutHandle);
+      timeoutHandle = null;
+      controller = null;
+      setBusy(false);
+    }
+  }
+
+  function clearView() {
+    $('transcript').replaceChildren();
+    const w = document.createElement('div');
+    w.className = 'welcome';
+    w.innerHTML =
+      '<h3>▸ VISTA LIMPIA</h3><p>La conversación sigue guardada localmente. Usa Reiniciar chat para borrarla.</p>';
+    $('transcript').append(w);
+  }
+
+  function resetChat() {
+    if (processing) {
+      toast('Cancela la solicitud primero.','error');
+      return;
+    }
+
+    if (!confirm('¿Borrar la conversación guardada en este navegador?')) return;
+
+    chat = [];
+    saveChat();
+    renderChat();
+    toast('Conversación borrada.','success');
+  }
+
+  function help() {
+    append('assistant',
+      '**Comandos disponibles**\n\n' +
+      '- `/help` — mostrar ayuda.\n' +
+      '- `/ping` — comprobar la API.\n' +
+      '- `/models` — actualizar modelos.\n' +
+      '- `/clear` — limpiar la vista sin borrar el historial.\n' +
+      '- `/reset` — borrar conversación.\n\n' +
+      'La clave API se gestiona en el Cloudflare Worker y no se incluye en esta página.',
+      ''
+    );
+  }
+
+  $('testBtn').addEventListener('click',test);
+  $('refreshBtn').addEventListener('click',loadModels);
+  $('sendBtn').addEventListener('click',send);
+
+  $('cancelBtn').addEventListener('click',()=>{
+    if (controller) {
+      controller.abort();
+      status('Cancelando solicitud…');
+    }
+  });
+
+  $('resetBtn').addEventListener('click',resetChat);
+  $('clearViewBtn').addEventListener('click',clearView);
+  $('helpBtn').addEventListener('click',help);
+  $('modelSelect').addEventListener('change',updateModel);
+  $('customModel').addEventListener('input',updateModel);
+
+  $('promptInput').addEventListener('keydown',e=>{
+    if (e.key==='Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  });
+
+  window.addEventListener('online',()=>{
+    toast('Conexión de red restaurada.','success');
+  });
+
+  initDb().then(()=>{
+    status('Aplicación lista · Ollama Cloud');
+    updateModel();
+  });
 })();
 </script>
 </body>
