@@ -4,299 +4,76 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060b14">
-  <meta name="description" content="AEGIS CORE: consola IA con Ollama local y Groq Cloud.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-3+cUWttgtOIbO9cnvbC6rYPD6EdxYnplOmoEusdK+jg='; connect-src 'self' https://api.groq.com http://localhost:11434 http://127.0.0.1:11434; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23060b14%22%2F%3E%3Ctext x=%2232%22 y=%2245%22 font-size=%2242%22 text-anchor=%22middle%22 fill=%22%2336e0c0%22%3E%C3%86%3C%2Ftext%3E%3C%2Fsvg%3E">
-  <title>AEGIS CORE — Ollama + Groq</title>
+  <meta name="description" content="AEGIS CORE: consola de IA conectada a Ollama Cloud.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://ollama.com https://www.ollama.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23060b14%22/%3E%3Ctext x=%2232%22 y=%2245%22 font-size=%2242%22 text-anchor=%22middle%22 fill=%22%2336e0c0%22%3E%C3%86%3C/text%3E%3C/svg%3E">
+  <title>AEGIS CORE — Ollama Cloud</title>
   <style>
     :root{color-scheme:dark;--bg:#060b14;--panel:#0b1524;--line:#203148;--muted:#899ab0;--text:#dce7f5;--teal:#36e0c0;--amber:#f6c453;--red:#fb7185;--blue:#7cb7ff;--radius:13px;--shadow:0 15px 45px #0005}
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',ui-monospace,monospace}body{background-image:radial-gradient(ellipse at top,#13233a 0,transparent 48%);font-size:13px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled,input:disabled,select:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}a{color:var(--teal)}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}body{background-image:radial-gradient(ellipse at top,#13233a 0,transparent 48%);font-size:13px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled,input:disabled,select:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}a{color:var(--teal)}
     .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:17px 22px;border-bottom:1px solid var(--line);background:#060b14ed;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}.brand{display:flex;align-items:center;gap:12px}.logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid #36e0c066;border-radius:11px;background:#36e0c012;color:var(--teal);font-weight:700;font-size:20px}.brand h1{font-size:15px;letter-spacing:.11em;margin:0;color:var(--teal)}.brand p{font-size:9px;letter-spacing:.06em;color:var(--muted);margin:4px 0 0}.status-pill{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:10px}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px currentColor;flex:none}.dot.ok{background:var(--teal)}.dot.error{background:var(--red)}
-    .shell{display:grid;grid-template-columns:294px minmax(0,1fr);gap:16px;padding:17px;max-width:1760px;min-height:calc(100vh - 73px);margin:auto}.sidebar{display:flex;flex-direction:column;gap:13px;min-width:0}.panel{border:1px solid var(--line);background:linear-gradient(150deg,#0d192af2,#08111df2);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}.panel-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:0 0 13px}.provider-list{display:grid;gap:8px}.provider{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px;border:1px solid var(--line);border-radius:10px;background:#08111d;color:var(--text)}.provider.active{border-color:var(--teal);background:#0d2a30;box-shadow:inset 3px 0 var(--teal)}.provider-mark{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:#17263a;color:var(--blue);font-weight:700;flex:none}.provider-info{min-width:0;flex:1}.provider-name{font-size:11px;font-weight:700}.provider-desc{font-size:9px;color:var(--muted);margin-top:4px}.tag{font-size:9px;color:var(--teal);border:1px solid #36e0c04d;border-radius:5px;padding:3px 5px;white-space:nowrap}
-    .field{display:grid;gap:6px;margin:11px 0}.field label{font-size:9px;letter-spacing:.04em;color:#a8b8ca}.field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);padding:10px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px #36e0c014}.inline{display:flex;gap:7px}.inline>*{min-width:0}.inline input{flex:1}.btn{border:1px solid #2b435b;background:#102034;color:var(--text);border-radius:8px;padding:9px 10px;font-size:10px;font-weight:700}.btn:hover:not(:disabled){border-color:var(--teal);background:#103039}.btn.primary{background:var(--teal);color:#041310;border-color:var(--teal)}.btn.danger{color:var(--red);border-color:#fb718550;background:#2a111c}.btn.small{padding:7px 8px}.btn-row{display:flex;gap:7px;flex-wrap:wrap}.hint{font-size:10px;line-height:1.65;color:var(--muted);margin:10px 0 0}.warning{padding:10px;border:1px solid #a97c2e66;background:#33281255;color:#eacb83;border-radius:8px;font-size:10px;line-height:1.65;margin-top:11px}.feedback{font-size:10px;color:var(--teal);line-height:1.6;min-height:14px;margin-top:9px}.divider{height:1px;background:var(--line);margin:13px 0}
-    .workspace{display:flex;flex-direction:column;min-width:0;min-height:690px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#050a12ed;box-shadow:var(--shadow)}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 17px;border-bottom:1px solid var(--line);background:#0c1625}.workspace-heading{display:flex;align-items:center;gap:10px;min-width:0}.workspace-heading h2{font-size:11px;margin:0;letter-spacing:.04em}.workspace-heading p{font-size:9px;color:var(--muted);margin:5px 0 0}.workspace-actions{display:flex;gap:7px;flex-wrap:wrap}.transcript{flex:1;min-height:370px;max-height:calc(100vh - 290px);overflow:auto;padding:22px clamp(14px,3vw,38px);scroll-behavior:smooth}.welcome{max-width:760px;margin:27px auto;color:var(--muted);line-height:1.8}.welcome h3{font-size:17px;color:var(--teal)}.welcome-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.welcome-card{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0a1422}.welcome-card b{display:block;color:var(--text);font-size:10px;margin-bottom:6px}.welcome-card span{font-size:10px}.message{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;max-width:900px;margin:0 auto 22px;overflow-wrap:anywhere}.message+.message{padding-top:17px;border-top:1px solid #182638}.avatar{width:31px;height:31px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;background:#101b2b;font-size:9px;font-weight:700;color:var(--muted)}.message.assistant .avatar{color:var(--teal);border-color:#36e0c04d;background:#0d292b}.message.user .avatar{color:var(--blue)}.meta{font-size:9px;color:var(--muted);margin:2px 0 8px}.content{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.7;color:#d4deeb;overflow-wrap:anywhere}.content p{margin:0 0 11px}.content h1,.content h2,.content h3{color:#ecf6ff;line-height:1.3;margin:18px 0 9px}.content h1{font-size:21px}.content h2{font-size:18px}.content h3{font-size:15px}.content ul,.content ol{padding-left:23px}.content blockquote{border-left:3px solid var(--teal);margin:12px 0;padding:3px 12px;color:#a9b8c9;background:#0b1724}.content table{border-collapse:collapse;display:block;overflow:auto;max-width:100%;margin:12px 0}.content th,.content td{border:1px solid #2a3c51;padding:7px 9px;text-align:left}.content th{background:#132236}.content code{font-family:'JetBrains Mono',monospace;font-size:.88em;background:#132033;color:#85eddb;padding:2px 5px;border-radius:4px}.content pre{background:#070d15;border:1px solid #25364b;border-radius:9px;overflow:auto;padding:13px;margin:12px 0}.content pre code{padding:0;background:none}.content a{color:#71dccc}.content hr{border:0;border-top:1px solid var(--line);margin:18px 0}.message.error .content{color:#ffb1bd}.pending{color:var(--muted);font-size:11px;display:flex;align-items:center;gap:9px}.spinner{width:13px;height:13px;border:2px solid #33465b;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
+    .shell{display:grid;grid-template-columns:294px minmax(0,1fr);gap:16px;padding:17px;max-width:1760px;min-height:calc(100vh - 73px);margin:auto}.sidebar{display:flex;flex-direction:column;gap:13px;min-width:0}.panel{border:1px solid var(--line);background:linear-gradient(150deg,#0d192af2,#08111df2);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}.panel-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:0 0 13px}.field{display:grid;gap:6px;margin:11px 0}.field label{font-size:9px;letter-spacing:.04em;color:#a8b8ca}.field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);padding:10px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px #36e0c014}.inline{display:flex;gap:7px}.inline>*{min-width:0}.inline input{flex:1}.btn{border:1px solid #2b435b;background:#102034;color:var(--text);border-radius:8px;padding:9px 10px;font-size:10px;font-weight:700}.btn:hover:not(:disabled){border-color:var(--teal);background:#103039}.btn.primary{background:var(--teal);color:#041310;border-color:var(--teal)}.btn.danger{color:var(--red);border-color:#fb718550;background:#2a111c}.btn.small{padding:7px 8px}.btn-row{display:flex;gap:7px;flex-wrap:wrap}.hint{font-size:10px;line-height:1.65;color:var(--muted);margin:10px 0 0}.warning{padding:10px;border:1px solid #a97c2e66;background:#33281255;color:#eacb83;border-radius:8px;font-size:10px;line-height:1.65;margin-top:11px}.feedback{font-size:10px;color:var(--teal);line-height:1.6;min-height:14px;margin-top:9px}.divider{height:1px;background:var(--line);margin:13px 0}
+    .workspace{display:flex;flex-direction:column;min-width:0;min-height:690px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#050a12ed;box-shadow:var(--shadow)}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 17px;border-bottom:1px solid var(--line);background:#0c1625}.workspace-heading{display:flex;align-items:center;gap:10px;min-width:0}.workspace-heading h2{font-size:11px;margin:0;letter-spacing:.04em}.workspace-heading p{font-size:9px;color:var(--muted);margin:5px 0 0}.workspace-actions{display:flex;gap:7px;flex-wrap:wrap}.transcript{flex:1;min-height:370px;max-height:calc(100vh - 290px);overflow:auto;padding:22px clamp(14px,3vw,38px);scroll-behavior:smooth}.welcome{max-width:760px;margin:27px auto;color:var(--muted);line-height:1.8}.welcome h3{font-size:17px;color:var(--teal)}.welcome-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.welcome-card{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0a1422}.welcome-card b{display:block;color:var(--text);font-size:10px;margin-bottom:6px}.welcome-card span{font-size:10px}.message{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;max-width:900px;margin:0 auto 22px;overflow-wrap:anywhere}.message+.message{padding-top:17px;border-top:1px solid #182638}.avatar{width:31px;height:31px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;background:#101b2b;font-size:9px;font-weight:700;color:var(--muted)}.message.assistant .avatar{color:var(--teal);border-color:#36e0c04d;background:#0d292b}.message.user .avatar{color:var(--blue)}.meta{font-size:9px;color:var(--muted);margin:2px 0 8px}.content{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.7;color:#d4deeb;overflow-wrap:anywhere}.content p{margin:0 0 11px}.content h1,.content h2,.content h3{color:#ecf6ff;line-height:1.3;margin:18px 0 9px}.content h1{font-size:21px}.content h2{font-size:18px}.content h3{font-size:15px}.content ul,.content ol{padding-left:23px}.content blockquote{border-left:3px solid var(--teal);margin:12px 0;padding:3px 12px;color:#a9b8c9;background:#0b1724}.content code{font-family:ui-monospace,monospace;font-size:.88em;background:#132033;color:#85eddb;padding:2px 5px;border-radius:4px}.content pre{background:#070d15;border:1px solid #25364b;border-radius:9px;overflow:auto;padding:13px;margin:12px 0}.content pre code{padding:0;background:none}.content a{color:#71dccc}.content hr{border:0;border-top:1px solid var(--line);margin:18px 0}.pending{color:var(--muted);font-size:11px;display:flex;align-items:center;gap:9px}.spinner{width:13px;height:13px;border:2px solid #33465b;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
     .composer-area{padding:13px 17px 14px;border-top:1px solid var(--line);background:#09121f}.composer{display:flex;align-items:flex-end;gap:9px;max-width:1000px;margin:auto}.prompt{font-size:10px;color:var(--teal);padding:13px 0;white-space:nowrap}.composer textarea{flex:1;resize:vertical;min-width:0;min-height:48px;max-height:180px;line-height:1.5;padding:11px;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);outline:none}.composer textarea:focus{border-color:var(--teal)}.compose-foot{display:flex;justify-content:space-between;gap:10px;max-width:1000px;margin:8px auto 0;color:var(--muted);font-size:9px}.footer{text-align:center;color:#53677f;font-size:9px;padding:11px}.toast{position:fixed;right:18px;bottom:18px;z-index:20;max-width:min(430px,calc(100vw - 36px));border:1px solid var(--line);background:#0c1828;padding:12px 14px;border-radius:10px;box-shadow:var(--shadow);line-height:1.5}.toast.error{border-color:#fb718570}.toast.success{border-color:#36e0c070}.hidden{display:none!important}@keyframes spin{to{transform:rotate(360deg)}}
-    @media(max-width:900px){.shell{grid-template-columns:1fr;padding:10px}.sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.workspace{min-height:70vh}.transcript{max-height:none}.topbar{padding:13px}.side-config{grid-column:span 2}}
-    @media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.sidebar{grid-template-columns:1fr}.side-config{grid-column:auto}.shell{gap:10px}.workspace-head{padding:12px}.transcript{padding:15px;min-height:340px}.welcome-grid{grid-template-columns:1fr}.composer{flex-wrap:wrap}.prompt{display:none}.composer textarea{flex-basis:100%}.compose-foot{flex-direction:column}}
+    @media(max-width:900px){.shell{grid-template-columns:1fr;padding:10px}.sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.workspace{min-height:70vh}.transcript{max-height:none}.topbar{padding:13px}.side-config{grid-column:span 2}}@media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.sidebar{grid-template-columns:1fr}.side-config{grid-column:auto}.shell{gap:10px}.workspace-head{padding:12px}.transcript{padding:15px;min-height:340px}.welcome-grid{grid-template-columns:1fr}.composer{flex-wrap:wrap}.prompt{display:none}.composer textarea{flex-basis:100%}.compose-foot{flex-direction:column}}
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand"><div class="logo">Æ</div><div><h1>AEGIS_CORE <span style="color:var(--muted);font-weight:400">[v9.0]</span></h1><p>LOCAL INFERENCE + GROQ CLOUD · TWO PROVIDERS ONLY</p></div></div>
-    <div class="status-pill"><span id="statusDot" class="dot"></span><span id="headerStatus" aria-live="polite">INICIALIZANDO</span></div>
-  </header>
-
+  <header class="topbar"><div class="brand"><div class="logo">Æ</div><div><h1>AEGIS_CORE <span style="color:var(--muted);font-weight:400">[v9.1]</span></h1><p>OLLAMA CLOUD API · HTTPS · SINGLE PROVIDER</p></div></div><div class="status-pill"><span id="statusDot" class="dot"></span><span id="headerStatus" aria-live="polite">INICIALIZANDO</span></div></header>
   <main class="shell">
-    <aside class="sidebar" aria-label="Configuración del motor">
-      <section class="panel">
-        <h2 class="panel-title">01 / Seleccionar motor</h2>
-        <div class="provider-list" id="providerList">
-          <button class="provider active" type="button" data-provider="ollama" aria-pressed="true"><span class="provider-mark">OL</span><span class="provider-info"><span class="provider-name">Ollama local</span><span class="provider-desc">Modelos en este equipo</span></span><span class="tag">LOCAL</span></button>
-          <button class="provider" type="button" data-provider="groq" aria-pressed="false"><span class="provider-mark">GQ</span><span class="provider-info"><span class="provider-name">Groq Cloud</span><span class="provider-desc">API remota de baja latencia</span></span><span class="tag">API</span></button>
-        </div>
-        <p class="hint">Cada motor tiene su conversación independiente. Cambiar de motor no mezcla ni reenvía el historial del otro.</p>
+    <aside class="sidebar" aria-label="Configuración de Ollama Cloud">
+      <section class="panel"><h2 class="panel-title">01 / Proveedor</h2><div class="provider-mark" style="width:42px;height:42px">OL</div><p style="font-size:12px;font-weight:700;margin:10px 0 4px">Ollama Cloud</p><p class="hint">Modelos alojados en la nube de Ollama. No se conecta a localhost ni requiere que tu ordenador ejecute modelos locales.</p></section>
+      <section class="panel side-config"><h2 class="panel-title">02 / Configuración API</h2>
+        <div class="field"><label for="apiKey">OLLAMA CLOUD API KEY</label><div class="inline"><input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Pega tu clave de Ollama" maxlength="500"><button class="btn small" id="toggleKey" type="button">Ver</button></div><p class="hint">La clave solo se mantiene en la memoria de esta pestaña. No se guarda en IndexedDB ni en localStorage. Se pierde al recargar.</p></div>
+        <div class="field"><label for="modelSelect">MODELO</label><select id="modelSelect" aria-label="Modelo"><option value="gpt-oss:120b-cloud">gpt-oss:120b-cloud</option></select></div>
+        <div class="field"><label for="customModel">ID DE MODELO PERSONALIZADO (OPCIONAL)</label><input id="customModel" type="text" spellcheck="false" placeholder="Usar modelo del selector" maxlength="200"></div>
+        <div class="btn-row"><button class="btn primary" type="button" id="testBtn">Probar conexión</button><button class="btn" type="button" id="refreshBtn">Actualizar modelos</button></div><div id="configFeedback" class="feedback" role="status" aria-live="polite"></div>
+        <div class="warning">No publiques una clave en el código. En GitHub Pages, cualquier visitante puede inspeccionar las peticiones del navegador. Para compartir una sola clave de forma segura, necesitas un backend.</div>
       </section>
-
-      <section class="panel side-config">
-        <h2 class="panel-title">02 / Configuración</h2>
-        <div class="field" id="ollamaEndpointField"><label for="ollamaEndpoint">OLLAMA BASE URL (SOLO LOOPBACK)</label><input id="ollamaEndpoint" type="url" value="http://localhost:11434" autocomplete="url" spellcheck="false"></div>
-        <div class="field hidden" id="groqKeyField"><label for="groqKey">GROQ API KEY</label><div class="inline"><input id="groqKey" type="password" autocomplete="off" spellcheck="false" placeholder="gsk_…"><button class="btn small" id="toggleKey" type="button">Ver</button></div><p class="hint">La clave se conserva solo en memoria y no se escribe en IndexedDB, localStorage ni el historial. Se perderá al recargar.</p></div>
-        <div class="field"><label for="modelSelect">MODELO</label><select id="modelSelect" aria-label="Modelo"><option value="llama3.2">llama3.2</option></select></div>
-        <div class="field"><label for="customModel">ID DE MODELO (OPCIONAL)</label><input id="customModel" type="text" spellcheck="false" placeholder="Usar el modelo del selector" maxlength="200"></div>
-        <div class="btn-row"><button class="btn primary" type="button" id="testBtn">Probar conexión</button><button class="btn" type="button" id="refreshBtn">Actualizar modelos</button></div>
-        <div id="configFeedback" class="feedback" role="status" aria-live="polite"></div>
-        <div class="warning" id="providerHint">Ollama debe estar instalado y ejecutándose en este equipo. Solo se aceptan direcciones loopback.</div>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel-title">03 / Estado y privacidad</h2>
-        <div id="connectionState" style="font-size:10px;color:var(--amber);line-height:1.7">Esperando prueba de conexión</div>
-        <div class="divider"></div>
-        <div class="btn-row"><button class="btn small" id="resetBtn" type="button">Reiniciar chat</button><button class="btn small danger" id="forgetBtn" type="button">Borrar clave</button></div>
-        <p class="hint">Los chats y preferencias se guardan localmente en este navegador. Los mensajes de Groq se envían a sus servidores; Ollama procesa en tu instancia local.</p>
-      </section>
+      <section class="panel"><h2 class="panel-title">03 / Estado y privacidad</h2><div id="connectionState" style="font-size:10px;color:var(--amber);line-height:1.7">Esperando prueba de conexión</div><div class="divider"></div><div class="btn-row"><button class="btn small" id="resetBtn" type="button">Reiniciar chat</button><button class="btn small danger" id="forgetBtn" type="button">Borrar clave</button></div><p class="hint">Los chats se guardan solo en este navegador. Los mensajes se envían a Ollama Cloud para generar respuestas. Evita enviar secretos o datos sensibles.</p></section>
     </aside>
-
-    <section class="workspace" aria-label="Terminal AEGIS">
-      <div class="workspace-head"><div class="workspace-heading"><div class="logo" style="width:32px;height:32px;font-size:17px">⌘</div><div><h2 id="workspaceTitle">AEGIS TERMINAL // OLLAMA LOCAL</h2><p id="workspaceSubtitle">Listo para comprobar el servicio local.</p></div></div><div class="workspace-actions"><button class="btn small" id="helpBtn" type="button">Ayuda</button><button class="btn small danger" id="cancelBtn" type="button" disabled>Cancelar</button><button class="btn small" id="clearViewBtn" type="button">Limpiar vista</button></div></div>
-      <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions text"><div class="welcome" id="welcome"><h3>▸ AEGIS CORE READY</h3><p>Selecciona <strong>Ollama local</strong> para usar los modelos instalados en este equipo, o <strong>Groq Cloud</strong> para usar tu API Key.</p><div class="welcome-grid"><div class="welcome-card"><b>01 · OLLAMA LOCAL</b><span>Actualiza la lista de modelos descargados y realiza inferencia en tu ordenador.</span></div><div class="welcome-card"><b>02 · GROQ CLOUD</b><span>Comprueba la clave y consulta los modelos disponibles en la API.</span></div><div class="welcome-card"><b>03 · CONTEXTO AISLADO</b><span>Historial local separado por motor y ventana de contexto limitada.</span></div><div class="welcome-card"><b>04 · SEGURIDAD</b><span>Clave Groq solo en memoria; HTML de respuesta sanitizado antes de mostrarlo.</span></div></div><p style="margin-top:18px;font-size:10px">Escribe <code>/help</code> para ver comandos. No subas claves a GitHub.</p></div></div>
-      <div class="composer-area"><div class="composer"><div class="prompt">root@aegis:~$</div><textarea id="promptInput" rows="2" maxlength="24000" placeholder="Escribe tu mensaje… (Enter enviar · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea><button class="btn primary" type="button" id="sendBtn">Enviar ↗</button></div><div class="compose-foot"><span id="composerModel">Motor activo: Ollama local</span><span>La aplicación limita el historial enviado y permite cancelar cada solicitud.</span></div></div>
-      <div class="footer">AEGIS_CORE v9.0 · OLLAMA + GROQ · FRONTEND ESTÁTICO</div>
+    <section class="workspace" aria-label="Terminal AEGIS"><div class="workspace-head"><div class="workspace-heading"><div class="logo" style="width:32px;height:32px;font-size:17px">⌘</div><div><h2>AEGIS TERMINAL // OLLAMA CLOUD</h2><p id="workspaceSubtitle">Listo para comprobar el servicio remoto.</p></div></div><div class="workspace-actions"><button class="btn small" id="helpBtn" type="button">Ayuda</button><button class="btn small danger" id="cancelBtn" type="button" disabled>Cancelar</button><button class="btn small" id="clearViewBtn" type="button">Limpiar vista</button></div></div>
+      <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions text"><div class="welcome" id="welcome"><h3>▸ AEGIS CORE READY</h3><p>Introduce tu API key de Ollama Cloud, pulsa <strong>Probar conexión</strong> y luego envía un mensaje.</p><div class="welcome-grid"><div class="welcome-card"><b>01 · OLLAMA CLOUD</b><span>La inferencia se ejecuta en la nube de Ollama.</span></div><div class="welcome-card"><b>02 · API HTTPS</b><span>Utiliza la API compatible con OpenAI de Ollama.</span></div><div class="welcome-card"><b>03 · CONTEXTO LOCAL</b><span>Historial guardado en este navegador, separado del proveedor.</span></div><div class="welcome-card"><b>04 · CLAVE EN MEMORIA</b><span>La clave no se persiste en el almacenamiento del navegador.</span></div></div><p style="margin-top:18px;font-size:10px">Escribe <code>/help</code> para ver comandos. No pegues tu clave en GitHub.</p></div></div>
+      <div class="composer-area"><div class="composer"><div class="prompt">root@aegis:~$</div><textarea id="promptInput" rows="2" maxlength="24000" placeholder="Escribe tu mensaje… (Enter enviar · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea><button class="btn primary" type="button" id="sendBtn">Enviar ↗</button></div><div class="compose-foot"><span id="composerModel">Motor activo: Ollama Cloud</span><span>Enter envía · Shift+Enter añade una línea · Cancelar aborta la solicitud</span></div></div><div class="footer">AEGIS_CORE v9.1 · OLLAMA CLOUD API · FRONTEND ESTÁTICO</div>
     </section>
-  </main>
-  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-
-  <script type="module">
-    const $ = id => document.getElementById(id);
-    const DB_NAME = 'AegisCoreDB_v9';
-    const MAX_MESSAGES = 20;
-    const MAX_INPUT = 24000;
-    const TIMEOUT_MS = 120000;
-    const GROQ_BASE = 'https://api.groq.com/openai/v1';
-    const SYSTEM_PROMPT = 'Eres AEGIS_CORE, un asistente técnico claro y útil. Responde en el idioma del usuario. Usa Markdown cuando ayude a la lectura. No afirmes capacidades, accesos ni acciones que no hayas realizado.';
-    const PROVIDERS = {
-      ollama: { name:'Ollama local', endpoint:'http://localhost:11434', defaultModel:'llama3.2', hint:'Ollama debe estar ejecutándose. Para probar localmente, sirve esta página en http://localhost:8000. Si aparece CORS, autoriza ese origen exacto mediante OLLAMA_ORIGINS y reinicia Ollama. En GitHub Pages autoriza solo el origen exacto de tu sitio; nunca expongas Ollama a Internet.' },
-      groq: { name:'Groq Cloud', endpoint:GROQ_BASE, defaultModel:'openai/gpt-oss-120b', hint:'Introduce una API Key válida de Groq. Los modelos y las cuotas dependen de tu cuenta y pueden cambiar.' }
-    };
-
-    function escapeHtml(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-    function renderMarkdownSafe(source){
-      let text=String(source??'');const saved=[];
-      const stash=html=>{saved.push(html);return `\u0000${saved.length-1}\u0000`;};
-      text=text.replace(/```([^\n]*)\n([\s\S]*?)```/g,(_all,_lang,code)=>stash(`<pre><code>${escapeHtml(code.replace(/\n$/,''))}</code></pre>`));
-      text=text.replace(/`([^`\n]+)`/g,(_all,code)=>stash(`<code>${escapeHtml(code)}</code>`));
-      const inline=raw=>{
-        let out=escapeHtml(raw);
-        out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(whole,label,href)=>{
-          try{const normalized=href.replace(/&amp;/g,'&');const url=new URL(normalized);if(!['http:','https:'].includes(url.protocol))return whole;return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;}catch{return whole;}
-        });
-        out=out.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/~~(.+?)~~/g,'<del>$1</del>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<em>$1</em>');
-        return out.replace(/\u0000(\d+)\u0000/g,(_whole,n)=>saved[Number(n)]??'');
-      };
-      const lines=text.split(/\r?\n/),html=[];let para=[],list='';
-      const flushPara=()=>{if(para.length){html.push(`<p>${para.map(inline).join('<br>')}</p>`);para=[];}};
-      const flushList=()=>{if(list){html.push(`</${list}>`);list='';}};
-      for(const line of lines){
-        const block=line.match(/^\u0000(\d+)\u0000$/);
-        if(block){flushPara();flushList();html.push(saved[Number(block[1])]??'');continue;}
-        if(!line.trim()){flushPara();flushList();continue;}
-        const heading=line.match(/^(#{1,6})\s+(.+)$/);
-        if(heading){flushPara();flushList();const level=heading[1].length;html.push(`<h${level}>${inline(heading[2])}</h${level}>`);continue;}
-        if(/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)){flushPara();flushList();html.push('<hr>');continue;}
-        const quote=line.match(/^>\s?(.*)$/);
-        if(quote){flushPara();flushList();html.push(`<blockquote><p>${inline(quote[1])}</p></blockquote>`);continue;}
-        const ul=line.match(/^\s*[-*+]\s+(.+)$/);const ol=line.match(/^\s*\d+[.)]\s+(.+)$/);
-        if(ul||ol){flushPara();const wanted=ul?'ul':'ol';if(list&&list!==wanted)flushList();if(!list){list=wanted;html.push(`<${list}>`);}html.push(`<li>${inline((ul||ol)[1])}</li>`);continue;}
-        flushList();para.push(line);
-      }
-      flushPara();flushList();return html.join('\n');
-    }
-
-    class LocalStore {
-      constructor(){this.db=null;this.ready=false;this.volatile=new Map();}
-      async init(){
-        if(!('indexedDB' in window)) return false;
-        try{
-          this.db=await new Promise((resolve,reject)=>{
-            const req=indexedDB.open(DB_NAME,1);
-            req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('app'))db.createObjectStore('app');if(!db.objectStoreNames.contains('chats'))db.createObjectStore('chats');};
-            req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);req.onblocked=()=>reject(new Error('La base de datos está bloqueada por otra pestaña.'));
-          });
-          this.db.onversionchange=()=>this.db.close();this.ready=true;return true;
-        }catch(e){console.warn('IndexedDB no disponible; sesión volátil.',e);return false;}
-      }
-      async get(store,key){
-        if(!this.ready||!this.db)return this.volatile.get(`${store}:${key}`);
-        try{return await new Promise((resolve,reject)=>{const r=this.db.transaction(store,'readonly').objectStore(store).get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
-        catch{return this.volatile.get(`${store}:${key}`);}
-      }
-      async set(store,key,value){
-        this.volatile.set(`${store}:${key}`,value);
-        if(!this.ready||!this.db)return false;
-        try{await new Promise((resolve,reject)=>{const tx=this.db.transaction(store,'readwrite');tx.objectStore(store).put(value,key);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});return true;}
-        catch(e){console.warn('No se pudo persistir el dato local.',e);return false;}
-      }
-    }
-
-    class Aegis {
-      constructor(){
-        this.store=new LocalStore();this.active='ollama';this.settings={};this.chats={ollama:[],groq:[]};this.groqKey='';
-        this.controller=null;this.processing=false;this.timedOut=false;this.timeout=null;this.pending=null;this.toastTimer=null;this.rateHeaders={};this.modelLists={ollama:[],groq:[]};this.requestProvider=null;
-      }
-      async boot(){
-        await this.store.init();
-        this.settings=await this.store.get('app','settings')||{};
-        const oldChats=await this.store.get('chats','by-provider');
-        if(oldChats&&typeof oldChats==='object'){this.chats={ollama:Array.isArray(oldChats.ollama)?oldChats.ollama:[],groq:Array.isArray(oldChats.groq)?oldChats.groq:[]};}
-        this.active=this.settings.active==='groq'?'groq':'ollama';
-        if(this.settings.ollamaEndpoint)$('ollamaEndpoint').value=this.validLoopbackEndpoint(this.settings.ollamaEndpoint)?this.settings.ollamaEndpoint:'http://localhost:11434';
-        this.bind();this.applyProvider(this.active,false);this.renderChat();
-        this.setStatus(this.store.ready?'Aplicación lista · datos locales':'Aplicación lista · modo temporal','ok');
-        if(!this.store.ready)this.toast('IndexedDB no disponible: el historial no persistirá tras recargar.','error');
-      }
-      bind(){
-        $('providerList').addEventListener('click',e=>{const b=e.target.closest('[data-provider]');if(b)this.applyProvider(b.dataset.provider,true);});
-        $('testBtn').addEventListener('click',()=>this.testConnection());$('refreshBtn').addEventListener('click',()=>this.refreshModels());$('sendBtn').addEventListener('click',()=>this.send());$('cancelBtn').addEventListener('click',()=>this.cancel());
-        $('toggleKey').addEventListener('click',()=>{const k=$('groqKey');k.type=k.type==='password'?'text':'password';$('toggleKey').textContent=k.type==='password'?'Ver':'Ocultar';});
-        $('forgetBtn').addEventListener('click',()=>{this.groqKey='';$('groqKey').value='';this.feedback('Clave borrada de la memoria de esta página.');if(this.active==='groq')this.setStatus('Clave eliminada','idle');});
-        $('resetBtn').addEventListener('click',()=>this.resetChat());$('clearViewBtn').addEventListener('click',()=>this.clearView());$('helpBtn').addEventListener('click',()=>this.showHelp());
-        $('customModel').addEventListener('input',()=>this.updateModelMeta());$('modelSelect').addEventListener('change',()=>this.updateModelMeta());
-        $('ollamaEndpoint').addEventListener('change',async()=>{if(!this.validLoopbackEndpoint($('ollamaEndpoint').value)){this.feedback('URL rechazada: usa únicamente localhost o 127.0.0.1.','error');$('ollamaEndpoint').value='http://localhost:11434';return;}this.settings.ollamaEndpoint=$('ollamaEndpoint').value.trim().replace(/\/$/,'');await this.persistSettings();});
-        $('promptInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.send();}});
-        window.addEventListener('online',()=>this.toast('Conexión de red restaurada.','success'));
-      }
-      validLoopbackEndpoint(raw){
-        try{const u=new URL(String(raw).trim());if(u.protocol!=='http:'||u.username||u.password||u.search||u.hash)return false;
-          const h=u.hostname.toLowerCase();if(!['localhost','127.0.0.1'].includes(h))return false;
-          if(u.port!=='11434')return false;
-          return u.pathname===''||u.pathname==='/';
-        }catch{return false;}
-      }
-      endpoint(){const raw=$('ollamaEndpoint').value.trim().replace(/\/$/,'');return this.validLoopbackEndpoint(raw)?raw:'http://localhost:11434';}
-      model(){return $('customModel').value.trim()||$('modelSelect').value||PROVIDERS[this.active].defaultModel;}
-      async applyProvider(id,notify=true){
-        if(!PROVIDERS[id])return;
-        if(this.processing){this.toast('Cancela la solicitud actual antes de cambiar de motor.','error');return;}
-        this.active=id;this.settings.active=id;
-        document.querySelectorAll('[data-provider]').forEach(b=>{const chosen=b.dataset.provider===id;b.classList.toggle('active',chosen);b.setAttribute('aria-pressed',String(chosen));});
-        const groq=id==='groq';$('groqKeyField').classList.toggle('hidden',!groq);$('ollamaEndpointField').classList.toggle('hidden',groq);$('forgetBtn').disabled=!groq;
-        $('workspaceTitle').textContent=`AEGIS TERMINAL // ${groq?'GROQ CLOUD':'OLLAMA LOCAL'}`;$('workspaceSubtitle').textContent=groq?'Conexión HTTPS a Groq API.':'Conexión local a Ollama.';
-        $('composerModel').textContent=`${PROVIDERS[id].name} · ${this.modelLists[id]?.length||0} modelos detectados`;$('providerHint').textContent=PROVIDERS[id].hint;
-        $('groqKey').value=this.groqKey;this.populateModels(id);this.renderChat();await this.persistSettings();
-        this.setStatus(groq?(this.groqKey?'Groq seleccionado · clave en memoria':'Groq seleccionado · requiere clave'):'Ollama seleccionado · listo para probar',groq&&!this.groqKey?'idle':'ok');
-        if(notify)this.toast(`Motor activo: ${PROVIDERS[id].name}`,'success');
-      }
-      populateModels(id,preferred){
-        const select=$('modelSelect');const current=preferred||this.settings.models?.[id]||PROVIDERS[id].defaultModel;
-        const discovered=[...new Set((this.modelLists[id]||[]).filter(Boolean))];
-        const models=discovered.length?discovered:[PROVIDERS[id].defaultModel];
-        const selected=models.includes(current)?current:models[0];select.replaceChildren();
-        for(const name of models){const op=document.createElement('option');op.value=name;op.textContent=name;select.appendChild(op);}select.value=selected;$('customModel').value='';this.updateModelMeta();
-      }
-      updateModelMeta(){const label=$('customModel').value.trim()||$('modelSelect').value||PROVIDERS[this.active].defaultModel;$('composerModel').textContent=`${PROVIDERS[this.active].name} · ${label}`;}
-      async persistSettings(){this.settings.active=this.active;this.settings.models=this.settings.models||{};this.settings.models[this.active]=$('modelSelect').value||PROVIDERS[this.active].defaultModel;if(this.active==='ollama')this.settings.ollamaEndpoint=this.endpoint();await this.store.set('app','settings',this.settings);}
-      async persistChats(){await this.store.set('chats','by-provider',this.chats);}
-      feedback(message,type=''){const node=$('configFeedback');node.textContent=message;node.style.color=type==='error'?'var(--red)':'var(--teal)';}
-      setStatus(message,state='idle'){$('headerStatus').textContent=message;$('connectionState').textContent=message;$('statusDot').className=`dot${state==='ok'?' ok':state==='error'?' error':''}`;$('connectionState').style.color=state==='error'?'var(--red)':state==='ok'?'var(--teal)':'var(--amber)';}
-      async fetchJson(url,options={},timeoutMs=TIMEOUT_MS){
-        const controller=options.signal?null:new AbortController();const signal=options.signal||controller.signal;const timer=controller?setTimeout(()=>controller.abort(),timeoutMs):null;
-        try{const response=await fetch(url,{...options,signal,cache:'no-store',redirect:'error'});const raw=await response.text();let data={};try{data=raw?JSON.parse(raw):{};}catch{data={message:raw.slice(0,800)};}
-          if(!response.ok){const m=data?.error?.message||data?.error||data?.message||`HTTP ${response.status}`;const error=new Error(String(m).slice(0,900));error.status=response.status;error.headers=response.headers;throw error;}
-          return {data,headers:response.headers};
-        }finally{if(timer)clearTimeout(timer);}
-      }
-      headersForGroq(){return {'Authorization':`Bearer ${this.groqKey}`,'Content-Type':'application/json','Accept':'application/json'};}
-      async refreshModels(){
-        if(this.processing){this.toast('Espera a que termine o cancela la solicitud actual.','error');return;}
-        const id=this.active;this.setBusy(true,'Consultando modelos…');this.feedback('Consultando el proveedor…');const controller=new AbortController();this.controller=controller;const timer=setTimeout(()=>controller.abort(),20000);
-        try{
-          let models=[];
-          if(id==='ollama'){
-            const {data}=await this.fetchJson(`${this.endpoint()}/api/tags`,{method:'GET',headers:{'Accept':'application/json'},signal:controller.signal},20000);
-            models=(Array.isArray(data.models)?data.models:[]).map(m=>String(m.name||m.model||'')).filter(Boolean);
-            if(!models.length)throw new Error('Ollama respondió, pero no hay modelos descargados. Ejecuta: ollama pull llama3.2');
-          }else{
-            const key=$('groqKey').value.trim()||this.groqKey;if(!key)throw new Error('Introduce tu API Key de Groq y vuelve a intentar.');
-            this.groqKey=key;
-            const {data,headers}=await this.fetchJson(`${GROQ_BASE}/models`,{method:'GET',headers:{'Authorization':`Bearer ${key}`,'Accept':'application/json'},signal:controller.signal},20000);this.captureRateHeaders(headers);
-            models=(Array.isArray(data.data)?data.data:[]).filter(m=>m&&typeof m.id==='string'&&m.active!==false&&!/(whisper|orpheus|transcription|speech)/i.test(m.id)).map(m=>m.id).sort();
-            if(!models.length)throw new Error('La API no devolvió modelos de chat disponibles.');
-          }
-          this.modelLists[id]=[...new Set(models)];const saved=this.settings.models?.[id];this.populateModels(id,saved&&models.includes(saved)?saved:models[0]);await this.persistSettings();
-          this.feedback(`${models.length} modelo(s) detectado(s).`);this.setStatus(`${PROVIDERS[id].name}: ${models.length} modelos detectados`,'ok');this.toast(`Modelos actualizados: ${models.length}`,'success');
-        }catch(e){this.feedback(this.friendlyError(e),'error');this.setStatus(`${PROVIDERS[id].name}: no disponible`,'error');this.toast(this.friendlyError(e),'error');}
-        finally{clearTimeout(timer);if(this.controller===controller)this.controller=null;this.setBusy(false);}
-      }
-      async testConnection(){
-        if(this.processing){this.toast('Hay una solicitud activa; cancélala primero.','error');return;}
-        const id=this.active;this.setBusy(true,'Probando conexión…');this.feedback('Comprobando conexión…');
-        const controller=new AbortController();this.controller=controller;const timer=setTimeout(()=>controller.abort(),20000);
-        try{
-          if(id==='ollama'){
-            const {data}=await this.fetchJson(`${this.endpoint()}/api/tags`,{method:'GET',headers:{'Accept':'application/json'},signal:controller.signal},20000);
-            const models=(Array.isArray(data.models)?data.models:[]).map(m=>String(m.name||m.model||'')).filter(Boolean);this.modelLists.ollama=[...new Set(models)];
-            if(models.length){const saved=this.settings.models?.ollama;this.populateModels('ollama',saved&&models.includes(saved)?saved:models[0]);}this.feedback(`Conexión correcta. ${models.length} modelo(s) local(es).`);this.setStatus(`OLLAMA ONLINE · ${models.length} modelos`,'ok');
-          }else{
-            const key=$('groqKey').value.trim()||this.groqKey;if(!key)throw new Error('Introduce tu API Key de Groq.');this.groqKey=key;
-            const {data,headers}=await this.fetchJson(`${GROQ_BASE}/models`,{method:'GET',headers:{'Authorization':`Bearer ${key}`,'Accept':'application/json'},signal:controller.signal},20000);this.captureRateHeaders(headers);
-            const models=(Array.isArray(data.data)?data.data:[]).filter(m=>m&&typeof m.id==='string'&&m.active!==false&&!/(whisper|orpheus|transcription|speech)/i.test(m.id)).map(m=>m.id).sort();
-            if(!models.length)throw new Error('Groq respondió pero no devolvió modelos compatibles.');this.modelLists.groq=[...new Set(models)];const saved=this.settings.models?.groq;this.populateModels('groq',saved&&models.includes(saved)?saved:(models.includes('openai/gpt-oss-120b')?'openai/gpt-oss-120b':models[0]));this.feedback(`Conexión correcta. ${models.length} modelo(s) de chat listados.`);this.setStatus(`GROQ ONLINE · ${models.length} modelos`,'ok');
-          }
-          await this.persistSettings();this.toast('Prueba de conexión correcta.','success');
-        }catch(e){this.feedback(this.friendlyError(e),'error');this.setStatus(`${id==='ollama'?'Ollama':'Groq'}: error de conexión`,'error');this.toast(this.friendlyError(e),'error');}
-        finally{clearTimeout(timer);if(this.controller===controller)this.controller=null;this.setBusy(false);}
-      }
-      captureRateHeaders(headers){if(!headers)return;const map={'requests restantes':'x-ratelimit-remaining-requests','tokens restantes':'x-ratelimit-remaining-tokens','reinicio tokens':'x-ratelimit-reset-tokens','reinicio solicitudes':'x-ratelimit-reset-requests'};const pairs=Object.entries(map).map(([label,h])=>{const v=headers.get(h);return v?`${label}: ${v}`:''}).filter(Boolean);if(pairs.length)$('connectionState').textContent+=` · ${pairs.join(' · ')}`;}
-      async send(){
-        if(this.processing)return;
-        const text=$('promptInput').value.trim();if(!text)return;if(text.startsWith('/')){$('promptInput').value='';const handled=await this.command(text);if(!handled)this.toast('Comando desconocido. Escribe /help.','error');return;}if(text.length>MAX_INPUT){this.toast(`El mensaje supera el límite de ${MAX_INPUT} caracteres.`,'error');return;}
-        const id=this.active,model=this.model(),key=id==='groq'?($('groqKey').value.trim()||this.groqKey):'';
-        if(id==='groq'&&!key){this.toast('Introduce una API Key de Groq en el panel lateral.','error');$('groqKey').focus();return;}
-        if(id==='ollama'&&!this.validLoopbackEndpoint($('ollamaEndpoint').value)){this.toast('La URL de Ollama debe ser localhost o una dirección loopback.','error');return;}
-        if(!model||model.length>200){this.toast('Selecciona un ID de modelo válido.','error');return;}
-        this.groqKey=key;this.requestProvider=id;const chat=this.chats[id];$('promptInput').value='';chat.push({role:'user',content:text});this.trimContext(chat);await this.persistChats();this.appendMessage('user',text,{provider:id});
-        this.processing=true;this.setBusy(true,`Generando con ${PROVIDERS[id].name}…`);this.pending=this.appendPending(model,id);const controller=new AbortController();this.controller=controller;this.timedOut=false;this.timeout=setTimeout(()=>{this.timedOut=true;controller.abort();},TIMEOUT_MS);
-        try{
-          const content=await this.callProvider(id,model,key,chat,controller.signal);
-          if(!content.trim())throw new Error('El proveedor devolvió una respuesta vacía.');
-          chat.push({role:'assistant',content,at:new Date().toISOString()});this.trimContext(chat);await this.persistChats();this.removePending();this.appendMessage('assistant',content,{provider:id,model});this.setStatus(`Respuesta recibida · ${PROVIDERS[id].name}`,'ok');
-        }catch(e){
-          this.removePending();const message=e.name==='AbortError'?(this.timedOut?'Tiempo máximo de espera superado (120 s).':'Solicitud cancelada.'):this.friendlyError(e);this.appendMessage('error',message,{provider:id});this.setStatus(e.name==='AbortError'?'Solicitud detenida':'Error de solicitud','error');
-          const latest=this.chats[id];if(latest.length&&latest[latest.length-1]?.role==='user'&&latest[latest.length-1]?.content===text)latest.pop();await this.persistChats();
-        }finally{clearTimeout(this.timeout);this.timeout=null;this.controller=null;this.pending=null;this.processing=false;this.setBusy(false);}
-      }
-      async callProvider(id,model,key,chat,signal){
-        const history=chat.slice(-MAX_MESSAGES).map(m=>({role:m.role,content:m.content}));
-        if(id==='ollama'){
-          const messages=[{role:'system',content:SYSTEM_PROMPT},...history];
-          const {data}=await this.fetchJson(`${this.endpoint()}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({model,messages,stream:false,options:{temperature:.7}}),signal});
-          if(data.error)throw new Error(data.error);const answer=data.message?.content;if(typeof answer!=='string')throw new Error('Respuesta de Ollama inválida: falta message.content.');return answer;
-        }
-        const {data,headers}=await this.fetchJson(`${GROQ_BASE}/chat/completions`,{method:'POST',headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({model,messages:[{role:'system',content:SYSTEM_PROMPT},...history],temperature:.7,stream:false,max_completion_tokens:4096}),signal});
-        this.captureRateHeaders(headers);const answer=data.choices?.[0]?.message?.content;if(typeof answer!=='string')throw new Error(data.error?.message||'Respuesta de Groq inválida: falta choices[0].message.content.');return answer;
-      }
-      trimContext(chat){while(chat.length>MAX_MESSAGES)chat.shift();while(chat.length&&chat[0].role==='assistant')chat.shift();}
-      setBusy(busy,message){$('sendBtn').disabled=busy;$('promptInput').disabled=busy;$('cancelBtn').disabled=!busy;$('testBtn').disabled=busy;$('refreshBtn').disabled=busy;document.querySelectorAll('[data-provider]').forEach(b=>b.disabled=busy);$('resetBtn').disabled=busy;$('clearViewBtn').disabled=busy;if(message)this.setStatus(message,'idle');if(!busy){$('sendBtn').textContent='Enviar ↗';}else{$('sendBtn').textContent='Procesando…';}}
-      cancel(){if(this.controller){this.controller.abort();this.setStatus('Cancelando solicitud…','idle');}}
-      appendPending(model,id){const node=document.createElement('article');node.className='message assistant';const av=document.createElement('div');av.className='avatar';av.textContent='Æ';const body=document.createElement('div');const meta=document.createElement('div');meta.className='meta';meta.textContent=`${PROVIDERS[id].name} · ${model} · generando`;const c=document.createElement('div');c.className='content pending';const spin=document.createElement('span');spin.className='spinner';c.append(spin,document.createTextNode('Esperando respuesta del modelo…'));body.append(meta,c);node.append(av,body);$('transcript').append(node);$('welcome')?.remove();this.scrollBottom();return node;}
-      removePending(){if(this.pending?.isConnected)this.pending.remove();}
-      appendMessage(role,content,meta={}){
-        $('welcome')?.remove();const node=document.createElement('article');node.className=`message ${role==='error'?'error':role}`;const av=document.createElement('div');av.className='avatar';av.textContent=role==='user'?'TÚ':role==='error'?'!':'Æ';const body=document.createElement('div');const title=document.createElement('div');title.className='meta';title.textContent=role==='user'?'TÚ':role==='error'?'SISTEMA · ERROR':`${PROVIDERS[meta.provider||this.active].name} · ${meta.model||this.model()}`;const c=document.createElement('div');c.className='content';
-        if(role==='user'||role==='error'){const p=document.createElement('p');p.textContent=content;c.append(p);}else{c.innerHTML=renderMarkdownSafe(content);}
-        body.append(title,c);node.append(av,body);$('transcript').append(node);while($('transcript').children.length>450)$('transcript').firstElementChild.remove();this.scrollBottom();return node;
-      }
-      clearView(){const transcript=$('transcript');transcript.replaceChildren();const welcome=document.createElement('div');welcome.className='welcome';const h=document.createElement('h3');h.textContent='▸ VISTA LIMPIA';const p=document.createElement('p');p.textContent='La conversación sigue guardada localmente. Cambia de motor o reinicia la vista para volver a mostrarla.';welcome.append(h,p);transcript.append(welcome);}
-      renderChat(){const transcript=$('transcript');transcript.replaceChildren();const chat=this.chats[this.active]||[];if(!chat.length){const welcome=document.createElement('div');welcome.className='welcome';welcome.id='welcome';const h=document.createElement('h3');h.textContent='▸ AEGIS CORE READY';const p=document.createElement('p');p.textContent='Conversación vacía. Envía un mensaje cuando el proveedor esté configurado.';welcome.append(h,p);transcript.append(welcome);return;}for(const m of chat){this.appendMessage(m.role,m.content,{provider:this.active});}this.scrollBottom();}
-      scrollBottom(){requestAnimationFrame(()=>{const t=$('transcript');t.scrollTop=t.scrollHeight;});}
-      async resetChat(){if(this.processing){this.toast('Cancela la solicitud actual primero.','error');return;}if(!confirm(`¿Borrar la conversación local de ${PROVIDERS[this.active].name}?`))return;this.chats[this.active]=[];await this.persistChats();this.renderChat();this.toast('Conversación borrada del almacenamiento local.','success');}
-      showHelp(){this.appendMessage('assistant','**Comandos disponibles**\n\n- `/help` — mostrar esta ayuda.\n- `/ping` — probar la conexión del proveedor activo.\n- `/models` — actualizar modelos instalados/disponibles.\n- `/clear` — limpiar la vista sin borrar el historial.\n- `/reset` — borrar conversación del motor activo.\n\n**Atajos:** Enter envía; Shift+Enter agrega una línea. Usa Cancelar para abortar una consulta. La clave de Groq solo existe en memoria durante esta sesión.');}
-      async command(text){switch(text.trim().toLowerCase()){case '/help':this.showHelp();return true;case '/ping':await this.testConnection();return true;case '/models':await this.refreshModels();return true;case '/clear':this.clearView();return true;case '/reset':await this.resetChat();return true;default:return false;}}
-      friendlyError(e){if(e?.name==='AbortError')return 'Solicitud interrumpida.';const s=e?.status;const m=String(e?.message||'Error desconocido');if(/Failed to fetch|NetworkError|fetch failed|Load failed/i.test(m))return this.active==='ollama'?'No se pudo acceder a Ollama. Comprueba que esté ejecutándose y que permita este origen mediante OLLAMA_ORIGINS (CORS).':'No se pudo acceder a Groq. Comprueba Internet, CORS y tu conexión.';if(s===401||s===403)return 'Autenticación rechazada. Revisa la API Key y los permisos del proveedor.';if(s===404)return this.active==='ollama'?'Ruta o modelo no encontrado. Actualiza la lista y confirma que el modelo esté descargado.':'Modelo o endpoint no encontrado. Actualiza la lista de modelos y elige uno activo.';if(s===429)return 'Límite de uso alcanzado (HTTP 429). Espera al reinicio de cuota o revisa tu plan.';if(s===400)return `Solicitud no válida: ${m}`;if(/CORS/i.test(m))return 'El navegador bloqueó la conexión por CORS. Autoriza este origen en Ollama.';return m.slice(0,700);}
-      toast(message,type=''){const n=$('toast');n.textContent=message;n.className=`toast${type?' '+type:''}`;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>n.classList.add('hidden'),5200);}
-    }
-
-    const app=new Aegis();window.aegis=app;
-    app.boot().catch(e=>{console.error('AEGIS init error');$('headerStatus').textContent='ERROR INICIALIZACIÓN';$('connectionState').textContent='No se pudo iniciar la aplicación. Revisa que el navegador permita módulos y almacenamiento.';$('statusDot').className='dot error';});
-  </script>
+  </main><div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+(()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const API='https://ollama.com/v1';
+  const DB_NAME='AegisCoreCloud_v1';
+  const MAX_MESSAGES=20,MAX_INPUT=24000,TIMEOUT_MS=120000;
+  const SYSTEM='Eres AEGIS_CORE, un asistente técnico claro y útil. Responde en el idioma del usuario. Usa Markdown cuando ayude. No afirmes capacidades, accesos ni acciones que no hayas realizado.';
+  let apiKey='',db=null,chat=[],controller=null,processing=false,timedOut=false,timeoutHandle=null,toastTimer=null,models=[],pendingNode=null;
+  function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+  function markdown(s){let text=String(s??''),blocks=[];const stash=x=>{blocks.push(x);return `\u0000${blocks.length-1}\u0000`};text=text.replace(/```([^\n]*)\n([\s\S]*?)```/g,(_m,_l,c)=>stash(`<pre><code>${escapeHtml(c.replace(/\n$/,''))}</code></pre>`));text=text.replace(/`([^`\n]+)`/g,(_m,c)=>stash(`<code>${escapeHtml(c)}</code>`));const inline=x=>{let o=escapeHtml(x);o=o.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(_m,label,href)=>{try{const u=new URL(href);if(!['https:','http:'].includes(u.protocol))return label;return `<a href="${escapeHtml(u.href)}" target="_blank" rel="noopener noreferrer">${label}</a>`}catch{return label}});o=o.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/~~(.+?)~~/g,'<del>$1</del>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<em>$1</em>');return o.replace(/\u0000(\d+)\u0000/g,(_m,n)=>blocks[+n]||'')};let out=[],para=[],list='';const fp=()=>{if(para.length){out.push('<p>'+para.map(inline).join('<br>')+'</p>');para=[]}};const fl=()=>{if(list){out.push(`</${list}>`);list=''}};for(const line of text.split(/\r?\n/)){const b=line.match(/^\u0000(\d+)\u0000$/);if(b){fp();fl();out.push(blocks[+b[1]]||'');continue}if(!line.trim()){fp();fl();continue}const h=line.match(/^(#{1,6})\s+(.+)$/);if(h){fp();fl();const n=h[1].length;out.push(`<h${n}>${inline(h[2])}</h${n}>`);continue}if(/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)){fp();fl();out.push('<hr>');continue}const q=line.match(/^>\s?(.*)$/);if(q){fp();fl();out.push(`<blockquote><p>${inline(q[1])}</p></blockquote>`);continue}const u=line.match(/^\s*[-*+]\s+(.+)$/),o=line.match(/^\s*\d+[.)]\s+(.+)$/);if(u||o){fp();const want=u?'ul':'ol';if(list&&list!==want)fl();if(!list){list=want;out.push(`<${list}>`)}out.push(`<li>${inline((u||o)[1])}</li>`);continue}fl();para.push(line)}fp();fl();return out.join('\n')}
+  function status(msg,state='idle'){$('headerStatus').textContent=msg;$('connectionState').textContent=msg;$('statusDot').className='dot'+(state==='ok'?' ok':state==='error'?' error':'');$('connectionState').style.color=state==='error'?'var(--red)':state==='ok'?'var(--teal)':'var(--amber)'}
+  function feedback(msg,error=false){$('configFeedback').textContent=msg;$('configFeedback').style.color=error?'var(--red)':'var(--teal)'}
+  function toast(msg,type=''){const n=$('toast');n.textContent=msg;n.className='toast'+(type?' '+type:'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.classList.add('hidden'),5500)}
+  function setBusy(b){processing=b;$('sendBtn').disabled=b;$('promptInput').disabled=b;$('testBtn').disabled=b;$('refreshBtn').disabled=b;$('cancelBtn').disabled=!b;$('sendBtn').textContent=b?'Procesando…':'Enviar ↗'}
+  function getModel(){return $('customModel').value.trim()||$('modelSelect').value||'gpt-oss:120b-cloud'}
+  function scrollBottom(){requestAnimationFrame(()=>$('transcript').scrollTop=$('transcript').scrollHeight)}
+  function append(role,text,model=''){ $('welcome')?.remove();const n=document.createElement('article');n.className='message '+role;const a=document.createElement('div');a.className='avatar';a.textContent=role==='user'?'TÚ':role==='error'?'!':'Æ';const b=document.createElement('div'),m=document.createElement('div'),c=document.createElement('div');m.className='meta';m.textContent=role==='user'?'TÚ':role==='error'?'SISTEMA · ERROR':`OLLAMA CLOUD · ${model||getModel()}`;c.className='content';if(role==='user'||role==='error'){const p=document.createElement('p');p.textContent=text;c.append(p)}else c.innerHTML=markdown(text);b.append(m,c);n.append(a,b);$('transcript').append(n);while($('transcript').children.length>450)$('transcript').firstElementChild.remove();scrollBottom();return n}
+  function showPending(){pendingNode=document.createElement('article');pendingNode.className='message assistant';pendingNode.innerHTML='<div class="avatar">Æ</div><div><div class="meta">OLLAMA CLOUD · generando</div><div class="content pending"><span class="spinner"></span>Esperando respuesta del modelo…</div></div>';$('welcome')?.remove();$('transcript').append(pendingNode);scrollBottom()}
+  function removePending(){pendingNode?.remove();pendingNode=null}
+  function saveChat(){try{if(db){const tx=db.transaction('state','readwrite');tx.objectStore('state').put(chat,'chat')}}catch(e){console.warn('No se pudo guardar el chat',e)}}
+  function initDb(){return new Promise(resolve=>{if(!('indexedDB'in window)){resolve();return}try{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('state'))r.result.createObjectStore('state')};r.onsuccess=()=>{db=r.result;const q=db.transaction('state','readonly').objectStore('state').get('chat');q.onsuccess=()=>{if(Array.isArray(q.result)){chat=q.result.slice(-MAX_MESSAGES);renderChat()}resolve()};q.onerror=()=>resolve()};r.onerror=()=>resolve()}catch{resolve()}})}
+  function renderChat(){const t=$('transcript');t.replaceChildren();if(!chat.length){const w=document.createElement('div');w.className='welcome';w.id='welcome';w.innerHTML='<h3>▸ AEGIS CORE READY</h3><p>Introduce tu API key de Ollama Cloud y comprueba la conexión para comenzar.</p>';t.append(w);return}for(const m of chat)append(m.role,m.content,m.model);scrollBottom()}
+  async function request(path,options={},timeout=20000){if(!apiKey)throw new Error('Introduce tu API key de Ollama Cloud.');const ctl=options.signal?null:new AbortController();const signal=options.signal||ctl.signal;const timer=ctl?setTimeout(()=>ctl.abort(),timeout):null;try{const res=await fetch(API+path,{...options,signal,cache:'no-store',redirect:'error',headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})}});const raw=await res.text();let data={};try{data=raw?JSON.parse(raw):{}}catch{data={message:raw.slice(0,500)}}if(!res.ok){const err=new Error(data?.error?.message||data?.error||data?.message||`HTTP ${res.status}`);err.status=res.status;throw err}return data}finally{if(timer)clearTimeout(timer)}}
+  function friendly(e){if(e?.name==='AbortError')return timedOut?'Tiempo máximo de espera superado.':'Solicitud cancelada.';if(e?.status===401||e?.status===403)return 'Ollama rechazó la clave (401/403). Confirma que sea una API key de Ollama Cloud vigente.';if(e?.status===404)return 'Endpoint o modelo no encontrado. Actualiza modelos y elige uno disponible en tu cuenta.';if(e?.status===429)return 'Límite de uso alcanzado (HTTP 429). Revisa tu cuota o espera antes de reintentar.';if(e?.status===400)return 'Solicitud no válida: '+e.message;if(/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(e?.message||''))return 'No se pudo acceder a Ollama Cloud. Comprueba Internet y si el navegador bloqueó la petición por CORS. Si ocurre en GitHub Pages, necesitarás un proxy/backend compatible.';return String(e?.message||'Error desconocido').slice(0,700)}
+  async function loadModels(){if(processing)return;apiKey=$('apiKey').value.trim()||apiKey;if(!apiKey){feedback('Pega primero tu API key de Ollama Cloud.',true);return}setBusy(true);feedback('Consultando modelos de Ollama Cloud…');const c=new AbortController();controller=c;try{const d=await request('/models',{signal:c.signal});const list=Array.isArray(d.data)?d.data.map(x=>x&&x.id).filter(x=>typeof x==='string'&&x):[];models=[...new Set(list)].sort();if(!models.length)throw new Error('La API respondió, pero no devolvió modelos en /models. Puedes probar introduciendo manualmente el ID exacto de un modelo cloud de tu cuenta.');const old=getModel(),sel=$('modelSelect');sel.replaceChildren();for(const id of models){const o=document.createElement('option');o.value=id;o.textContent=id;sel.append(o)}sel.value=models.includes(old)?old:models[0];feedback(`${models.length} modelo(s) listados.`);status(`OLLAMA CLOUD ONLINE · ${models.length} modelos`,'ok');$('workspaceSubtitle').textContent='Conectado a Ollama Cloud.';updateModel()}catch(e){feedback(friendly(e),true);status('Ollama Cloud: error de conexión','error');toast(friendly(e),'error')}finally{controller=null;setBusy(false)}}
+  async function test(){apiKey=$('apiKey').value.trim()||apiKey;if(!apiKey){feedback('Introduce tu API key de Ollama Cloud.',true);$('apiKey').focus();return}await loadModels()}
+  function updateModel(){$('composerModel').textContent='Ollama Cloud · '+getModel()}
+  async function send(){if(processing)return;const text=$('promptInput').value.trim();if(!text)return;if(text.startsWith('/')){const cmd=text.toLowerCase();$('promptInput').value='';if(cmd==='/help'){help();return}if(cmd==='/ping'){await test();return}if(cmd==='/models'){await loadModels();return}if(cmd==='/clear'){clearView();return}if(cmd==='/reset'){resetChat();return}toast('Comando desconocido. Escribe /help.','error');return}if(text.length>MAX_INPUT){toast('El mensaje supera el límite permitido.','error');return}apiKey=$('apiKey').value.trim()||apiKey;if(!apiKey){toast('Introduce tu API key de Ollama Cloud.','error');$('apiKey').focus();return}const model=getModel();if(!model||model.length>200){toast('ID de modelo inválido.','error');return}chat.push({role:'user',content:text});while(chat.length>MAX_MESSAGES)chat.shift();saveChat();append('user',text);$('promptInput').value='';setBusy(true);status('Generando respuesta en Ollama Cloud…');showPending();controller=new AbortController();timedOut=false;timeoutHandle=setTimeout(()=>{timedOut=true;controller?.abort()},TIMEOUT_MS);try{const messages=[{role:'system',content:SYSTEM},...chat.map(m=>({role:m.role,content:m.content}))];const data=await request('/chat/completions',{method:'POST',body:JSON.stringify({model,messages,stream:false,temperature:.7,max_tokens:4096}),signal:controller.signal},TIMEOUT_MS);const answer=data.choices?.[0]?.message?.content;if(typeof answer!=='string'||!answer.trim())throw new Error(data.error?.message||'Respuesta vacía o formato no reconocido.');chat.push({role:'assistant',content:answer,model});while(chat.length>MAX_MESSAGES)chat.shift();saveChat();removePending();append('assistant',answer,model);status('Respuesta recibida · Ollama Cloud','ok')}catch(e){removePending();append('error',friendly(e));status('Error de solicitud','error');if(chat.at(-1)?.role==='user'&&chat.at(-1)?.content===text)chat.pop();saveChat()}finally{clearTimeout(timeoutHandle);timeoutHandle=null;controller=null;setBusy(false)}}
+  function clearView(){ $('transcript').replaceChildren();const w=document.createElement('div');w.className='welcome';w.innerHTML='<h3>▸ VISTA LIMPIA</h3><p>La conversación sigue guardada localmente. Usa Reiniciar chat para borrarla.</p>';$('transcript').append(w)}
+  function resetChat(){if(processing){toast('Cancela la solicitud primero.','error');return}if(!confirm('¿Borrar la conversación guardada en este navegador?'))return;chat=[];saveChat();renderChat();toast('Conversación borrada.','success')}
+  function help(){append('assistant','**Comandos disponibles**\n\n- `/help` — mostrar ayuda.\n- `/ping` — comprobar la API.\n- `/models` — actualizar modelos.\n- `/clear` — limpiar la vista sin borrar el historial.\n- `/reset` — borrar conversación.\n\nLa clave se mantiene en memoria y se pierde al recargar.','')}
+  $('toggleKey').addEventListener('click',()=>{const n=$('apiKey');n.type=n.type==='password'?'text':'password';$('toggleKey').textContent=n.type==='password'?'Ver':'Ocultar'});
+  $('forgetBtn').addEventListener('click',()=>{apiKey='';$('apiKey').value='';feedback('Clave eliminada de la memoria de esta pestaña.');status('API key eliminada');toast('Clave borrada de la memoria.','success')});
+  $('testBtn').addEventListener('click',test);$('refreshBtn').addEventListener('click',loadModels);$('sendBtn').addEventListener('click',send);$('cancelBtn').addEventListener('click',()=>{if(controller){controller.abort();status('Cancelando solicitud…')}});$('resetBtn').addEventListener('click',resetChat);$('clearViewBtn').addEventListener('click',clearView);$('helpBtn').addEventListener('click',help);$('modelSelect').addEventListener('change',updateModel);$('customModel').addEventListener('input',updateModel);$('promptInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});window.addEventListener('online',()=>toast('Conexión de red restaurada.','success'));
+  initDb().then(()=>{status('Aplicación lista · Ollama Cloud');updateModel()});
+})();
+</script>
 </body>
 </html>
