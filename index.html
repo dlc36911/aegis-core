@@ -1,749 +1,301 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://esm.run https://cdnjs.cloudflare.com; connect-src 'self' https://api.groq.com https://cdn.jsdelivr.net https://esm.run; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
-    
-    <title>AEGIS CORE | SECURE OS PRO</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
-    
-    <style>
-        :root { 
-            --bg-deep: #050914; 
-            --teal-400: #2dd4bf;
-            --teal-500: #14b8a6;
-            --teal-600: #0d9488;
-            --slate-200: #e2e8f0;
-            --slate-300: #cbd5e1;
-            --slate-400: #94a3b8;
-            --slate-500: #64748b;
-            --slate-700: #334155;
-            --slate-800: #1e293b;
-            --slate-900: #0f172a;
-            --amber-400: #fbbf24;
-            --red-400: #f87171;
-        }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            font-family: 'JetBrains Mono', monospace; 
-            background-color: var(--bg-deep); 
-            background-image: radial-gradient(circle at 50% 0%, #111827 0%, transparent 80%);
-            color: var(--slate-300);
-            min-height: 100vh;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            border-bottom: 1px solid rgba(30, 41, 59, 0.8);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            color: var(--teal-400);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .ping-dot { position: relative; display: inline-flex; width: 0.75rem; height: 0.75rem; }
-        .ping-dot-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background-color: var(--teal-400); opacity: 0.75; }
-        .ping-dot-base { position: relative; display: inline-flex; border-radius: 9999px; height: 0.75rem; width: 0.75rem; background-color: var(--teal-500); }
-        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
-
-        .badge {
-            padding: 0.375rem 1rem;
-            border: 1px solid rgba(20, 184, 166, 0.4);
-            border-radius: 0.25rem;
-            box-shadow: 0 0 10px rgba(20, 184, 166, 0.1);
-            font-size: 0.7rem;
-            background-color: rgba(0, 0, 0, 0.4);
-            color: var(--teal-400);
-            font-weight: 700;
-        }
-
-        main {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            flex: 1;
-            height: calc(100vh - 140px);
-        }
-        @media(min-width: 1024px) { main { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-
-        .sidebar { display: none; flex-direction: column; gap: 1rem; }
-        @media(min-width: 1024px) { .sidebar { display: flex; grid-column: span 1 / span 1; } }
-
-        .card {
-            padding: 1rem;
-            border: 1px solid rgba(30, 41, 59, 0.8);
-            border-radius: 0.5rem;
-            background-color: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
-        }
-
-        .status-box {
-            font-size: 0.75rem;
-            color: rgba(251, 191, 36, 0.9);
-            padding: 0.5rem 0.75rem;
-            background-color: rgba(15, 23, 42, 0.5);
-            border-radius: 0.25rem;
-            border: 1px solid var(--slate-800);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .man-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1rem; color: var(--teal-500); border-bottom: 1px solid var(--slate-800); padding-bottom: 0.5rem; }
-        ul.man-list { list-style: none; font-size: 0.7rem; display: flex; flex-direction: column; gap: 0.75rem; }
-        ul.man-list li span:first-child { color: var(--teal-300); font-weight: bold; }
-        ul.man-list li span:last-child { color: var(--slate-500); margin-left: 0.5rem; }
-
-        .workspace {
-            grid-column: span 3 / span 3;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            border-radius: 0.75rem;
-            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 1);
-            border: 1px solid rgba(51, 65, 85, 0.5);
-            overflow: hidden;
-            height: 100%;
-        }
-
-        #terminal {
-            flex: 1;
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 1.25rem;
-            overflow-y: auto;
-            box-shadow: inset 0 0 25px rgba(20, 184, 166, 0.05), 0 0 20px rgba(0, 0, 0, 0.8);
-            scroll-behavior: smooth;
-        }
-
-        .input-bar { display: flex; background-color: #050914; border-top: 1px solid rgba(51, 65, 85, 0.5); }
-        .input-bar:focus-within { border-color: rgba(20, 184, 166, 0.5); }
-
-        .prompt-prefix { padding: 1rem; color: var(--teal-500); font-weight: bold; font-size: 0.875rem; background-color: #000; user-select: none; }
-        #input { flex: 1; background-color: #000; padding: 1rem; color: var(--slate-200); font-size: 0.8125rem; border: none; outline: none; font-family: 'JetBrains Mono', monospace; }
-        #input:disabled { opacity: 0.5; }
-
-        #exec-btn { background-color: rgba(4, 47, 46, 0.3); color: var(--teal-400); font-size: 0.75rem; font-weight: bold; padding: 0 1.5rem; border: none; border-left: 1px solid rgba(51, 65, 85, 0.5); cursor: pointer; transition: background-color 0.2s; font-family: 'JetBrains Mono', monospace; }
-        #exec-btn:hover:not(:disabled) { background-color: rgba(19, 78, 74, 0.6); }
-        #exec-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #374151; }
-
-        .markdown-body { color: #cbd5e1; font-size: 13px; line-height: 1.6; }
-        .markdown-body p { margin-bottom: 0.75rem; }
-        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 0.75rem; color: #94a3b8; }
-        .markdown-body pre { background-color: #0d1117; border: 1px solid #1f2937; border-left: 3px solid #0d9488; padding: 12px; border-radius: 4px; margin: 10px 0; overflow-x: auto; }
-        .markdown-body code:not(pre code) { background-color: #1e293b; color: #5eead4; padding: 2px 5px; border-radius: 4px; font-size: 0.9em; }
-        .markdown-body strong { color: #fff; font-weight: 700; }
-        .markdown-body a { color: var(--teal-400); text-decoration: none; }
-        .markdown-body a:hover { text-decoration: underline; }
-        .cursor-blink { animation: blink 1s step-end infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#060b14">
+  <meta name="description" content="AEGIS CORE: consola IA con Ollama local y Groq Cloud.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-6LcU12ARN0gSMekdeDBHDSiQ3K/eJ7DuBFI32OY1qiM='; connect-src 'self' https://api.groq.com http://localhost:11434 http://127.0.0.1:11434 http://[::1]:11434; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>AEGIS CORE — Ollama + Groq</title>
+  <style>
+    :root{color-scheme:dark;--bg:#060b14;--panel:#0b1524;--line:#203148;--muted:#899ab0;--text:#dce7f5;--teal:#36e0c0;--amber:#f6c453;--red:#fb7185;--blue:#7cb7ff;--radius:13px;--shadow:0 15px 45px #0005}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',ui-monospace,monospace}body{background-image:radial-gradient(ellipse at top,#13233a 0,transparent 48%);font-size:13px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled,input:disabled,select:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}a{color:var(--teal)}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:17px 22px;border-bottom:1px solid var(--line);background:#060b14ed;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}.brand{display:flex;align-items:center;gap:12px}.logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid #36e0c066;border-radius:11px;background:#36e0c012;color:var(--teal);font-weight:700;font-size:20px}.brand h1{font-size:15px;letter-spacing:.11em;margin:0;color:var(--teal)}.brand p{font-size:9px;letter-spacing:.06em;color:var(--muted);margin:4px 0 0}.status-pill{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:10px}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px currentColor;flex:none}.dot.ok{background:var(--teal)}.dot.error{background:var(--red)}
+    .shell{display:grid;grid-template-columns:294px minmax(0,1fr);gap:16px;padding:17px;max-width:1760px;min-height:calc(100vh - 73px);margin:auto}.sidebar{display:flex;flex-direction:column;gap:13px;min-width:0}.panel{border:1px solid var(--line);background:linear-gradient(150deg,#0d192af2,#08111df2);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}.panel-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:0 0 13px}.provider-list{display:grid;gap:8px}.provider{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px;border:1px solid var(--line);border-radius:10px;background:#08111d;color:var(--text)}.provider.active{border-color:var(--teal);background:#0d2a30;box-shadow:inset 3px 0 var(--teal)}.provider-mark{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:#17263a;color:var(--blue);font-weight:700;flex:none}.provider-info{min-width:0;flex:1}.provider-name{font-size:11px;font-weight:700}.provider-desc{font-size:9px;color:var(--muted);margin-top:4px}.tag{font-size:9px;color:var(--teal);border:1px solid #36e0c04d;border-radius:5px;padding:3px 5px;white-space:nowrap}
+    .field{display:grid;gap:6px;margin:11px 0}.field label{font-size:9px;letter-spacing:.04em;color:#a8b8ca}.field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);padding:10px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px #36e0c014}.inline{display:flex;gap:7px}.inline>*{min-width:0}.inline input{flex:1}.btn{border:1px solid #2b435b;background:#102034;color:var(--text);border-radius:8px;padding:9px 10px;font-size:10px;font-weight:700}.btn:hover:not(:disabled){border-color:var(--teal);background:#103039}.btn.primary{background:var(--teal);color:#041310;border-color:var(--teal)}.btn.danger{color:var(--red);border-color:#fb718550;background:#2a111c}.btn.small{padding:7px 8px}.btn-row{display:flex;gap:7px;flex-wrap:wrap}.hint{font-size:10px;line-height:1.65;color:var(--muted);margin:10px 0 0}.warning{padding:10px;border:1px solid #a97c2e66;background:#33281255;color:#eacb83;border-radius:8px;font-size:10px;line-height:1.65;margin-top:11px}.feedback{font-size:10px;color:var(--teal);line-height:1.6;min-height:14px;margin-top:9px}.divider{height:1px;background:var(--line);margin:13px 0}
+    .workspace{display:flex;flex-direction:column;min-width:0;min-height:690px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#050a12ed;box-shadow:var(--shadow)}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 17px;border-bottom:1px solid var(--line);background:#0c1625}.workspace-heading{display:flex;align-items:center;gap:10px;min-width:0}.workspace-heading h2{font-size:11px;margin:0;letter-spacing:.04em}.workspace-heading p{font-size:9px;color:var(--muted);margin:5px 0 0}.workspace-actions{display:flex;gap:7px;flex-wrap:wrap}.transcript{flex:1;min-height:370px;max-height:calc(100vh - 290px);overflow:auto;padding:22px clamp(14px,3vw,38px);scroll-behavior:smooth}.welcome{max-width:760px;margin:27px auto;color:var(--muted);line-height:1.8}.welcome h3{font-size:17px;color:var(--teal)}.welcome-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.welcome-card{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0a1422}.welcome-card b{display:block;color:var(--text);font-size:10px;margin-bottom:6px}.welcome-card span{font-size:10px}.message{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;max-width:900px;margin:0 auto 22px;overflow-wrap:anywhere}.message+.message{padding-top:17px;border-top:1px solid #182638}.avatar{width:31px;height:31px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;background:#101b2b;font-size:9px;font-weight:700;color:var(--muted)}.message.assistant .avatar{color:var(--teal);border-color:#36e0c04d;background:#0d292b}.message.user .avatar{color:var(--blue)}.meta{font-size:9px;color:var(--muted);margin:2px 0 8px}.content{font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.7;color:#d4deeb;overflow-wrap:anywhere}.content p{margin:0 0 11px}.content h1,.content h2,.content h3{color:#ecf6ff;line-height:1.3;margin:18px 0 9px}.content h1{font-size:21px}.content h2{font-size:18px}.content h3{font-size:15px}.content ul,.content ol{padding-left:23px}.content blockquote{border-left:3px solid var(--teal);margin:12px 0;padding:3px 12px;color:#a9b8c9;background:#0b1724}.content table{border-collapse:collapse;display:block;overflow:auto;max-width:100%;margin:12px 0}.content th,.content td{border:1px solid #2a3c51;padding:7px 9px;text-align:left}.content th{background:#132236}.content code{font-family:'JetBrains Mono',monospace;font-size:.88em;background:#132033;color:#85eddb;padding:2px 5px;border-radius:4px}.content pre{background:#070d15;border:1px solid #25364b;border-radius:9px;overflow:auto;padding:13px;margin:12px 0}.content pre code{padding:0;background:none}.content a{color:#71dccc}.content hr{border:0;border-top:1px solid var(--line);margin:18px 0}.message.error .content{color:#ffb1bd}.pending{color:var(--muted);font-size:11px;display:flex;align-items:center;gap:9px}.spinner{width:13px;height:13px;border:2px solid #33465b;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
+    .composer-area{padding:13px 17px 14px;border-top:1px solid var(--line);background:#09121f}.composer{display:flex;align-items:flex-end;gap:9px;max-width:1000px;margin:auto}.prompt{font-size:10px;color:var(--teal);padding:13px 0;white-space:nowrap}.composer textarea{flex:1;resize:vertical;min-width:0;min-height:48px;max-height:180px;line-height:1.5;padding:11px;border:1px solid #293a50;border-radius:8px;background:#050b13;color:var(--text);outline:none}.composer textarea:focus{border-color:var(--teal)}.compose-foot{display:flex;justify-content:space-between;gap:10px;max-width:1000px;margin:8px auto 0;color:var(--muted);font-size:9px}.footer{text-align:center;color:#53677f;font-size:9px;padding:11px}.toast{position:fixed;right:18px;bottom:18px;z-index:20;max-width:min(430px,calc(100vw - 36px));border:1px solid var(--line);background:#0c1828;padding:12px 14px;border-radius:10px;box-shadow:var(--shadow);line-height:1.5}.toast.error{border-color:#fb718570}.toast.success{border-color:#36e0c070}.hidden{display:none!important}@keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:900px){.shell{grid-template-columns:1fr;padding:10px}.sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.workspace{min-height:70vh}.transcript{max-height:none}.topbar{padding:13px}.side-config{grid-column:span 2}}
+    @media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.sidebar{grid-template-columns:1fr}.side-config{grid-column:auto}.shell{gap:10px}.workspace-head{padding:12px}.transcript{padding:15px;min-height:340px}.welcome-grid{grid-template-columns:1fr}.composer{flex-wrap:wrap}.prompt{display:none}.composer textarea{flex-basis:100%}.compose-foot{flex-direction:column}}
+  </style>
 </head>
 <body>
+  <header class="topbar">
+    <div class="brand"><div class="logo">Æ</div><div><h1>AEGIS_CORE <span style="color:var(--muted);font-weight:400">[v9.0]</span></h1><p>LOCAL INFERENCE + GROQ CLOUD · TWO PROVIDERS ONLY</p></div></div>
+    <div class="status-pill"><span id="statusDot" class="dot"></span><span id="headerStatus" aria-live="polite">INICIALIZANDO</span></div>
+  </header>
 
-    <header>
-        <div>
-            <h1>
-                <span class="ping-dot">
-                  <span class="ping-dot-ping"></span>
-                  <span class="ping-dot-base"></span>
-                </span>
-                AEGIS_CORE <span style="color: var(--slate-500); font-size: 0.875rem; font-weight: normal;">[v7.0 LPU STABLE]</span>
-            </h1>
-            <p style="font-size: 10px; color: var(--slate-500); margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">Groq Cloud Engine // Production Ready</p>
+  <main class="shell">
+    <aside class="sidebar" aria-label="Configuración del motor">
+      <section class="panel">
+        <h2 class="panel-title">01 / Seleccionar motor</h2>
+        <div class="provider-list" id="providerList">
+          <button class="provider active" type="button" data-provider="ollama" aria-pressed="true"><span class="provider-mark">OL</span><span class="provider-info"><span class="provider-name">Ollama local</span><span class="provider-desc">Modelos en este equipo</span></span><span class="tag">LOCAL</span></button>
+          <button class="provider" type="button" data-provider="groq" aria-pressed="false"><span class="provider-mark">GQ</span><span class="provider-info"><span class="provider-name">Groq Cloud</span><span class="provider-desc">API remota de baja latencia</span></span><span class="tag">API</span></button>
         </div>
-        <div class="badge">
-            SYS: <span id="conn-status" style="color: var(--amber-400);">PENDING_HANDSHAKE</span>
-        </div>
-    </header>
+        <p class="hint">Cada motor tiene su conversación independiente. Cambiar de motor no mezcla ni reenvía el historial del otro.</p>
+      </section>
 
-    <main>
-        <section class="sidebar">
-            <div class="card" style="position: relative; overflow: hidden;">
-                <h2 style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 0.75rem; color: var(--slate-400);">Environment Core</h2>
-                <div id="ai-status" class="status-box">
-                    <span style="font-size: 1rem; line-height: 1;">⟳</span> INICIALIZANDO DB...
-                </div>
-            </div>
-            
-            <div class="card" style="flex: 1;">
-                <div class="man-title">Man Pages (Commands)</div>
-                <ul class="man-list">
-                    <li><span>set-key [key]</span> <span>Inyectar Groq API Key</span></li>
-                    <li><span>set-model [id]</span> <span>Forzar modelo específico</span></li>
-                    <li><span>ping-core</span> <span>Probar conexión LPU</span></li>
-                    <li><span>reset-core</span> <span>Wipe AI Context (Memoria)</span></li>
-                    <li><span>clear / Ctrl+L</span> <span>Limpiar terminal visual</span></li>
-                    <li><span>clear-key</span> <span>Destruir API Key local</span></li>
-                    <li><span>limits</span> <span>Ver estado cuota LPU</span></li>
-                </ul>
-            </div>
-        </section>
+      <section class="panel side-config">
+        <h2 class="panel-title">02 / Configuración</h2>
+        <div class="field" id="ollamaEndpointField"><label for="ollamaEndpoint">OLLAMA BASE URL (SOLO LOOPBACK)</label><input id="ollamaEndpoint" type="url" value="http://localhost:11434" autocomplete="url" spellcheck="false"></div>
+        <div class="field hidden" id="groqKeyField"><label for="groqKey">GROQ API KEY</label><div class="inline"><input id="groqKey" type="password" autocomplete="off" spellcheck="false" placeholder="gsk_…"><button class="btn small" id="toggleKey" type="button">Ver</button></div><p class="hint">La clave se conserva solo en memoria y no se escribe en IndexedDB, localStorage ni el historial. Se perderá al recargar.</p></div>
+        <div class="field"><label for="modelSelect">MODELO</label><select id="modelSelect" aria-label="Modelo"><option value="llama3.2">llama3.2</option></select></div>
+        <div class="field"><label for="customModel">ID DE MODELO (OPCIONAL)</label><input id="customModel" type="text" spellcheck="false" placeholder="Usar el modelo del selector" maxlength="200"></div>
+        <div class="btn-row"><button class="btn primary" type="button" id="testBtn">Probar conexión</button><button class="btn" type="button" id="refreshBtn">Actualizar modelos</button></div>
+        <div id="configFeedback" class="feedback" role="status" aria-live="polite"></div>
+        <div class="warning" id="providerHint">Ollama debe estar instalado y ejecutándose en este equipo. Solo se aceptan direcciones loopback.</div>
+      </section>
 
-        <section class="workspace">
-            <div id="terminal">
-                <div style="color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;">
-                    <span>╔═════════════════════════════════════════════════════════════╗</span>
-                    <span>║ AEGIS_CORE SHELL v7.0 // SECURE CONNECTION ESTABLISHED      ║</span>
-                    <span>╚═════════════════════════════════════════════════════════════╝</span>
-                    <span style="color: var(--slate-500); font-weight: normal; margin-top: 8px;">> Escribe <strong style="color:var(--slate-300)">set-key [TU_API_KEY]</strong> para inicializar.</span>
-                </div>
-            </div>
-            
-            <div class="input-bar">
-                <span class="prompt-prefix">root@aegis:~#</span>
-                <input id="input" type="text" autocomplete="off" spellcheck="false" placeholder="Escribe un comando..." autofocus disabled>
-                <button id="exec-btn" disabled>EXECUTE</button>
-            </div>
-        </section>
-    </main>
+      <section class="panel">
+        <h2 class="panel-title">03 / Estado y privacidad</h2>
+        <div id="connectionState" style="font-size:10px;color:var(--amber);line-height:1.7">Esperando prueba de conexión</div>
+        <div class="divider"></div>
+        <div class="btn-row"><button class="btn small" id="resetBtn" type="button">Reiniciar chat</button><button class="btn small danger" id="forgetBtn" type="button">Borrar clave</button></div>
+        <p class="hint">Los chats y preferencias se guardan localmente en este navegador. Los mensajes de Groq se envían a sus servidores; Ollama procesa en tu instancia local.</p>
+      </section>
+    </aside>
 
-<script type="module">
-    import { marked } from "https://esm.run/marked@4.3.0";
-    import DOMPurify from "https://esm.run/dompurify@3.0.6";
-    import hljs from "https://esm.run/highlight.js@11.9.0";
+    <section class="workspace" aria-label="Terminal AEGIS">
+      <div class="workspace-head"><div class="workspace-heading"><div class="logo" style="width:32px;height:32px;font-size:17px">⌘</div><div><h2 id="workspaceTitle">AEGIS TERMINAL // OLLAMA LOCAL</h2><p id="workspaceSubtitle">Listo para comprobar el servicio local.</p></div></div><div class="workspace-actions"><button class="btn small" id="helpBtn" type="button">Ayuda</button><button class="btn small danger" id="cancelBtn" type="button" disabled>Cancelar</button><button class="btn small" id="clearViewBtn" type="button">Limpiar vista</button></div></div>
+      <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions text"><div class="welcome" id="welcome"><h3>▸ AEGIS CORE READY</h3><p>Selecciona <strong>Ollama local</strong> para usar los modelos instalados en este equipo, o <strong>Groq Cloud</strong> para usar tu API Key.</p><div class="welcome-grid"><div class="welcome-card"><b>01 · OLLAMA LOCAL</b><span>Actualiza la lista de modelos descargados y realiza inferencia en tu ordenador.</span></div><div class="welcome-card"><b>02 · GROQ CLOUD</b><span>Comprueba la clave y consulta los modelos disponibles en la API.</span></div><div class="welcome-card"><b>03 · CONTEXTO AISLADO</b><span>Historial local separado por motor y ventana de contexto limitada.</span></div><div class="welcome-card"><b>04 · SEGURIDAD</b><span>Clave Groq solo en memoria; HTML de respuesta sanitizado antes de mostrarlo.</span></div></div><p style="margin-top:18px;font-size:10px">Escribe <code>/help</code> para ver comandos. No subas claves a GitHub.</p></div></div>
+      <div class="composer-area"><div class="composer"><div class="prompt">root@aegis:~$</div><textarea id="promptInput" rows="2" maxlength="24000" placeholder="Escribe tu mensaje… (Enter enviar · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea><button class="btn primary" type="button" id="sendBtn">Enviar ↗</button></div><div class="compose-foot"><span id="composerModel">Motor activo: Ollama local</span><span>La aplicación limita el historial enviado y permite cancelar cada solicitud.</span></div></div>
+      <div class="footer">AEGIS_CORE v9.0 · OLLAMA + GROQ · FRONTEND ESTÁTICO</div>
+    </section>
+  </main>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
-    marked.setOptions({
-        highlight: function(code, lang) {
-            const language = (lang && hljs.getLanguage(lang)) ? lang : 'plaintext';
-            return hljs.highlight(code, { language }).value;
-        },
-        gfm: true,
-        breaks: true
-    });
+  <script type="module">
+    const $ = id => document.getElementById(id);
+    const DB_NAME = 'AegisCoreDB_v9';
+    const MAX_MESSAGES = 20;
+    const MAX_INPUT = 24000;
+    const TIMEOUT_MS = 120000;
+    const GROQ_BASE = 'https://api.groq.com/openai/v1';
+    const SYSTEM_PROMPT = 'Eres AEGIS_CORE, un asistente técnico claro y útil. Responde en el idioma del usuario. Usa Markdown cuando ayude a la lectura. No afirmes capacidades, accesos ni acciones que no hayas realizado.';
+    const PROVIDERS = {
+      ollama: { name:'Ollama local', endpoint:'http://localhost:11434', defaultModel:'llama3.2', hint:'Ollama debe estar ejecutándose. En GitHub Pages puede que debas añadir https://TU-USUARIO.github.io a OLLAMA_ORIGINS; no abras el servicio a Internet.' },
+      groq: { name:'Groq Cloud', endpoint:GROQ_BASE, defaultModel:'openai/gpt-oss-120b', hint:'Introduce una API Key válida de Groq. Los modelos y las cuotas dependen de tu cuenta y pueden cambiar.' }
+    };
 
-    // --- WRAPPER PARA INDEXED DB CON SISTEMA DE RESPALDO (ANTI-CRASH) ---
-    class AegisDB {
-        constructor() {
-            this.dbName = 'AegisCoreDB';
-            this.dbVersion = 1;
-            this.db = null;
-            this.memoryFallback = new Map();
-            this.isDbActive = true;
-        }
-
-        async init() {
-            return new Promise((resolve) => {
-                try {
-                    if (!window.indexedDB) throw new Error("IndexedDB no soportado");
-
-                    const request = indexedDB.open(this.dbName, this.dbVersion);
-
-                    request.onupgradeneeded = (event) => {
-                        this.db = event.target.result;
-                        if (!this.db.objectStoreNames.contains('settings')) {
-                            this.db.createObjectStore('settings');
-                        }
-                        if (!this.db.objectStoreNames.contains('memory')) {
-                            this.db.createObjectStore('memory');
-                        }
-                    };
-
-                    request.onsuccess = (event) => {
-                        this.db = event.target.result;
-                        resolve(true);
-                    };
-
-                    request.onerror = () => {
-                        console.warn("[SYS_WARN] IndexedDB bloqueado. Activando memoria volátil en RAM.");
-                        this.isDbActive = false;
-                        resolve(false);
-                    };
-                } catch (error) {
-                    this.isDbActive = false;
-                    resolve(false);
-                }
-            });
-        }
-
-        async get(storeName, key) {
-            if (!this.isDbActive || !this.db) return this.memoryFallback.get(`${storeName}_${key}`);
-            return new Promise((resolve) => {
-                try {
-                    const transaction = this.db.transaction(storeName, 'readonly');
-                    const store = transaction.objectStore(storeName);
-                    const request = store.get(key);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => resolve(this.memoryFallback.get(`${storeName}_${key}`));
-                } catch (e) {
-                    resolve(this.memoryFallback.get(`${storeName}_${key}`));
-                }
-            });
-        }
-
-        async set(storeName, key, value) {
-            if (!this.isDbActive || !this.db) {
-                this.memoryFallback.set(`${storeName}_${key}`, value);
-                return true;
-            }
-            return new Promise((resolve) => {
-                try {
-                    const transaction = this.db.transaction(storeName, 'readwrite');
-                    const store = transaction.objectStore(storeName);
-                    const request = store.put(value, key);
-                    request.onsuccess = () => resolve(true);
-                    request.onerror = () => {
-                        this.memoryFallback.set(`${storeName}_${key}`, value);
-                        resolve(true);
-                    };
-                } catch (e) {
-                    this.memoryFallback.set(`${storeName}_${key}`, value);
-                    resolve(true);
-                }
-            });
-        }
-
-        async remove(storeName, key) {
-            if (!this.isDbActive || !this.db) {
-                this.memoryFallback.delete(`${storeName}_${key}`);
-                return true;
-            }
-            return new Promise((resolve) => {
-                try {
-                    const transaction = this.db.transaction(storeName, 'readwrite');
-                    const store = transaction.objectStore(storeName);
-                    const request = store.delete(key);
-                    request.onsuccess = () => resolve(true);
-                    request.onerror = () => {
-                        this.memoryFallback.delete(`${storeName}_${key}`);
-                        resolve(true);
-                    };
-                } catch (e) {
-                    this.memoryFallback.delete(`${storeName}_${key}`);
-                    resolve(true);
-                }
-            });
-        }
+    function escapeHtml(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+    function renderMarkdownSafe(source){
+      let text=String(source??'');const saved=[];
+      const stash=html=>{saved.push(html);return `\u0000${saved.length-1}\u0000`;};
+      text=text.replace(/```([^\n]*)\n([\s\S]*?)```/g,(_all,_lang,code)=>stash(`<pre><code>${escapeHtml(code.replace(/\n$/,''))}</code></pre>`));
+      text=text.replace(/`([^`\n]+)`/g,(_all,code)=>stash(`<code>${escapeHtml(code)}</code>`));
+      const inline=raw=>{
+        let out=escapeHtml(raw);
+        out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(whole,label,href)=>{
+          try{const normalized=href.replace(/&amp;/g,'&');const url=new URL(normalized);if(!['http:','https:'].includes(url.protocol))return whole;return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;}catch{return whole;}
+        });
+        out=out.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/~~(.+?)~~/g,'<del>$1</del>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<em>$1</em>');
+        return out.replace(/\u0000(\d+)\u0000/g,(_whole,n)=>saved[Number(n)]??'');
+      };
+      const lines=text.split(/\r?\n/),html=[];let para=[],list='';
+      const flushPara=()=>{if(para.length){html.push(`<p>${para.map(inline).join('<br>')}</p>`);para=[];}};
+      const flushList=()=>{if(list){html.push(`</${list}>`);list='';}};
+      for(const line of lines){
+        const block=line.match(/^\u0000(\d+)\u0000$/);
+        if(block){flushPara();flushList();html.push(saved[Number(block[1])]??'');continue;}
+        if(!line.trim()){flushPara();flushList();continue;}
+        const heading=line.match(/^(#{1,6})\s+(.+)$/);
+        if(heading){flushPara();flushList();const level=heading[1].length;html.push(`<h${level}>${inline(heading[2])}</h${level}>`);continue;}
+        if(/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)){flushPara();flushList();html.push('<hr>');continue;}
+        const quote=line.match(/^>\s?(.*)$/);
+        if(quote){flushPara();flushList();html.push(`<blockquote><p>${inline(quote[1])}</p></blockquote>`);continue;}
+        const ul=line.match(/^\s*[-*+]\s+(.+)$/);const ol=line.match(/^\s*\d+[.)]\s+(.+)$/);
+        if(ul||ol){flushPara();const wanted=ul?'ul':'ol';if(list&&list!==wanted)flushList();if(!list){list=wanted;html.push(`<${list}>`);}html.push(`<li>${inline((ul||ol)[1])}</li>`);continue;}
+        flushList();para.push(line);
+      }
+      flushPara();flushList();return html.join('\n');
     }
 
-    class AegisCore {
-        constructor() {
-            this.db = new AegisDB();
-            
-            this.apiKey = '';
-            this.activeModelName = 'openai/gpt-oss-120b'; // Restaurado a tu valor original para evitar 404
-            this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-            this.systemInstruction = "Eres AEGIS_CORE, un SO avanzado de seguridad basado en terminal. Responde de forma concisa, técnica, y usa Markdown estricto. Mantén tu identidad de IA/Sistema Operativo en todo momento.";
-            
-            this.messages = []; 
-            this.history = []; 
-            this.historyPos = -1;
-            this.isProcessing = false;
-            this.isRetrying = false; 
-            this.MAX_CONTEXT_MESSAGES = 15;
-            this.currentAbortController = null;
-
-            this.rateLimits = {
-                remainingRequests: 'N/A',
-                remainingTokens: 'N/A',
-                resetTokens: 'N/A'
-            };
-
-            this.ui = {
-                terminal: document.getElementById('terminal'),
-                input: document.getElementById('input'),
-                status: document.getElementById('ai-status'),
-                connBadge: document.getElementById('conn-status'),
-                btn: document.getElementById('exec-btn')
-            };
-        }
-
-        async boot() {
-            try {
-                await this.db.init();
-
-                this.apiKey = (await this.db.get('settings', 'apiKey')) || '';
-                const savedModel = await this.db.get('settings', 'activeModelName');
-                if (savedModel) this.activeModelName = savedModel;
-
-                const savedCmdHistory = await this.db.get('memory', 'cmd_history');
-                if (savedCmdHistory) this.history = savedCmdHistory;
-
-                this.bindEvents();
-                this.enableInput();
-
-                await this.initContext();
-                await this.initSystem();
-
-            } catch (error) {
-                this.updateStatus('SYS_ERR', 'Error Fatal en BD', 'red');
-                this.printLog(`Fallo al inicializar base de datos: ${error.message}`, 'system');
-            }
-        }
-
-        updateRateLimits(headers) {
-            if (!headers) return;
-            this.rateLimits.remainingRequests = headers.get('x-ratelimit-remaining-requests') || this.rateLimits.remainingRequests;
-            this.rateLimits.remainingTokens = headers.get('x-ratelimit-remaining-tokens') || this.rateLimits.remainingTokens;
-            this.rateLimits.resetTokens = headers.get('x-ratelimit-reset-tokens') || this.rateLimits.resetTokens;
-        }
-
-        async initSystem() {
-            if (this.apiKey) {
-                this.testConnection();          
-            } else {
-                this.updateStatus('NO_TOKEN', 'Awaiting set-key', 'amber');
-            }
-        }
-
-        bindEvents() {
-            if (this.ui.btn) {
-                this.ui.btn.addEventListener('click', () => this.handleInput());
-            }
-            if (this.ui.input) {
-                this.ui.input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        this.handleInput();
-                    }
-                    if (e.key === 'l' && e.ctrlKey) { 
-                        e.preventDefault(); 
-                        this.clearTerminal(); 
-                    }
-                    if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        if (this.history.length > 0) {
-                            this.historyPos = Math.min(this.historyPos + 1, this.history.length - 1);
-                            this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
-                        }
-                    }
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        if (this.historyPos > 0) {
-                            this.historyPos--;
-                            this.ui.input.value = this.history[this.history.length - 1 - this.historyPos];
-                        } else if (this.historyPos === 0) {
-                            this.historyPos = -1;
-                            this.ui.input.value = '';
-                        }
-                    }
-                });
-            }
-        }
-
-        enableInput() {
-            if (this.ui.input) {
-                this.ui.input.disabled = false;
-                this.ui.input.focus();
-            }
-            if (this.ui.btn) this.ui.btn.disabled = false;
-        }
-
-        disableInput() {
-            if (this.ui.input) this.ui.input.disabled = true;
-            if (this.ui.btn) this.ui.btn.disabled = true;
-        }
-
-        async handleInput() {
-            if (this.isProcessing || !this.ui.input) return;
-            const text = this.ui.input.value.trim();
-            if (!text) return;
-
-            this.ui.input.value = '';
-            this.historyPos = -1;
-
-            if (text.startsWith('set-key ')) {
-                this.history.push('set-key [HIDDEN]');
-                this.printLog('set-key ********************************', 'user');
-                this.apiKey = text.split(' ')[1].trim();
-                await this.db.set('settings', 'apiKey', this.apiKey);
-                this.printLog("Token criptográfico inyectado en almacenamiento local.", 'system');
-                this.testConnection(true);
-                return;
-            }
-
-            this.history.push(text);
-            this.printLog(text, 'user');
-
-            if (text.startsWith('set-model ')) {
-                this.activeModelName = text.split(' ')[1].trim();
-                await this.db.set('settings', 'activeModelName', this.activeModelName);
-                this.printLog(`Modelo sobrescrito manualmente en BD: <span style="color: var(--teal-400)">${this.activeModelName}</span>`, 'system', true);
-                this.testConnection(true);
-                return;
-            }
-            if (text === 'clear-key') {
-                this.apiKey = '';
-                await this.db.remove('settings', 'apiKey');
-                this.updateStatus('OFFLINE', 'Auth Token Destroyed', 'red');
-                this.printLog("Token purgado del sistema. Conexión cerrada.", 'system');
-                return;
-            }
-            if (text === 'clear') {
-                this.clearTerminal();
-                return;
-            }
-            if (text === 'reset-core') {
-                this.messages = [{ role: "system", content: this.systemInstruction }];
-                await this.saveHistory();
-                this.printLog("Memoria de contexto purgada. Sesión limpia inicializada en BD.", 'system');
-                return;
-            }
-            if (text === 'ping-core') {
-                this.printLog(`Diagnóstico de red hacia API [Modelo: ${this.activeModelName}]...`, 'system');
-                this.testConnection(true);
-                return;
-            }
-            if (text === 'limits') {
-                this.printLog(
-                    `[SYS_LIMITS] TPM Cuota de Red:<br>` +
-                    `├─ Peticiones Restantes: <span style="color: var(--amber-400)">${this.rateLimits.remainingRequests}</span><br>` +
-                    `├─ Tokens Disponibles: <span style="color: var(--teal-400)">${this.rateLimits.remainingTokens}</span><br>` +
-                    `└─ Reset en: <span style="color: var(--slate-300)">${this.rateLimits.resetTokens}s</span>`,
-                    'system', true
-                );
-                return;
-            }
-
-            if (!this.apiKey) {
-                this.printLog("SYS_ERR: Requiere autenticación. Usa <code>set-key [GROQ_API_KEY]</code>", 'system', true);
-                return;
-            }
-
-            this.messages.push({ role: "user", content: text });
-            this.manageContextWindow();
-            await this.saveHistory();
-            await this.fetchAIResponse();
-        }
-
-        manageContextWindow() {
-            if (this.messages.length > this.MAX_CONTEXT_MESSAGES) {
-                const systemPrompt = this.messages[0];
-                const recentMessages = this.messages.slice(-(this.MAX_CONTEXT_MESSAGES - 1));
-                this.messages = [systemPrompt, ...recentMessages];
-            }
-        }
-
-        clearTerminal() {
-            if (!this.ui.terminal) return;
-            this.ui.terminal.innerHTML = '';
-            const banner = document.createElement('div');
-            banner.style.cssText = "color: rgba(20, 184, 166, 0.8); font-weight: bold; margin-bottom: 1.5rem; font-size: 12px; display: flex; flex-direction: column; gap: 4px; user-select: none;";
-            banner.innerHTML = `
-                <span>╔═════════════════════════════════════════════════════════════╗</span>
-                <span>║ AEGIS_CORE SHELL v7.2 // CLOUD-SYNC ACTIVO                  ║</span>
-                <span>╚═════════════════════════════════════════════════════════════╝</span>
-            `;
-            this.ui.terminal.appendChild(banner);
-        }
-
-        async saveHistory() {
-            await this.db.set('memory', 'chat_history', this.messages);
-            await this.db.set('memory', 'cmd_history', this.history);
-        }
-
-        renderHistory() {
-            if (!this.ui.terminal) return;
-            this.clearTerminal(); 
-            this.messages.forEach(msg => {
-                if (msg.role === 'system') return;
-                if (msg.role === 'user') {
-                    this.printLog(msg.content, 'user');
-                } else {
-                    const htmlContent = marked.parse(msg.content);
-                    const safeHTML = this.sanitizeHTML(htmlContent);
-                    this.printLog(safeHTML, 'system', true);
-                }
-            });
-        }
-
-        async initContext() {
-            const savedHistory = await this.db.get('memory', 'chat_history');
-            
-            if (savedHistory && Array.isArray(savedHistory) && savedHistory.some(m => m.role === 'system')) {
-                this.messages = savedHistory;
-                requestAnimationFrame(() => this.renderHistory());
-            } else {
-                this.messages = [{ role: "system", content: this.systemInstruction }];
-                await this.saveHistory();
-            }
-        }
-
-        updateStatus(badgeText, descText, color) {
-            const colorMap = {
-                'teal': { text: 'var(--teal-400)', bg: 'var(--teal-500)' },
-                'amber': { text: 'var(--amber-400)', bg: 'var(--amber-400)' },
-                'red': { text: 'var(--red-400)', bg: 'var(--red-400)' }
-            };
-
-            const selectedColor = colorMap[color] || { text: '#fff', bg: '#fff' };
-
-            if (this.ui.connBadge) {
-                this.ui.connBadge.textContent = badgeText;
-                this.ui.connBadge.style.color = selectedColor.text;
-            }
-
-            if (this.ui.status) {
-                this.ui.status.innerHTML = `
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${selectedColor.bg}; display: inline-block;"></span> 
-                    <span style="color: ${selectedColor.text};">${descText}</span>
-                `;
-            }
-        }
-
-        sanitizeHTML(html) {
-            return DOMPurify.sanitize(html, { 
-                ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'hr', 'del', 'details', 'summary'],
-                ALLOWED_ATTR: ['href', 'class', 'style', 'target', 'rel'] 
-            });
-        }
-
-        scrollToBottom() {
-            if (this.ui.terminal) {
-                requestAnimationFrame(() => {
-                    this.ui.terminal.scrollTop = this.ui.terminal.scrollHeight;
-                });
-            }
-        }
-
-        printLog(msg, type = 'system', isHTML = false) {
-            if (!this.ui.terminal) return null;
-            const entry = document.createElement('div');
-            entry.style.cssText = "margin-bottom: 1.25rem; font-size: 13px; line-height: 1.6; display: flex; gap: 0.75rem;";
-
-            if (type === 'user') {
-                entry.innerHTML = `
-                    <div style="color: var(--slate-500); white-space: nowrap;">root@aegis:~#</div> 
-                    <div style="color: #cbd5e1; word-break: break-word; font-family: 'JetBrains Mono', monospace;">${this.sanitizeHTML(msg)}</div>
-                `;
-            } else {
-                const content = isHTML ? this.sanitizeHTML(msg) : this.sanitizeHTML(msg);
-                entry.innerHTML = `
-                    <div style="color: var(--teal-500); white-space: nowrap; margin-top: 2px;">[SYS]</div> 
-                    <div class="markdown-body" style="word-break: break-word; font-family: 'JetBrains Mono', monospace; flex: 1;">
-                        ${content}
-                    </div>
-                `;
-            }
-
-            this.ui.terminal.appendChild(entry);
-            
-            while (this.ui.terminal.childElementCount > 350) {
-                this.ui.terminal.removeChild(this.ui.terminal.firstChild);
-            }
-
-            this.scrollToBottom();
-            return entry;
-        }
-
-        async testConnection(verbose = false) {
-            this.updateStatus('CONNECTING', 'Handshake request...', 'amber');
-            try {
-                const response = await fetch(this.apiUrl, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: this.activeModelName, messages: [{ role: "user", content: "ping" }], max_tokens: 5 })
-                });
-
-                if (response.ok) {
-                    this.updateRateLimits(response.headers); 
-                    this.updateStatus('SECURE', `Link Active [${this.activeModelName}]`, 'teal');
-                    if (verbose) this.printLog(`Handshake exitoso. Motor ${this.activeModelName} operativo.`, 'system');
-                } else {
-                    this.updateStatus('ERR_404', 'Model Error', 'red');
-                    if (verbose) this.printLog(`SYS_ERR HTTP ${response.status}: El modelo '${this.activeModelName}' no responde o no existe. Usa <code>set-model [nombre]</code> para cambiarlo.`, 'system', true);
-                }
-            } catch (error) {
-                this.updateStatus('NET_ERR', 'Offline', 'red');
-                if (verbose) this.printLog(`Fallo de red: ${error.message}`, 'system');
-            }
-        }
-
-        async fetchAIResponse() {
-            this.isProcessing = true;
-            this.disableInput();
-
-            const typingEntry = this.printLog(`<span style="animation: pulse 1.5s infinite;">Procesando carga neuronal con [${this.activeModelName}]...</span>`, 'system', true);
-
-            if (this.currentAbortController) this.currentAbortController.abort();
-            this.currentAbortController = new AbortController();
-
-            try {
-                const response = await fetch(this.apiUrl, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        model: this.activeModelName, 
-                        messages: this.messages,
-                        temperature: 0.6
-                    }),
-                    signal: this.currentAbortController.signal
-                });
-
-                if (typingEntry) typingEntry.remove();
-                this.updateRateLimits(response.headers); 
-
-                if (!response.ok) {
-                    let errData;
-                    try { errData = await response.json(); } 
-                    catch (e) { errData = { error: { message: await response.text() } }; }
-                    
-                    let errMsg = errData.error?.message || "Error desconocido en API";
-                    this.printLog(`API_ERR [${response.status}]: ${errMsg}`, 'system', true);
-                    this.messages.pop(); 
-                    return;
-                }
-
-                const data = await response.json();
-                
-                if (!data.choices?.[0]?.message) {
-                    throw new Error("Estructura de respuesta inválida desde la API.");
-                }
-
-                const aiResponse = data.choices[0].message.content;
-
-                this.messages.push({ role: "assistant", content: aiResponse });
-                this.manageContextWindow();
-                await this.saveHistory();
-
-                const htmlContent = marked.parse(aiResponse);
-                const safeHTML = this.sanitizeHTML(htmlContent);
-                this.printLog(safeHTML, 'system', true);
-
-            } catch (error) {
-                if (error.name === 'AbortError') return;
-                if (typingEntry) typingEntry.remove();
-                this.printLog(`Fallo crítico de conexión: ${error.message}`, 'system');
-                this.messages.pop();
-            } finally {
-                this.isProcessing = false;
-                this.enableInput();
-                this.scrollToBottom();
-            }
-        }
+    class LocalStore {
+      constructor(){this.db=null;this.ready=false;this.volatile=new Map();}
+      async init(){
+        if(!('indexedDB' in window)) return false;
+        try{
+          this.db=await new Promise((resolve,reject)=>{
+            const req=indexedDB.open(DB_NAME,1);
+            req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('app'))db.createObjectStore('app');if(!db.objectStoreNames.contains('chats'))db.createObjectStore('chats');};
+            req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);req.onblocked=()=>reject(new Error('La base de datos está bloqueada por otra pestaña.'));
+          });
+          this.db.onversionchange=()=>this.db.close();this.ready=true;return true;
+        }catch(e){console.warn('IndexedDB no disponible; sesión volátil.',e);return false;}
+      }
+      async get(store,key){
+        if(!this.ready||!this.db)return this.volatile.get(`${store}:${key}`);
+        try{return await new Promise((resolve,reject)=>{const r=this.db.transaction(store,'readonly').objectStore(store).get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+        catch{return this.volatile.get(`${store}:${key}`);}
+      }
+      async set(store,key,value){
+        this.volatile.set(`${store}:${key}`,value);
+        if(!this.ready||!this.db)return false;
+        try{await new Promise((resolve,reject)=>{const tx=this.db.transaction(store,'readwrite');tx.objectStore(store).put(value,key);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});return true;}
+        catch(e){console.warn('No se pudo persistir el dato local.',e);return false;}
+      }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        if (!document.getElementById('terminal')) {
-            console.warn("[SYS_WARN] No se encontró el contenedor #terminal en el DOM.");
+    class Aegis {
+      constructor(){
+        this.store=new LocalStore();this.active='ollama';this.settings={};this.chats={ollama:[],groq:[]};this.groqKey='';
+        this.controller=null;this.processing=false;this.timedOut=false;this.timeout=null;this.pending=null;this.toastTimer=null;this.rateHeaders={};this.modelLists={ollama:[],groq:[]};this.requestProvider=null;
+      }
+      async boot(){
+        await this.store.init();
+        this.settings=await this.store.get('app','settings')||{};
+        const oldChats=await this.store.get('chats','by-provider');
+        if(oldChats&&typeof oldChats==='object'){this.chats={ollama:Array.isArray(oldChats.ollama)?oldChats.ollama:[],groq:Array.isArray(oldChats.groq)?oldChats.groq:[]};}
+        this.active=this.settings.active==='groq'?'groq':'ollama';
+        if(this.settings.ollamaEndpoint)$('ollamaEndpoint').value=this.validLoopbackEndpoint(this.settings.ollamaEndpoint)?this.settings.ollamaEndpoint:'http://localhost:11434';
+        this.bind();this.applyProvider(this.active,false);this.renderChat();
+        this.setStatus(this.store.ready?'Aplicación lista · datos locales':'Aplicación lista · modo temporal','ok');
+        if(!this.store.ready)this.toast('IndexedDB no disponible: el historial no persistirá tras recargar.','error');
+      }
+      bind(){
+        $('providerList').addEventListener('click',e=>{const b=e.target.closest('[data-provider]');if(b)this.applyProvider(b.dataset.provider,true);});
+        $('testBtn').addEventListener('click',()=>this.testConnection());$('refreshBtn').addEventListener('click',()=>this.refreshModels());$('sendBtn').addEventListener('click',()=>this.send());$('cancelBtn').addEventListener('click',()=>this.cancel());
+        $('toggleKey').addEventListener('click',()=>{const k=$('groqKey');k.type=k.type==='password'?'text':'password';$('toggleKey').textContent=k.type==='password'?'Ver':'Ocultar';});
+        $('forgetBtn').addEventListener('click',()=>{this.groqKey='';$('groqKey').value='';this.feedback('Clave borrada de la memoria de esta página.');if(this.active==='groq')this.setStatus('Clave eliminada','idle');});
+        $('resetBtn').addEventListener('click',()=>this.resetChat());$('clearViewBtn').addEventListener('click',()=>this.clearView());$('helpBtn').addEventListener('click',()=>this.showHelp());
+        $('customModel').addEventListener('input',()=>this.updateModelMeta());$('modelSelect').addEventListener('change',()=>this.updateModelMeta());
+        $('ollamaEndpoint').addEventListener('change',async()=>{if(!this.validLoopbackEndpoint($('ollamaEndpoint').value)){this.feedback('URL rechazada: usa únicamente localhost, 127.0.0.1 o [::1].','error');$('ollamaEndpoint').value='http://localhost:11434';return;}this.settings.ollamaEndpoint=$('ollamaEndpoint').value.trim().replace(/\/$/,'');await this.persistSettings();});
+        $('promptInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.send();}});
+        window.addEventListener('online',()=>this.toast('Conexión de red restaurada.','success'));
+      }
+      validLoopbackEndpoint(raw){
+        try{const u=new URL(String(raw).trim());if(u.protocol!=='http:'||u.username||u.password||u.search||u.hash)return false;
+          const h=u.hostname.toLowerCase();if(!['localhost','127.0.0.1','[::1]','::1'].includes(h))return false;
+          if(u.port!=='11434')return false;
+          return u.pathname===''||u.pathname==='/';
+        }catch{return false;}
+      }
+      endpoint(){const raw=$('ollamaEndpoint').value.trim().replace(/\/$/,'');return this.validLoopbackEndpoint(raw)?raw:'http://localhost:11434';}
+      model(){return $('customModel').value.trim()||$('modelSelect').value||PROVIDERS[this.active].defaultModel;}
+      async applyProvider(id,notify=true){
+        if(!PROVIDERS[id])return;
+        if(this.processing){this.toast('Cancela la solicitud actual antes de cambiar de motor.','error');return;}
+        this.active=id;this.settings.active=id;
+        document.querySelectorAll('[data-provider]').forEach(b=>{const chosen=b.dataset.provider===id;b.classList.toggle('active',chosen);b.setAttribute('aria-pressed',String(chosen));});
+        const groq=id==='groq';$('groqKeyField').classList.toggle('hidden',!groq);$('ollamaEndpointField').classList.toggle('hidden',groq);$('forgetBtn').disabled=!groq;
+        $('workspaceTitle').textContent=`AEGIS TERMINAL // ${groq?'GROQ CLOUD':'OLLAMA LOCAL'}`;$('workspaceSubtitle').textContent=groq?'Conexión HTTPS a Groq API.':'Conexión local a Ollama.';
+        $('composerModel').textContent=`${PROVIDERS[id].name} · ${this.modelLists[id]?.length||0} modelos detectados`;$('providerHint').textContent=PROVIDERS[id].hint;
+        $('groqKey').value=this.groqKey;this.populateModels(id);this.renderChat();await this.persistSettings();
+        this.setStatus(groq?(this.groqKey?'Groq seleccionado · clave en memoria':'Groq seleccionado · requiere clave'):'Ollama seleccionado · listo para probar',groq&&!this.groqKey?'idle':'ok');
+        if(notify)this.toast(`Motor activo: ${PROVIDERS[id].name}`,'success');
+      }
+      populateModels(id,preferred){
+        const select=$('modelSelect');const current=preferred||this.settings.models?.[id]||PROVIDERS[id].defaultModel;
+        const discovered=[...new Set((this.modelLists[id]||[]).filter(Boolean))];
+        const models=discovered.length?discovered:[PROVIDERS[id].defaultModel];
+        const selected=models.includes(current)?current:models[0];select.replaceChildren();
+        for(const name of models){const op=document.createElement('option');op.value=name;op.textContent=name;select.appendChild(op);}select.value=selected;$('customModel').value='';this.updateModelMeta();
+      }
+      updateModelMeta(){const label=$('customModel').value.trim()||$('modelSelect').value||PROVIDERS[this.active].defaultModel;$('composerModel').textContent=`${PROVIDERS[this.active].name} · ${label}`;}
+      async persistSettings(){this.settings.active=this.active;this.settings.models=this.settings.models||{};this.settings.models[this.active]=$('modelSelect').value||PROVIDERS[this.active].defaultModel;if(this.active==='ollama')this.settings.ollamaEndpoint=this.endpoint();await this.store.set('app','settings',this.settings);}
+      async persistChats(){await this.store.set('chats','by-provider',this.chats);}
+      feedback(message,type=''){const node=$('configFeedback');node.textContent=message;node.style.color=type==='error'?'var(--red)':'var(--teal)';}
+      setStatus(message,state='idle'){$('headerStatus').textContent=message;$('connectionState').textContent=message;$('statusDot').className=`dot${state==='ok'?' ok':state==='error'?' error':''}`;$('connectionState').style.color=state==='error'?'var(--red)':state==='ok'?'var(--teal)':'var(--amber)';}
+      async fetchJson(url,options={},timeoutMs=TIMEOUT_MS){
+        const controller=options.signal?null:new AbortController();const signal=options.signal||controller.signal;const timer=controller?setTimeout(()=>controller.abort(),timeoutMs):null;
+        try{const response=await fetch(url,{...options,signal,cache:'no-store',redirect:'error'});const raw=await response.text();let data={};try{data=raw?JSON.parse(raw):{};}catch{data={message:raw.slice(0,800)};}
+          if(!response.ok){const m=data?.error?.message||data?.error||data?.message||`HTTP ${response.status}`;const error=new Error(String(m).slice(0,900));error.status=response.status;error.headers=response.headers;throw error;}
+          return {data,headers:response.headers};
+        }finally{if(timer)clearTimeout(timer);}
+      }
+      headersForGroq(){return {'Authorization':`Bearer ${this.groqKey}`,'Content-Type':'application/json','Accept':'application/json'};}
+      async refreshModels(){
+        if(this.processing){this.toast('Espera a que termine o cancela la solicitud actual.','error');return;}
+        const id=this.active;this.setBusy(true,'Consultando modelos…');this.feedback('Consultando el proveedor…');const controller=new AbortController();this.controller=controller;const timer=setTimeout(()=>controller.abort(),20000);
+        try{
+          let models=[];
+          if(id==='ollama'){
+            const {data}=await this.fetchJson(`${this.endpoint()}/api/tags`,{method:'GET',headers:{'Accept':'application/json'},signal:controller.signal},20000);
+            models=(Array.isArray(data.models)?data.models:[]).map(m=>String(m.name||m.model||'')).filter(Boolean);
+            if(!models.length)throw new Error('Ollama respondió, pero no hay modelos descargados. Ejecuta: ollama pull llama3.2');
+          }else{
+            const key=$('groqKey').value.trim()||this.groqKey;if(!key)throw new Error('Introduce tu API Key de Groq y vuelve a intentar.');
+            this.groqKey=key;
+            const {data,headers}=await this.fetchJson(`${GROQ_BASE}/models`,{method:'GET',headers:{'Authorization':`Bearer ${key}`,'Accept':'application/json'},signal:controller.signal},20000);this.captureRateHeaders(headers);
+            models=(Array.isArray(data.data)?data.data:[]).filter(m=>m&&typeof m.id==='string'&&m.active!==false&&!/(whisper|orpheus|transcription|speech)/i.test(m.id)).map(m=>m.id).sort();
+            if(!models.length)throw new Error('La API no devolvió modelos de chat disponibles.');
+          }
+          this.modelLists[id]=[...new Set(models)];const saved=this.settings.models?.[id];this.populateModels(id,saved&&models.includes(saved)?saved:models[0]);await this.persistSettings();
+          this.feedback(`${models.length} modelo(s) detectado(s).`);this.setStatus(`${PROVIDERS[id].name}: ${models.length} modelos detectados`,'ok');this.toast(`Modelos actualizados: ${models.length}`,'success');
+        }catch(e){this.feedback(this.friendlyError(e),'error');this.setStatus(`${PROVIDERS[id].name}: no disponible`,'error');this.toast(this.friendlyError(e),'error');}
+        finally{clearTimeout(timer);if(this.controller===controller)this.controller=null;this.setBusy(false);}
+      }
+      async testConnection(){
+        if(this.processing){this.toast('Hay una solicitud activa; cancélala primero.','error');return;}
+        const id=this.active;this.setBusy(true,'Probando conexión…');this.feedback('Comprobando conexión…');
+        const controller=new AbortController();this.controller=controller;const timer=setTimeout(()=>controller.abort(),20000);
+        try{
+          if(id==='ollama'){
+            const {data}=await this.fetchJson(`${this.endpoint()}/api/tags`,{method:'GET',headers:{'Accept':'application/json'},signal:controller.signal},20000);
+            const models=(Array.isArray(data.models)?data.models:[]).map(m=>String(m.name||m.model||'')).filter(Boolean);this.modelLists.ollama=[...new Set(models)];
+            if(models.length){const saved=this.settings.models?.ollama;this.populateModels('ollama',saved&&models.includes(saved)?saved:models[0]);}this.feedback(`Conexión correcta. ${models.length} modelo(s) local(es).`);this.setStatus(`OLLAMA ONLINE · ${models.length} modelos`,'ok');
+          }else{
+            const key=$('groqKey').value.trim()||this.groqKey;if(!key)throw new Error('Introduce tu API Key de Groq.');this.groqKey=key;
+            const {data,headers}=await this.fetchJson(`${GROQ_BASE}/models`,{method:'GET',headers:{'Authorization':`Bearer ${key}`,'Accept':'application/json'},signal:controller.signal},20000);this.captureRateHeaders(headers);
+            const models=(Array.isArray(data.data)?data.data:[]).filter(m=>m&&typeof m.id==='string'&&m.active!==false&&!/(whisper|orpheus|transcription|speech)/i.test(m.id)).map(m=>m.id).sort();
+            if(!models.length)throw new Error('Groq respondió pero no devolvió modelos compatibles.');this.modelLists.groq=[...new Set(models)];const saved=this.settings.models?.groq;this.populateModels('groq',saved&&models.includes(saved)?saved:(models.includes('openai/gpt-oss-120b')?'openai/gpt-oss-120b':models[0]));this.feedback(`Conexión correcta. ${models.length} modelo(s) de chat listados.`);this.setStatus(`GROQ ONLINE · ${models.length} modelos`,'ok');
+          }
+          await this.persistSettings();this.toast('Prueba de conexión correcta.','success');
+        }catch(e){this.feedback(this.friendlyError(e),'error');this.setStatus(`${id==='ollama'?'Ollama':'Groq'}: error de conexión`,'error');this.toast(this.friendlyError(e),'error');}
+        finally{clearTimeout(timer);if(this.controller===controller)this.controller=null;this.setBusy(false);}
+      }
+      captureRateHeaders(headers){if(!headers)return;const map={'requests restantes':'x-ratelimit-remaining-requests','tokens restantes':'x-ratelimit-remaining-tokens','reinicio tokens':'x-ratelimit-reset-tokens','reinicio solicitudes':'x-ratelimit-reset-requests'};const pairs=Object.entries(map).map(([label,h])=>{const v=headers.get(h);return v?`${label}: ${v}`:''}).filter(Boolean);if(pairs.length)$('connectionState').textContent+=` · ${pairs.join(' · ')}`;}
+      async send(){
+        if(this.processing)return;
+        const text=$('promptInput').value.trim();if(!text)return;if(text.startsWith('/')){$('promptInput').value='';const handled=await this.command(text);if(!handled)this.toast('Comando desconocido. Escribe /help.','error');return;}if(text.length>MAX_INPUT){this.toast(`El mensaje supera el límite de ${MAX_INPUT} caracteres.`,'error');return;}
+        const id=this.active,model=this.model(),key=id==='groq'?($('groqKey').value.trim()||this.groqKey):'';
+        if(id==='groq'&&!key){this.toast('Introduce una API Key de Groq en el panel lateral.','error');$('groqKey').focus();return;}
+        if(id==='ollama'&&!this.validLoopbackEndpoint($('ollamaEndpoint').value)){this.toast('La URL de Ollama debe ser localhost o una dirección loopback.','error');return;}
+        if(!model||model.length>200){this.toast('Selecciona un ID de modelo válido.','error');return;}
+        this.groqKey=key;this.requestProvider=id;const chat=this.chats[id];$('promptInput').value='';chat.push({role:'user',content:text});this.trimContext(chat);await this.persistChats();this.appendMessage('user',text,{provider:id});
+        this.processing=true;this.setBusy(true,`Generando con ${PROVIDERS[id].name}…`);this.pending=this.appendPending(model,id);const controller=new AbortController();this.controller=controller;this.timedOut=false;this.timeout=setTimeout(()=>{this.timedOut=true;controller.abort();},TIMEOUT_MS);
+        try{
+          const content=await this.callProvider(id,model,key,chat,controller.signal);
+          if(!content.trim())throw new Error('El proveedor devolvió una respuesta vacía.');
+          chat.push({role:'assistant',content,at:new Date().toISOString()});this.trimContext(chat);await this.persistChats();this.removePending();this.appendMessage('assistant',content,{provider:id,model});this.setStatus(`Respuesta recibida · ${PROVIDERS[id].name}`,'ok');
+        }catch(e){
+          this.removePending();const message=e.name==='AbortError'?(this.timedOut?'Tiempo máximo de espera superado (120 s).':'Solicitud cancelada.'):this.friendlyError(e);this.appendMessage('error',message,{provider:id});this.setStatus(e.name==='AbortError'?'Solicitud detenida':'Error de solicitud','error');
+          const latest=this.chats[id];if(latest.length&&latest[latest.length-1]?.role==='user'&&latest[latest.length-1]?.content===text)latest.pop();await this.persistChats();
+        }finally{clearTimeout(this.timeout);this.timeout=null;this.controller=null;this.pending=null;this.processing=false;this.setBusy(false);}
+      }
+      async callProvider(id,model,key,chat,signal){
+        const history=chat.slice(-MAX_MESSAGES).map(m=>({role:m.role,content:m.content}));
+        if(id==='ollama'){
+          const messages=[{role:'system',content:SYSTEM_PROMPT},...history];
+          const {data}=await this.fetchJson(`${this.endpoint()}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({model,messages,stream:false,options:{temperature:.7}}),signal});
+          if(data.error)throw new Error(data.error);const answer=data.message?.content;if(typeof answer!=='string')throw new Error('Respuesta de Ollama inválida: falta message.content.');return answer;
         }
-        window.aegis = new AegisCore();
-        window.aegis.boot(); 
-    });
-</script>
+        const {data,headers}=await this.fetchJson(`${GROQ_BASE}/chat/completions`,{method:'POST',headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({model,messages:[{role:'system',content:SYSTEM_PROMPT},...history],temperature:.7,stream:false,max_completion_tokens:4096}),signal});
+        this.captureRateHeaders(headers);const answer=data.choices?.[0]?.message?.content;if(typeof answer!=='string')throw new Error(data.error?.message||'Respuesta de Groq inválida: falta choices[0].message.content.');return answer;
+      }
+      trimContext(chat){while(chat.length>MAX_MESSAGES)chat.shift();while(chat.length&&chat[0].role==='assistant')chat.shift();}
+      setBusy(busy,message){$('sendBtn').disabled=busy;$('promptInput').disabled=busy;$('cancelBtn').disabled=!busy;$('testBtn').disabled=busy;$('refreshBtn').disabled=busy;document.querySelectorAll('[data-provider]').forEach(b=>b.disabled=busy);$('resetBtn').disabled=busy;$('clearViewBtn').disabled=busy;if(message)this.setStatus(message,'idle');if(!busy){$('sendBtn').textContent='Enviar ↗';}else{$('sendBtn').textContent='Procesando…';}}
+      cancel(){if(this.controller){this.controller.abort();this.setStatus('Cancelando solicitud…','idle');}}
+      appendPending(model,id){const node=document.createElement('article');node.className='message assistant';const av=document.createElement('div');av.className='avatar';av.textContent='Æ';const body=document.createElement('div');const meta=document.createElement('div');meta.className='meta';meta.textContent=`${PROVIDERS[id].name} · ${model} · generando`;const c=document.createElement('div');c.className='content pending';const spin=document.createElement('span');spin.className='spinner';c.append(spin,document.createTextNode('Esperando respuesta del modelo…'));body.append(meta,c);node.append(av,body);$('transcript').append(node);$('welcome')?.remove();this.scrollBottom();return node;}
+      removePending(){if(this.pending?.isConnected)this.pending.remove();}
+      appendMessage(role,content,meta={}){
+        $('welcome')?.remove();const node=document.createElement('article');node.className=`message ${role==='error'?'error':role}`;const av=document.createElement('div');av.className='avatar';av.textContent=role==='user'?'TÚ':role==='error'?'!':'Æ';const body=document.createElement('div');const title=document.createElement('div');title.className='meta';title.textContent=role==='user'?'TÚ':role==='error'?'SISTEMA · ERROR':`${PROVIDERS[meta.provider||this.active].name} · ${meta.model||this.model()}`;const c=document.createElement('div');c.className='content';
+        if(role==='user'||role==='error'){const p=document.createElement('p');p.textContent=content;c.append(p);}else{c.innerHTML=renderMarkdownSafe(content);}
+        body.append(title,c);node.append(av,body);$('transcript').append(node);while($('transcript').children.length>450)$('transcript').firstElementChild.remove();this.scrollBottom();return node;
+      }
+      clearView(){const transcript=$('transcript');transcript.replaceChildren();const welcome=document.createElement('div');welcome.className='welcome';const h=document.createElement('h3');h.textContent='▸ VISTA LIMPIA';const p=document.createElement('p');p.textContent='La conversación sigue guardada localmente. Cambia de motor o reinicia la vista para volver a mostrarla.';welcome.append(h,p);transcript.append(welcome);}
+      renderChat(){const transcript=$('transcript');transcript.replaceChildren();const chat=this.chats[this.active]||[];if(!chat.length){const welcome=document.createElement('div');welcome.className='welcome';welcome.id='welcome';const h=document.createElement('h3');h.textContent='▸ AEGIS CORE READY';const p=document.createElement('p');p.textContent='Conversación vacía. Envía un mensaje cuando el proveedor esté configurado.';welcome.append(h,p);transcript.append(welcome);return;}for(const m of chat){this.appendMessage(m.role,m.content,{provider:this.active});}this.scrollBottom();}
+      scrollBottom(){requestAnimationFrame(()=>{const t=$('transcript');t.scrollTop=t.scrollHeight;});}
+      async resetChat(){if(this.processing){this.toast('Cancela la solicitud actual primero.','error');return;}if(!confirm(`¿Borrar la conversación local de ${PROVIDERS[this.active].name}?`))return;this.chats[this.active]=[];await this.persistChats();this.renderChat();this.toast('Conversación borrada del almacenamiento local.','success');}
+      showHelp(){this.appendMessage('assistant','**Comandos disponibles**\n\n- `/help` — mostrar esta ayuda.\n- `/ping` — probar la conexión del proveedor activo.\n- `/models` — actualizar modelos instalados/disponibles.\n- `/clear` — limpiar la vista sin borrar el historial.\n- `/reset` — borrar conversación del motor activo.\n\n**Atajos:** Enter envía; Shift+Enter agrega una línea. Usa Cancelar para abortar una consulta. La clave de Groq solo existe en memoria durante esta sesión.');}
+      async command(text){switch(text.trim().toLowerCase()){case '/help':this.showHelp();return true;case '/ping':await this.testConnection();return true;case '/models':await this.refreshModels();return true;case '/clear':this.clearView();return true;case '/reset':await this.resetChat();return true;default:return false;}}
+      friendlyError(e){if(e?.name==='AbortError')return 'Solicitud interrumpida.';const s=e?.status;const m=String(e?.message||'Error desconocido');if(/Failed to fetch|NetworkError|fetch failed|Load failed/i.test(m))return this.active==='ollama'?'No se pudo acceder a Ollama. Comprueba que esté ejecutándose y que permita este origen mediante OLLAMA_ORIGINS (CORS).':'No se pudo acceder a Groq. Comprueba Internet, CORS y tu conexión.';if(s===401||s===403)return 'Autenticación rechazada. Revisa la API Key y los permisos del proveedor.';if(s===404)return this.active==='ollama'?'Ruta o modelo no encontrado. Actualiza la lista y confirma que el modelo esté descargado.':'Modelo o endpoint no encontrado. Actualiza la lista de modelos y elige uno activo.';if(s===429)return 'Límite de uso alcanzado (HTTP 429). Espera al reinicio de cuota o revisa tu plan.';if(s===400)return `Solicitud no válida: ${m}`;if(/CORS/i.test(m))return 'El navegador bloqueó la conexión por CORS. Autoriza este origen en Ollama.';return m.slice(0,700);}
+      toast(message,type=''){const n=$('toast');n.textContent=message;n.className=`toast${type?' '+type:''}`;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>n.classList.add('hidden'),5200);}
+    }
+
+    const app=new Aegis();window.aegis=app;
+    app.boot().catch(e=>{console.error('AEGIS init error');$('headerStatus').textContent='ERROR INICIALIZACIÓN';$('connectionState').textContent='No se pudo iniciar la aplicación. Revisa que el navegador permita módulos y almacenamiento.';$('statusDot').className='dot error';});
+  </script>
 </body>
 </html>
